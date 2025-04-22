@@ -1,4 +1,4 @@
-rootProject.name = 'parent'
+rootProject.name = 'ssok-backend'
 
 //전체 빌드시 추가할 모듈을 이곳에 명시 할 것
 include 'ssok-common'
@@ -39,5 +39,4 @@ dependencyResolutionManagement {
         }
     }
 }
-include 'ssok-common'
 
