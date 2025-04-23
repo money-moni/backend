@@ -1,15 +1,16 @@
-package kr.ssok.bank;
+package kr.ssok.example;
 
 import kr.ssok.common.util.TestUtil;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SsokBankApplication {
+public class SsokExampleApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SsokBankApplication.class, args);
+        SpringApplication.run(SsokExampleApplication.class, args);
+
+        // ssok-common 의존성을 가져옴
         TestUtil.Test();
     }
-
 }

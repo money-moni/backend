@@ -1,10 +1,10 @@
-package kr.ssok.bank;
+package kr.ssok.example;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SsokBankApplicationTests {
+class SsokExampleApplicationTests {
 
     @Test
     void contextLoads() {
