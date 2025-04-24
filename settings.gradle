@@ -4,6 +4,7 @@ rootProject.name = 'ssok-backend'
 include 'ssok-common'
 include 'ssok-example'
 include 'ssok-user-service'
+include 'ssok-account-service'
 
 dependencyResolutionManagement {
     versionCatalogs {
