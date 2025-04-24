@@ -1,10 +1,10 @@
-package kr.ssok.example;
+package kr.ssok.transferservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SsokExampleApplicationTests {
+class SsokTransferServiceApplicationTests {
 
     @Test
     void contextLoads() {
