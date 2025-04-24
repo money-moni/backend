@@ -2,7 +2,11 @@ rootProject.name = 'ssok-backend'
 
 //전체 빌드시 추가할 모듈을 이곳에 명시 할 것
 include 'ssok-common'
-include 'ssok-example'
+include 'ssok-transfer-service'
+include 'ssok-user-service'
+include 'ssok-account-service'
+include 'ssok-gateway'
+include 'ssok-config'
 
 dependencyResolutionManagement {
     versionCatalogs {
@@ -39,4 +43,3 @@ dependencyResolutionManagement {
         }
     }
 }
-
