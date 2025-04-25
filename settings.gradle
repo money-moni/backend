@@ -19,6 +19,7 @@ dependencyResolutionManagement {
             version('springCloud', '2024.0.0')
             version('swagger', '2.3.0')
             version('lombok', '1.18.24')
+            version('jackson', '2.16.1')  // Jackson 버전 추가
             
             // 플러그인 정의
             plugin('springBoot', 'org.springframework.boot').versionRef('springBoot')
@@ -34,6 +35,11 @@ dependencyResolutionManagement {
 
             library('springCloud', 'org.springframework.cloud', 'spring-cloud-dependencies').versionRef('springCloud')
             library('swagger', 'org.springdoc', 'springdoc-openapi-starter-webmvc-ui').versionRef('swagger')
+            
+            // Jackson 라이브러리 정의
+            library('jacksonDatabind', 'com.fasterxml.jackson.core', 'jackson-databind').versionRef('jackson')
+            library('jacksonAnnotations', 'com.fasterxml.jackson.core', 'jackson-annotations').versionRef('jackson')
+            library('jacksonJsr310', 'com.fasterxml.jackson.datatype', 'jackson-datatype-jsr310').versionRef('jackson')
 
             // 버전이 따로 표기되어 있지 않을때 사용
             library('springBootWeb', 'org.springframework.boot', 'spring-boot-starter-web').withoutVersion()
