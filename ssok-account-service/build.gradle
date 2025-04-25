@@ -24,14 +24,10 @@ dependencies {
     // Spring Cloud Dependencies
     implementation libs.springCloud
 
-    // mariadb
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    // PostgreSQL
+    runtimeOnly 'org.postgresql:postgresql'
 
-    // JWT
-    implementation libs.jwtApi
-    runtimeOnly libs.jwtImpl
-    runtimeOnly libs.jwtJackson
-
+    // test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -41,6 +37,8 @@ dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     implementation "org.springframework.cloud:spring-cloud-starter-bootstrap"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
+
+
 
 }
 
