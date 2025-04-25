@@ -2,6 +2,7 @@ package kr.ssok.transferservice.service;
 
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
+import kr.ssok.transferservice.entity.TransferHistory;
 import kr.ssok.transferservice.service.impl.TransferServiceImpl;
 import org.junit.jupiter.api.Test;
 
