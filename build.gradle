@@ -39,8 +39,18 @@ subprojects {
 
     // 공통 의존성
     dependencies {
-        compileOnly libs.lombok
-        annotationProcessor libs.lombok
+        // Config 모듈에는 Lombok 제외
+        if (project.name != 'ssok-config') {
+            compileOnly libs.lombok
+            annotationProcessor libs.lombok
+        }
+        
+        // Jackson 공통 의존성 추가 (gateway, config 모듈 제외)
+        if (project.name != 'ssok-gateway' && project.name != 'ssok-config') {
+            implementation libs.jacksonDatabind
+            implementation libs.jacksonAnnotations
+            implementation libs.jacksonJsr310
+        }
     }
 
     // 각 하위 모듈의 JAR 파일을 루트 프로젝트의 target 디렉토리에 복사

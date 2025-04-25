@@ -1,0 +1,44 @@
+package kr.ssok.transferservice.exception;
+
+import kr.ssok.common.exception.ResponseStatus;
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+
+/**
+ * 송금 서비스 관련 응답 상태 코드
+ */
+@Getter
+public enum TransferResponseStatus implements ResponseStatus {
+    /**
+     * 1. 요청에 성공한 경우(2000~2999)
+     */
+    TRANSFER_SUCCESS(true, 2000, "송금이 성공적으로 완료되었습니다."),
+
+    /**
+     * 2. 클라이언트 에러(4000~4999)
+     */
+    TRANSFER_FAILED(false, 4000, "송금에 실패했습니다.");
+
+    private final boolean success;
+    private final int code;
+    private final String message;
+    private HttpStatus httpStatus;
+
+    TransferResponseStatus(boolean success, int code, String message) {
+        this.success = success;
+        this.code = code;
+        this.message = message;
+    }
+
+    TransferResponseStatus(boolean success, int code, String message, HttpStatus httpStatus) {
+        this.success = success;
+        this.code = code;
+        this.message = message;
+        this.httpStatus = httpStatus;
+    }
+
+    @Override
+    public boolean isSuccess() {
+        return success;
+    }
+}
