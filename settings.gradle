@@ -5,6 +5,8 @@ include 'ssok-common'
 include 'ssok-transfer-service'
 include 'ssok-user-service'
 include 'ssok-account-service'
+include 'ssok-gateway'
+include 'ssok-config'
 
 dependencyResolutionManagement {
     versionCatalogs {
@@ -41,4 +43,3 @@ dependencyResolutionManagement {
         }
     }
 }
-
