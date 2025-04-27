@@ -1,7 +1,9 @@
 package kr.ssok.transferservice.controller;
 
+import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
+import kr.ssok.transferservice.exception.TransferResponseStatus;
 import kr.ssok.transferservice.service.TransferService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,6 @@ public class TransferController {
             @RequestHeader("X-user-Id") Long userId
     ) {
         TransferResponseDto result = this.transferService.transfer(userId, requestDto);
-        return ResponseEntity.ok(new BaseResponse<>(true, 200, "송금에 성공했습니다.", result));
+        return ResponseEntity.ok(new BaseResponse<>(TransferResponseStatus.TRANSFER_SUCCESS, result));
     }
 }

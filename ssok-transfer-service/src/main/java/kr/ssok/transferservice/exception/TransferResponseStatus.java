@@ -17,7 +17,10 @@ public enum TransferResponseStatus implements ResponseStatus {
     /**
      * 2. 클라이언트 에러(4000~4999)
      */
-    TRANSFER_FAILED(false, 4000, "송금에 실패했습니다.");
+    TRANSFER_FAILED(false, 4000, "송금에 실패했습니다."),
+    ACCOUNT_LOOKUP_FAILED(false, 4001, "계좌 조회에 실패했습니다."),
+    REMITTANCE_FAILED(false, 4002, "송금 요청에 실패했습니다."),
+    INVALID_TRANSFER_AMOUNT(false, 4003, "송금 금액은 0보다 커야 합니다.");
 
     private final boolean success;
     private final int code;
