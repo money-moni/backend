@@ -1,4 +1,38 @@
 package kr.ssok.userservice.entity;
 
-public class User {
+import jakarta.persistence.*;
+import kr.ssok.common.entity.TimeStamp;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Builder
+public class User extends TimeStamp {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String phoneNumber;
+
+    @Column(nullable = false)
+    private String birthDate;
+
+    @Column(nullable = false)
+    private String pinCode;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Gender gender;
+
+    private String hashedUserCode;
 }
