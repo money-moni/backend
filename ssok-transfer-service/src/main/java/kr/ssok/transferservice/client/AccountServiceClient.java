@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * 계좌 서비스와 통신하는 Feign 클라이언트 인터페이스
  * feign 통신의 에러 처리는 이후에 고려
  */
-@FeignClient(name = "account-service") // name은 임시로 지정
+@FeignClient(name = "account-service", url = "${external.account-service.url}") // name 임시 지정, url은 실행을 위해 임시로 지정
 public interface AccountServiceClient {
 
     /**
