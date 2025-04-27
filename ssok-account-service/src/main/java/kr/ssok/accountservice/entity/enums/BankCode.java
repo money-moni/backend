@@ -3,6 +3,9 @@ package kr.ssok.accountservice.entity.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Getter
 @AllArgsConstructor
 public enum BankCode {
@@ -19,4 +22,20 @@ public enum BankCode {
 
     private final int idx;
     private final String value;
+
+    private static final Map<Integer, BankCode> IDX_MAP = new HashMap<>();
+
+    static {
+        for (BankCode bankCode : BankCode.values()) {
+            IDX_MAP.put(bankCode.getIdx(), bankCode);
+        }
+    }
+
+    public static BankCode fromIdx(Long idx) {
+        BankCode bankCode = IDX_MAP.get(idx.intValue());
+        if (bankCode == null) {
+            throw new IllegalArgumentException("Invalid BankCode idx: " + idx);
+        }
+        return bankCode;
+    }
 }

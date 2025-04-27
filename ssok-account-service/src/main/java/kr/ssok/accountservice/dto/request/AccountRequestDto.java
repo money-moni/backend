@@ -1,12 +1,14 @@
 package kr.ssok.accountservice.dto.request;
 
-import kr.ssok.accountservice.entity.enums.BankCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 
 @Builder
+@Getter
 @AllArgsConstructor
 public class AccountRequestDto {
     private String accountNumber;
-    private BankCode bankCode;
+    private Long bankCode;
+    private Long accountTypeCode;
 }

@@ -1,7 +1,6 @@
 package kr.ssok.accountservice.dto.response;
 
 import kr.ssok.accountservice.entity.enums.AccountTypeCode;
-import kr.ssok.accountservice.entity.enums.BankCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
