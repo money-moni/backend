@@ -1,6 +1,7 @@
 package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.dto.request.CreateAccountRequestDto;
+import kr.ssok.accountservice.dto.response.AccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.AccountResponseDto;
 import kr.ssok.accountservice.entity.LinkedAccount;
 import kr.ssok.accountservice.entity.enums.AccountTypeCode;
@@ -12,6 +13,9 @@ import kr.ssok.accountservice.service.AccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 계좌 서비스 비즈니스 로직을 구현한 클래스
@@ -52,6 +56,52 @@ public class AccountServiceImpl implements AccountService {
         this.accountRepository.save(linkedAccount);
 
         return AccountResponseDto.from(linkedAccount);
+    }
+
+    /**
+     * 사용자 ID에 해당하는 모든 연동 계좌 목록을 조회합니다.
+     *
+     * <p>등록된 연동 계좌가 없는 경우 {@link AccountException}을 발생시킵니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @return 연동 계좌 정보를 담은 {@link List}<{@link AccountBalanceResponseDto}>
+     * @throws AccountException 사용자의 연동 계좌가 하나도 없는 경우 발생
+     */
+    @Override
+    public List<AccountBalanceResponseDto> findAllAccounts(Long userId) {
+        List<LinkedAccount> accounts = accountRepository.findByUserId(userId);
+
+        if (accounts.isEmpty()) {
+            log.warn("[GET] No accounts found for userId: {}", userId);
+            throw new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
+        }
+
+        // TODO. 추후, 으픈뱅킹 API 호출을 통해 balance 값에 실제 값을 대입
+        return accounts.stream()
+                .map(account -> AccountBalanceResponseDto.from(9999999L, account))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 상세 조회합니다.
+     *
+     * <p>해당하는 계좌가 존재하지 않는 경우 {@link AccountException}을 발생시킵니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param accountId 조회할 계좌 ID
+     * @return 연동 계좌 정보를 담은 {@link AccountBalanceResponseDto}
+     * @throws AccountException 계좌를 찾을 수 없는 경우 발생
+     */
+    @Override
+    public AccountBalanceResponseDto findAccountById(Long userId, Long accountId) {
+        LinkedAccount account = accountRepository.findByAccountIdAndUserId(accountId, userId)
+                .orElseThrow(() -> {
+                    log.warn("[GET] Account not found: accountId={}, userId={}", accountId, userId);
+                    return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
+                });
+
+        // TODO. 추후, 으픈뱅킹 API 호출을 통해 balance 값에 실제 값을 대입
+        return AccountBalanceResponseDto.from(100000000L, account);
     }
 
 

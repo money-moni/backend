@@ -1,19 +1,20 @@
 package kr.ssok.accountservice.controller;
 
 import kr.ssok.accountservice.dto.request.CreateAccountRequestDto;
+import kr.ssok.accountservice.dto.response.AccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.AccountResponseDto;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
 import kr.ssok.accountservice.service.AccountService;
 import kr.ssok.common.exception.BaseResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 계좌 관련 API 요청을 처리하는 REST 컨트롤러
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/accounts")
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class AccountController {
      * 생성된 계좌 정보를 반환합니다.
      * </p>
      *
-     * @param userId                  Gateway에서 전달된 사용자 ID (요청 헤더 "X-User-Id")
+     * @param userId Gateway에서 전달된 사용자 ID (요청 헤더 "X-User-Id")
      * @param createAccountRequestDto 클라이언트로부터 전달받은 계좌 생성 요청 데이터
      * @return 생성된 계좌 정보를 담은 {@link BaseResponse}
      */
@@ -38,6 +39,38 @@ public class AccountController {
         AccountResponseDto result = this.accountService.createLinkedAccount(Long.parseLong(userId), createAccountRequestDto);
 
         return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_CREATE_SUCCESS, result));
+    }
+
+    /**
+     * 사용자 ID에 해당하는 모든 연동 계좌 목록을 조회합니다.
+     *
+     * @param userId Gateway에서 전달된 사용자 ID (요청 헤더 "X-User-Id")
+     * @return 조회된 연동 계좌 목록을 담은 {@link BaseResponse}
+     */
+    @GetMapping
+    public ResponseEntity<BaseResponse<List<AccountBalanceResponseDto>>> getAllAccounts(
+            @RequestHeader("X-User-Id") String userId) {
+        List<AccountBalanceResponseDto> result = this.accountService.findAllAccounts(Long.parseLong(userId));
+
+        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
+    }
+
+
+    /**
+     * 특정 계좌 ID에 해당하는 연동 계좌 상세 정보를 조회합니다.
+     *
+     * @param userId Gateway에서 전달된 사용자 ID (요청 헤더 "X-User-Id")
+     * @param accountId 조회할 계좌 ID (Path Variable)
+     * @return 조회된 계좌 정보를 담은 {@link BaseResponse}
+     */
+    @GetMapping("/{accountId}")
+    public ResponseEntity<BaseResponse<AccountBalanceResponseDto>> getAccountById(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable("accountId") Long accountId) {
+        AccountBalanceResponseDto result = this.accountService.findAccountById(Long.parseLong(userId), accountId);
+
+        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
+
     }
 
 
