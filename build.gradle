@@ -50,6 +50,7 @@ subprojects {
             implementation libs.jacksonDatabind
             implementation libs.jacksonAnnotations
             implementation libs.jacksonJsr310
+            implementation libs.openfeign
         }
     }
 
