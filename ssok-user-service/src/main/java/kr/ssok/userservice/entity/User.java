@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 public class User extends TimeStamp {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,11 +28,4 @@ public class User extends TimeStamp {
 
     @Column(nullable = false)
     private String pinCode;
-
-    /* 성별 안쓰게 되서 주석처리 */
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private Gender gender;
-
-    private String hashedUserCode;
 }
