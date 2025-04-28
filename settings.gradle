@@ -7,6 +7,7 @@ include 'ssok-user-service'
 include 'ssok-account-service'
 include 'ssok-gateway'
 include 'ssok-config'
+include 'ssok-notification-service'
 
 dependencyResolutionManagement {
     versionCatalogs {

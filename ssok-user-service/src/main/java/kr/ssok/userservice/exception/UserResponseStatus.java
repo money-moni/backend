@@ -4,24 +4,22 @@ import kr.ssok.common.exception.ResponseStatus;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-/**
- * 사용자 서비스 관련 응답 상태 코드
- */
 @Getter
 public enum UserResponseStatus implements ResponseStatus {
-    /**
-     * 1. 요청에 성공한 경우(2000~2999)
-     */
-    // 1-1. 회원가입 / 로그인 / 로그아웃 / 회원탈퇴
-    VERIFICATION_REGISTER_ACCOUNT_SUCCESS(true, 2100, "회원가입 요구 정보 검증에 성공했습니다."),
-    /**
-     * 2. 클라이언트 에러(4000~4999)
-     */
-    // 2-1. 회원가입 / 로그인 / 로그아웃 / 회원탈퇴
-    EMAIL_ALREADY_EXISTS(false, 4100, "이미 가입된 이메일입니다."),
+    
+    SUCCESS(true,2000, "요청에 성공하였습니다."),
+    REGISTER_USER_SUCCESS(true, 2000, "회원가입에 성공하였습니다."),
+    
+    // 회원 관련 오류
+    INVALID_PIN_CODE(false, 4000, "유효하지 않은 PIN 번호입니다."),
+    CODE_VERIFICATION_FAIL(false, 4001, "휴대폰 인증번호가 일치하지 않아, 인증에 실패했습니다."),
 
-    // 2-2. 인가 / 인증
-    INVALID_BEARER_GRANT_TYPE(false, 4200, "Bearer 타입이 아닙니다.", HttpStatus.UNAUTHORIZED);
+    
+    // 뱅크 서버 관련 오류
+    USER_ALREADY_EXISTS(false, 5000, "이미 존재하는 사용자입니다."),
+    USER_NOT_FOUND(false, 5000, "사용자를 찾을 수 없습니다."),
+    BANK_SERVER_ERROR(false, 5000, "뱅크 서버와 통신 중 오류가 발생했습니다."),
+    ACCOUNT_CREATION_FAILED(false, 5000, "계좌 생성에 실패했습니다.");
 
     private final boolean success;
     private final int code;
