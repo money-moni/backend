@@ -8,6 +8,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * 알리고 SMS 서비스
+ * 알리고 SMS API를 통해 인증코드를 발송하는 서비스를 제공합니다.
+ */
 @Service
 @NoArgsConstructor
 public class AligoService {
@@ -23,7 +27,14 @@ public class AligoService {
     @Value("${aligo.SENDER}")
     private String SENDER;
 
-    // 인증번호 문자 발송
+    /**
+     * 인증번호 문자 발송
+     * 알리고 SMS API를 통해 인증번호가 포함된 SMS를 발송합니다.
+     * 현재는 테스트 모드(testmode_yn=Y)로 설정되어 있습니다.
+     * 
+     * @param phoneNumber 인증코드를 받을 휴대폰 번호
+     * @param verificationCode 발송할 인증코드
+     */
     public void sendVerificationCode(String phoneNumber, String verificationCode) {
         phoneNumber = formatPhoneNumber(phoneNumber); // 전화번호 변환
         RestTemplate restTemplate = new RestTemplate();
@@ -49,7 +60,13 @@ public class AligoService {
         }
     }
 
-    // 전화번호 변환 메서드
+    /**
+     * 전화번호 변환 메서드
+     * 국제 표준 전화번호 형식(+82)을 국내 전화번호 형식(0)으로 변환합니다.
+     * 
+     * @param phoneNumber 변환할 전화번호
+     * @return 변환된 전화번호
+     */
     private String formatPhoneNumber(String phoneNumber) {
         if (phoneNumber.startsWith("+82")) {
             // "+82"를 "0"으로 변환하고 나머지 문자열은 그대로 유지
