@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * 계좌 서비스 전용 예외 처리 핸들러
  * 공통 예외처리 외에 계좌 서비스만의 특별한 예외 처리가 필요한 경우 사용
  */
-@RestControllerAdvice(basePackages = "kr.ssok.account")
+@RestControllerAdvice(basePackages = "kr.ssok.accountservice")
 public class AccountExceptionHandler {
 
     /**

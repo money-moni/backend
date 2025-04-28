@@ -18,7 +18,7 @@ public enum AccountResponseStatus implements ResponseStatus {
      * 2. 클라이언트 에러(4000~4999)
      */
     ACCOUNT_NOT_FOUND(false, 4000, "계좌를 찾을 수 없습니다."),
-    ACCOUNT_ALREADY_EXISTS(false, 4001, "이미 계좌가 존재합니다.");
+    ACCOUNT_ALREADY_EXISTS(false, 4001, "이미 계좌가 존재합니다.", HttpStatus.BAD_REQUEST);
 
     private final boolean success;
     private final int code;

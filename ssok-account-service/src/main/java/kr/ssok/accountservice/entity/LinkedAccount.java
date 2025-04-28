@@ -5,10 +5,7 @@ import kr.ssok.accountservice.dto.response.AccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.AccountResponseDto;
 import kr.ssok.accountservice.entity.enums.AccountTypeCode;
 import kr.ssok.accountservice.entity.enums.BankCode;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -30,6 +27,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 public class LinkedAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -64,41 +62,4 @@ public class LinkedAccount {
     @Enumerated(EnumType.STRING)
     @Column(name = "account_type_code", nullable = false, updatable = false)
     private AccountTypeCode accountTypeCode;
-
-    /**
-     * LinkedAccount 엔티티를 AccountResponseDto로 변환합니다.
-     *
-     * @return AccountResponseDto 객체
-     */
-    public AccountResponseDto toAccountResponseDto() {
-        return AccountResponseDto.builder()
-                .accountId(this.accountId)
-                .accountNumber(this.accountNumber)
-                .bankCode(this.bankCode.getIdx())
-                .bankName(this.bankCode.getValue())
-                .accountAlias(this.accountAlias)
-                .isPrimaryAccount(this.isPrimaryAccount)
-                .accountTypeCode(this.accountTypeCode)
-                .build();
-    }
-
-    /**
-     * LinkedAccount 엔티티를 AccountBalanceResponseDto로 변환합니다.
-     *
-     * @param balance 계좌 잔액
-     * @return AccountBalanceResponseDto 객체
-     */
-    public AccountBalanceResponseDto toAccountBalanceResponseDto(Long balance) {
-        return AccountBalanceResponseDto.builder()
-                .accountId(this.accountId)
-                .accountNumber(this.accountNumber)
-                .bankCode(this.bankCode.getIdx())
-                .bankName(this.bankCode.getValue())
-                .accountAlias(this.accountAlias)
-                .isPrimaryAccount(this.isPrimaryAccount)
-                .accountTypeCode(this.accountTypeCode)
-                .balance(balance)
-                .build();
-    }
-
 }

@@ -1,5 +1,6 @@
 package kr.ssok.accountservice.dto.response;
 
+import kr.ssok.accountservice.entity.LinkedAccount;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
@@ -15,4 +16,23 @@ import lombok.experimental.SuperBuilder;
 @Getter
 public class AccountBalanceResponseDto extends AccountResponseDto {
     private Long balance;
+
+    /**
+     * LinkedAccount 엔티티를 AccountBalanceResponseDto로 변환합니다.
+     *
+     * @param balance 계좌 잔액
+     * @return AccountBalanceResponseDto 객체
+     */
+    public AccountBalanceResponseDto from(Long balance, LinkedAccount account) {
+        return AccountBalanceResponseDto.builder()
+                .accountId(account.getAccountId())
+                .accountNumber(account.getAccountNumber())
+                .bankCode(account.getBankCode().getIdx())
+                .bankName(account.getBankCode().getValue())
+                .accountAlias(account.getAccountAlias())
+                .isPrimaryAccount(account.getIsPrimaryAccount())
+                .accountTypeCode(account.getAccountTypeCode().getValue())
+                .balance(balance)
+                .build();
+    }
 }

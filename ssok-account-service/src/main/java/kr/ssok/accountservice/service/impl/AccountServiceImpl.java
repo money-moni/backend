@@ -41,6 +41,7 @@ public class AccountServiceImpl implements AccountService {
             log.warn("[POST] Account {} already exists", createAccountRequestDto.getAccountNumber());
             throw new AccountException(AccountResponseStatus.ACCOUNT_ALREADY_EXISTS);
         }
+
         LinkedAccount linkedAccount = LinkedAccount.builder()
                 .accountNumber(createAccountRequestDto.getAccountNumber())
                 .bankCode(BankCode.fromIdx(createAccountRequestDto.getBankCode()))
@@ -50,7 +51,7 @@ public class AccountServiceImpl implements AccountService {
 
         this.accountRepository.save(linkedAccount);
 
-        return linkedAccount.toAccountResponseDto();
+        return AccountResponseDto.from(linkedAccount);
     }
 
 

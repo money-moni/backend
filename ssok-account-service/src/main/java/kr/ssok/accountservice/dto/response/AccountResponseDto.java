@@ -1,6 +1,6 @@
 package kr.ssok.accountservice.dto.response;
 
-import kr.ssok.accountservice.entity.enums.AccountTypeCode;
+import kr.ssok.accountservice.entity.LinkedAccount;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
@@ -21,5 +21,23 @@ public class AccountResponseDto {
     private String bankName;
     private String accountAlias;
     private boolean isPrimaryAccount;
-    private AccountTypeCode accountTypeCode;
+    private String accountTypeCode;
+
+
+    /**
+     * LinkedAccount 엔티티를 AccountResponseDto로 변환합니다.
+     *
+     * @return AccountResponseDto 객체
+     */
+    public static AccountResponseDto from(LinkedAccount account) {
+        return AccountResponseDto.builder()
+                .accountId(account.getAccountId())
+                .accountNumber(account.getAccountNumber())
+                .bankCode(account.getBankCode().getIdx())
+                .bankName(account.getBankCode().getValue())
+                .accountAlias(account.getAccountAlias())
+                .isPrimaryAccount(account.getIsPrimaryAccount())
+                .accountTypeCode(account.getAccountTypeCode().getValue())
+                .build();
+    }
 }
