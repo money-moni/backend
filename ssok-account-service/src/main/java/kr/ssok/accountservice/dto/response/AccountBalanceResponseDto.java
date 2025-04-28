@@ -1,5 +1,6 @@
 package kr.ssok.accountservice.dto.response;
 
+import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -11,6 +12,7 @@ import lombok.experimental.SuperBuilder;
  * <p>이 객체는 읽기 전용으로 사용되며, 빌더 패턴을 통해 생성됩니다.</p>
  */
 @SuperBuilder
-public class AccountBlanceResponseDto extends AccountResponseDto {
+@Getter
+public class AccountBalanceResponseDto extends AccountResponseDto {
     private Long balance;
 }

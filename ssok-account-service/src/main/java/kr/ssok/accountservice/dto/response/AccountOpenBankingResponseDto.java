@@ -1,10 +1,10 @@
 package kr.ssok.accountservice.dto.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 
 @Builder
-@AllArgsConstructor
+@Getter
 public class AccountOpenBankingResponseDto {
     private String accountNumber;
     private int bankCode;
