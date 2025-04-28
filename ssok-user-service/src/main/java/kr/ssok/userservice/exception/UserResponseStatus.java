@@ -12,6 +12,7 @@ public enum UserResponseStatus implements ResponseStatus {
     
     // 회원 관련 오류
     INVALID_PIN_CODE(false, 4000, "유효하지 않은 PIN 번호입니다."),
+    CODE_VERIFICATION_FAIL(false, 4001, "휴대폰 인증번호가 일치하지 않아, 인증에 실패했습니다."),
 
     
     // 뱅크 서버 관련 오류
