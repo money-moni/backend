@@ -16,7 +16,8 @@ import org.springframework.web.client.RestTemplate;
 @NoArgsConstructor
 public class AligoService {
 
-    private static final String SMS_API_URL = "https://apis.aligo.in/send/";
+    @Value(("${aligo.SMS_API_URL}"))
+    private String SMS_API_URL;
 
     @Value("${aligo.API_KEY}")
     private String API_KEY;
