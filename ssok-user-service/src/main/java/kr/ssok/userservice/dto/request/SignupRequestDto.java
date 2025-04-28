@@ -22,8 +22,9 @@ public class SignupRequestDto {
     @NotNull(message = "생년월일을 입력해 주세요.")
     private String birthDate; // 생년월일
 
-    @NotNull(message = "주민등록번호 뒷자리 첫번째값이 null 입니다.")
-    private String gender;
+    /* 성별 안쓰게 되서 주석처리 */
+//    @NotNull(message = "주민등록번호 뒷자리 첫번째값이 null 입니다.")
+//    private String gender;
 
     @NotNull(message = "pin번호 입력이 null입니다.")
     private int pinCode;

@@ -30,9 +30,10 @@ public class User extends TimeStamp {
     @Column(nullable = false)
     private String pinCode;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Gender gender;
+    /* 성별 안쓰게 되서 주석처리 */
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private Gender gender;
 
     private String hashedUserCode;
 }

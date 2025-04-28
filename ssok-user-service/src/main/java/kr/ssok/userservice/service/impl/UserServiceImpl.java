@@ -5,7 +5,6 @@ import kr.ssok.userservice.dto.request.BankAccountRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
 import kr.ssok.userservice.dto.response.BankAccountResponseDto;
 import kr.ssok.userservice.dto.response.SignupResponseDto;
-import kr.ssok.userservice.entity.Gender;
 import kr.ssok.userservice.entity.User;
 import kr.ssok.userservice.exception.UserException;
 import kr.ssok.userservice.exception.UserResponseStatus;
@@ -55,7 +54,7 @@ public class UserServiceImpl implements UserService {
                 .phoneNumber(requestDto.getPhoneNumber())
                 .birthDate(requestDto.getBirthDate())
                 .pinCode(String.valueOf(requestDto.getPinCode())) // int -> String 변환
-                .gender(Gender.valueOf(requestDto.getGender())) // 요청에서 받은 Gender 사용
+//                .gender(Gender.valueOf(requestDto.getGender())) // 요청에서 받은 Gender 사용
                 .hashedUserCode(hashedUserCode)
                 .build();
         
