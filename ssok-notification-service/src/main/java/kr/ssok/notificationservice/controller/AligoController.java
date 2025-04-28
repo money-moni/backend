@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 알리고 SMS 서비스 관련 API를 처리하는 컨트롤러
+ * 인증코드 SMS 발송 기능을 제공합니다.
+ */
 @RestController
 @RequestMapping("/api/notification")
 @RequiredArgsConstructor

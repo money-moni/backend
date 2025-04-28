@@ -9,5 +9,4 @@ public class SsokNotificationServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(SsokNotificationServiceApplication.class, args);
     }
-
 }
