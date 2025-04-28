@@ -1,7 +1,10 @@
 package kr.ssok.accountservice.service;
 
 import kr.ssok.accountservice.dto.request.CreateAccountRequestDto;
+import kr.ssok.accountservice.dto.response.AccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.AccountResponseDto;
+
+import java.util.List;
 
 /**
  * 계좌 관련 비즈니스 로직을 정의하는 Service 인터페이스
@@ -26,4 +29,23 @@ public interface AccountService {
      * @return 생성된 계좌 정보를 담은 AccountResponseDto
      */
     AccountResponseDto createLinkedAccount(Long userId, CreateAccountRequestDto createAccountRequestDto);
+
+    /**
+     * 사용자 ID에 해당하는 모든 연동 계좌 목록을 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 조회된 연동 계좌 목록을 담은 List<AccountBalanceResponseDto>
+     * @throws kr.ssok.accountservice.exception.AccountException 계좌가 하나도 존재하지 않는 경우 발생
+     */
+    List<AccountBalanceResponseDto> findAllAccounts(Long userId);
+
+    /**
+     * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 상세 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @param accountId 조회할 계좌 ID
+     * @return 조회된 연동 계좌 정보를 담은 AccountBalanceResponseDto
+     * @throws kr.ssok.accountservice.exception.AccountException 해당 계좌가 존재하지 않는 경우 발생
+     */
+    AccountBalanceResponseDto findAccountById(Long userId, Long accountId);
 }

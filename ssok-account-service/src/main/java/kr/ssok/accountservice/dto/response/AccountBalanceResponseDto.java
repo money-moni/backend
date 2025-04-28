@@ -23,7 +23,7 @@ public class AccountBalanceResponseDto extends AccountResponseDto {
      * @param balance 계좌 잔액
      * @return AccountBalanceResponseDto 객체
      */
-    public AccountBalanceResponseDto from(Long balance, LinkedAccount account) {
+    public static AccountBalanceResponseDto from(Long balance, LinkedAccount account) {
         return AccountBalanceResponseDto.builder()
                 .accountId(account.getAccountId())
                 .accountNumber(account.getAccountNumber())
