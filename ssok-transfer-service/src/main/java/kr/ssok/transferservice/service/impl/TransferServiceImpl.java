@@ -71,6 +71,7 @@ public class TransferServiceImpl implements TransferService {
             throw new TransferException(TransferResponseStatus.REMITTANCE_FAILED);
         }
 
+        // 3. 출금 내역 저장
         this.transferHistoryRepository.save(
                 TransferHistory.builder()
                         .accountId(dto.getSendAccountId())
@@ -80,10 +81,31 @@ public class TransferServiceImpl implements TransferService {
                         .transferMoney(dto.getAmount())
                         .currencyCode(CurrencyCode.KRW)
                         .transferMethod(TransferMethod.GENERAL)
-                        .createdAt(LocalDateTime.now())
                         .build()
         );
 
+        // 4. 상대방 계좌번호로 계좌 ID 조회 후, 입금 이력 추가 저장 (SSOK 유저인 경우만)
+        BaseResponse<AccountServiceClient.AccountIdResponse.Result> recvAccountIdResponse =
+                this.accountServiceClient.getAccountId(dto.getRecvAccountNumber());
+
+        if (recvAccountIdResponse.getIsSuccess()
+                && recvAccountIdResponse.getCode() == 2000 // 2001이면 ID 없는 것
+                && recvAccountIdResponse.getResult().getAccountId() != null) {
+            // 상대방 입금 내역 저장
+            this.transferHistoryRepository.save(
+                    TransferHistory.builder()
+                            .accountId(recvAccountIdResponse.getResult().getAccountId()) // 상대방 계좌 ID
+                            .counterpartAccount(sendAccountNumber) // 출금자 계좌번호
+                            .counterpartName(dto.getSendName()) // 송금자 이름 정보
+                            .transferType(TransferType.DEPOSIT) // 입금 이력
+                            .transferMoney(dto.getAmount())
+                            .currencyCode(CurrencyCode.KRW)
+                            .transferMethod(TransferMethod.GENERAL)
+                            .build()
+            );
+        }
+
+        // 5. 최종 송금 응답 반환
         return TransferResponseDto.builder()
                 .sendAccountId(dto.getSendAccountId())
                 .recvAccountNumber(dto.getRecvAccountNumber())

@@ -18,7 +18,7 @@ public interface AccountServiceClient {
      *
      * @param accountId 계좌 ID
      * @param userId 사용자 ID
-     * @return BaseResponse 형식의 계좌 응답 객체
+     * @return BaseResponse 형식의 계좌 응답 객체 (계좌번호)
      */
     @GetMapping("/api/account-lookup")
     BaseResponse<AccountResponse.Result> getAccountInfo(
@@ -27,7 +27,18 @@ public interface AccountServiceClient {
     );
 
     /**
-     * 계좌 응답 객체 구조
+     * 계좌번호를 기반으로 계좌 ID를 조회
+     *
+     * @param accountNumber 조회할 계좌번호
+     * @return BaseResponse 형식의 계좌 응답 객체 (계좌 ID)
+     * */
+    @GetMapping("/api/accounts/id")
+    BaseResponse<AccountIdResponse.Result> getAccountId(
+            @RequestParam("accountNumber") String accountNumber
+    );
+
+    /**
+     * 계좌 번호 응답 객체 구조
      */
     @Getter
     class AccountResponse {
@@ -37,6 +48,21 @@ public interface AccountServiceClient {
 
             public Result(String accountNumber) {
                 this.accountNumber = accountNumber;
+            }
+        }
+    }
+
+    /**
+     * 계좌 ID 응답 객체 구조
+     */
+    @Getter
+    class AccountIdResponse {
+        @Getter
+        public static class Result {
+            private final Long accountId;
+
+            public Result(Long accountId) {
+                this.accountId = accountId;
             }
         }
     }

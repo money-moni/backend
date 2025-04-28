@@ -14,6 +14,7 @@ public class TransferRequestDto {
 
     private final Long sendAccountId;        // 출금 계좌 ID
     private final Integer sendBankCode;      // 출금 은행 코드
+    private final String sendName;           // 출금자 이름
     private final String recvAccountNumber;  // 입금 계좌번호
     private final Integer recvBankCode;      // 입금 은행 코드
     private final String recvName;           // 입금 상대방 이름

@@ -46,27 +46,46 @@ public class TransferServiceTest {
     }
 
     @Test
-    void 송금_요청이_성공하면_송금내역을_저장하고_정상_응답을_반환한다() {
-        // Given: 송금 요청 정보 준비
+    void 송금_요청이_성공하면_출금과_입금_내역을_모두_저장한다() {
+        // Given
         TransferRequestDto requestDto = 기본_송금요청();
         Long userId = 2L;
 
-        // When: 송금 서비스 호출
+        // When
         TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto);
 
-        // Then: 응답 값 검증
+        // Then
         assertThat(responseDto.getSendAccountId()).isEqualTo(5L);
         assertThat(responseDto.getRecvAccountNumber()).isEqualTo("1111-111-1112");
         assertThat(responseDto.getAmount()).isEqualTo(15000L);
 
-        // Then: 송금 이력이 저장되었는지 검증
+        // 출금 + 입금 내역이 모두 저장되었는지 검증 (2번 호출)
+        verify(transferHistoryRepository, times(2)).save(any(TransferHistory.class));
+    }
+
+    @Test
+    void 상대방_계좌ID가_없으면_출금내역만_저장한다() {
+        // Given
+        fakeAccountServiceClient.failRecvAccountId = true; // 상대방 계좌 ID 없는 경우
+        TransferRequestDto requestDto = 기본_송금요청();
+        Long userId = 2L;
+
+        // When
+        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto);
+
+        // Then
+        assertThat(responseDto.getSendAccountId()).isEqualTo(5L);
+        assertThat(responseDto.getRecvAccountNumber()).isEqualTo("1111-111-1112");
+        assertThat(responseDto.getAmount()).isEqualTo(15000L);
+
+        // 출금 내역만 저장되었는지 검증 (1번 호출)
         verify(transferHistoryRepository, times(1)).save(any(TransferHistory.class));
     }
 
     @Test
     void 계좌_조회에_실패하면_ACCOUNT_LOOKUP_FAILED_예외를_던진다() {
         // Given
-        fakeAccountServiceClient.failNext = true;
+        fakeAccountServiceClient.failRecvAccountInfo = true;
         TransferRequestDto requestDto = 기본_송금요청();
         Long userId = 2L;
 
@@ -84,7 +103,7 @@ public class TransferServiceTest {
     @Test
     void 오픈뱅킹_송금에_실패하면_REMITTANCE_FAILED_예외를_던진다() {
         // Given
-        fakeOpenBankingClient.failNext = true;
+        fakeOpenBankingClient.failTransfer = true;
         TransferRequestDto requestDto = 기본_송금요청();
         Long userId = 2L;
 
@@ -129,15 +148,25 @@ public class TransferServiceTest {
      * Fake: 계좌 서비스 응답을 흉내내는 객체
      */
     private static class FakeAccountServiceClient implements AccountServiceClient {
-        private boolean failNext = false;
+        private boolean failRecvAccountInfo = false;
+        private boolean failRecvAccountId = false;
 
         @Override
         public BaseResponse<AccountResponse.Result> getAccountInfo(Long accountId, Long userId) {
-            if (failNext) {
-                return new BaseResponse<>(false, 400, "계좌 조회 실패", null);
+            if (failRecvAccountInfo) {
+                return new BaseResponse<>(false, 4001, "계좌 조회 실패", null);
             }
-            return new BaseResponse<>(true, 200, "계좌 조회 성공",
+            return new BaseResponse<>(true, 2000, "계좌 조회 성공",
                     new AccountResponse.Result("1111-111-1111"));
+        }
+
+        @Override
+        public BaseResponse<AccountIdResponse.Result> getAccountId(String accountNumber) {
+            if (failRecvAccountId) {
+                return new BaseResponse<>(true, 2001, "계좌 ID 없음", null); // accountId 없으면 code=2001
+            }
+            return new BaseResponse<>(true, 2000, "계좌 ID 조회 성공",
+                    new AccountIdResponse.Result(10L));
         }
     }
 
@@ -145,11 +174,11 @@ public class TransferServiceTest {
      * Fake: 오픈뱅킹 송금 요청을 흉내내는 객체
      */
     private static class FakeOpenBankingClient implements OpenBankingClient {
-        private boolean failNext = false;
+        private boolean failTransfer = false;
 
         @Override
         public BaseResponse<Object> sendTransferRequest(Map<String, Object> requestBody) {
-            if (failNext) {
+            if (failTransfer) {
                 return new BaseResponse<>(false, 400, "송금 실패", null);
             }
             return new BaseResponse<>(true, 200, "송금 성공", null);
@@ -164,6 +193,7 @@ public class TransferServiceTest {
         return TransferRequestDto.builder()
                 .sendAccountId(5L)
                 .sendBankCode(1)
+                .sendName("테스트송신자")
                 .recvAccountNumber("1111-111-1112")
                 .recvBankCode(1)
                 .amount(15000L)
