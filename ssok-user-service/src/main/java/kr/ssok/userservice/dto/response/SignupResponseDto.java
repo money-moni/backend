@@ -11,8 +11,4 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SignupResponseDto {
     private Long userId;
-    private String username;
-    private String phoneNumber;
-    private String accountNumber;
-    private String hashedUserCode;
 }

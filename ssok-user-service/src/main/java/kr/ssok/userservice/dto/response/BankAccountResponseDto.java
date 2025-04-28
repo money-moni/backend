@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class BankAccountResponseDto {
     private String accountNumber;
-    private String hashedUserCode;
     private String status;
     private String message;
 }

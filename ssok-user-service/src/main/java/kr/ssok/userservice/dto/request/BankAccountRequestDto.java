@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class BankAccountRequestDto {
-    private String hashedUserCode;
+    private String username;
     private String phoneNumber;
+    private int accountTypeCode;
 }
