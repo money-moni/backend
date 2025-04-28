@@ -3,26 +3,28 @@ package kr.ssok.gateway.security.filter;
 import kr.ssok.gateway.security.jwt.JwtVerifier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.core.Ordered;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * JWT 인증 필터
- * 모든 요청에 대해 JWT 토큰을 검증하고 인증된 사용자 정보를 요청에 추가합니다.
+ * 모든 요청에 대해 JWT 토큰을 검증하고 인증된 사용자 정보를 SecurityContext에 설정합니다.
  */
 @Slf4j
 @Component
-public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
+public class JwtAuthenticationFilter implements WebFilter {
 
     private final JwtVerifier jwtVerifier;
     private final RedisTemplate<String, String> redisTemplate;
@@ -40,14 +42,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     }
 
     /**
-     * 요청을 필터링하여 JWT 토큰 검증 및 사용자 정보 추가
+     * 요청을 필터링하여 JWT 토큰 검증 및 인증 정보 설정
      * 
      * @param exchange 요청/응답 교환 객체
      * @param chain 다음 필터 체인
      * @return 필터 체인 실행 결과
      */
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getPath().value();
         
@@ -86,17 +88,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                 .header("X-User-ID", userId.toString())
                 .build();
         
-        return chain.filter(exchange.mutate().request(mutatedRequest).build());
-    }
-
-    /**
-     * 필터 우선순위 설정 (낮을수록 먼저 실행)
-     * 
-     * @return 필터 우선순위 값
-     */
-    @Override
-    public int getOrder() {
-        return -100; // Spring Cloud Gateway 필터 체인에서 높은 우선순위로 실행
+        // Spring Security의 인증 정보 설정
+        UsernamePasswordAuthenticationToken authentication = 
+                new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+        
+        return chain.filter(exchange.mutate().request(mutatedRequest).build())
+                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
     }
     
     /**

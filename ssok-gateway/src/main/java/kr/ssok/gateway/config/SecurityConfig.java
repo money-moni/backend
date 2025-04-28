@@ -1,11 +1,13 @@
 package kr.ssok.gateway.config;
 
 import kr.ssok.gateway.security.filter.JwtAuthenticationFilter;
+import kr.ssok.gateway.security.handler.JwtAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -17,6 +19,7 @@ import java.util.List;
 
 /**
  * 보안 관련 설정 클래스
+ * Spring Security 필터 체인 및 보안 정책을 설정합니다.
  */
 @Configuration
 @EnableWebFluxSecurity
@@ -25,10 +28,13 @@ public class SecurityConfig {
 
     @Value("${auth.whitelist}")
     private List<String> whiteList;
+    
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     /**
      * Spring Security 웹 필터 체인 구성
-     * 인증 및 권한 설정, CORS, CSRF 등 보안 정책 정의
+     * JWT 인증 필터 추가 및 보안 정책 설정
      * 
      * @param http ServerHttpSecurity 객체
      * @return 구성된 SecurityWebFilterChain
@@ -40,10 +46,14 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+                .exceptionHandling(exceptionHandling -> 
+                    exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(whiteList.toArray(new String[0])).permitAll()
                         .anyExchange().authenticated()
                 )
+                .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
     }
 
