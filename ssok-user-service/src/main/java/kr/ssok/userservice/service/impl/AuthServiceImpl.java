@@ -14,6 +14,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -47,10 +54,13 @@ public class AuthServiceImpl implements AuthService {
     private static final long LOGIN_BLOCKED_DURATION = 5 * 60;
     // 계정 잠금 시간 (24시간)
     private static final long ACCOUNT_LOCKED_DURATION = 24 * 60 * 60;
+    // 날짜 포맷터
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 로그인 처리 구현
      * 사용자 ID와 PIN 코드 검증 후 토큰 발급, 로그인 시도 제한 관리
+     * 실패 시 남은 시도 횟수, 제한 해제 시간 등 추가 정보 제공
      * 
      * @param requestDto 로그인 요청 정보 (userId, pinCode)
      * @return 액세스 토큰과 리프레시 토큰이 포함된 응답
@@ -62,14 +72,40 @@ public class AuthServiceImpl implements AuthService {
         String accountLockedKey = ACCOUNT_LOCKED_PREFIX + requestDto.getUserId();
         Boolean isAccountLocked = redisTemplate.hasKey(accountLockedKey);
         if (Boolean.TRUE.equals(isAccountLocked)) {
-            throw new UserException(UserResponseStatus.ACCOUNT_LOCKED);
+            Map<String, Object> additionalInfo = new HashMap<>();
+            
+            // 잠금 해제 남은 시간 계산
+            Long remainingSeconds = redisTemplate.getExpire(accountLockedKey, TimeUnit.SECONDS);
+            if (remainingSeconds != null && remainingSeconds > 0) {
+                additionalInfo.put("remainingSeconds", remainingSeconds);
+                additionalInfo.put("remainingHours", Math.ceil(remainingSeconds / 3600.0));
+                
+                // 잠금 해제 예상 시간 추가
+                LocalDateTime unlockTime = LocalDateTime.now().plusSeconds(remainingSeconds);
+                additionalInfo.put("unlockTime", unlockTime.format(DATE_FORMATTER));
+            }
+            
+            throw new UserException(UserResponseStatus.ACCOUNT_LOCKED, additionalInfo);
         }
         
         // 로그인 제한 확인
         String loginBlockedKey = LOGIN_BLOCKED_PREFIX + requestDto.getUserId();
         Boolean isLoginBlocked = redisTemplate.hasKey(loginBlockedKey);
         if (Boolean.TRUE.equals(isLoginBlocked)) {
-            throw new UserException(UserResponseStatus.TOO_MANY_LOGIN_ATTEMPTS);
+            Map<String, Object> additionalInfo = new HashMap<>();
+            
+            // 제한 해제 남은 시간 계산
+            Long remainingSeconds = redisTemplate.getExpire(loginBlockedKey, TimeUnit.SECONDS);
+            if (remainingSeconds != null && remainingSeconds > 0) {
+                additionalInfo.put("remainingSeconds", remainingSeconds);
+                additionalInfo.put("remainingMinutes", Math.ceil(remainingSeconds / 60.0));
+                
+                // 제한 해제 예상 시간 추가
+                LocalDateTime unlockTime = LocalDateTime.now().plusSeconds(remainingSeconds);
+                additionalInfo.put("unlockTime", unlockTime.format(DATE_FORMATTER));
+            }
+            
+            throw new UserException(UserResponseStatus.TOO_MANY_LOGIN_ATTEMPTS, additionalInfo);
         }
         
         // 사용자 정보 조회
@@ -87,7 +123,10 @@ public class AuthServiceImpl implements AuthService {
                 redisTemplate.expire(loginAttemptKey, 24, TimeUnit.HOURS);
             }
             
-            log.warn("로그인 실패. 사용자: {}, 시도 횟수: {}/{}", requestDto.getUserId(), attempts, MAX_LOGIN_ATTEMPTS);
+            // 남은 시도 횟수 계산
+            int remainingAttempts = MAX_LOGIN_ATTEMPTS - attempts.intValue();
+            log.warn("로그인 실패. 사용자: {}, 시도 횟수: {}/{}, 남은 시도: {}", 
+                    requestDto.getUserId(), attempts, MAX_LOGIN_ATTEMPTS, remainingAttempts);
             
             // 로그인 시도 횟수 초과 시 제한
             if (attempts >= MAX_LOGIN_ATTEMPTS) {
@@ -105,16 +144,37 @@ public class AuthServiceImpl implements AuthService {
                     redisTemplate.expire(loginBlockCountKey, 7, TimeUnit.DAYS);
                 }
                 
+                // 로그인 제한 정보 생성
+                Map<String, Object> additionalInfo = new HashMap<>();
+                additionalInfo.put("blockedDurationSeconds", LOGIN_BLOCKED_DURATION);
+                additionalInfo.put("blockedDurationMinutes", LOGIN_BLOCKED_DURATION / 60);
+                
+                // 제한 해제 예상 시간 추가
+                LocalDateTime unlockTime = LocalDateTime.now().plusSeconds(LOGIN_BLOCKED_DURATION);
+                additionalInfo.put("unlockTime", unlockTime.format(DATE_FORMATTER));
+                
                 // 로그인 제한이 3회 이상이면 계정 잠금
                 if (blockCount >= 3) {
                     redisTemplate.opsForValue().set(accountLockedKey, "locked", ACCOUNT_LOCKED_DURATION, TimeUnit.SECONDS);
-                    throw new UserException(UserResponseStatus.ACCOUNT_LOCKED);
+                    
+                    // 계정 잠금 정보 생성
+                    additionalInfo.put("lockedDurationSeconds", ACCOUNT_LOCKED_DURATION);
+                    additionalInfo.put("lockedDurationHours", ACCOUNT_LOCKED_DURATION / 3600);
+                    
+                    // 잠금 해제 예상 시간 추가
+                    LocalDateTime lockUnlockTime = LocalDateTime.now().plusSeconds(ACCOUNT_LOCKED_DURATION);
+                    additionalInfo.put("accountUnlockTime", lockUnlockTime.format(DATE_FORMATTER));
+                    
+                    throw new UserException(UserResponseStatus.ACCOUNT_LOCKED, additionalInfo);
                 }
                 
-                throw new UserException(UserResponseStatus.TOO_MANY_LOGIN_ATTEMPTS);
+                throw new UserException(UserResponseStatus.TOO_MANY_LOGIN_ATTEMPTS, additionalInfo);
             }
             
-            throw new UserException(UserResponseStatus.INVALID_PIN_CODE);
+            // 일반 PIN 불일치 오류 응답에 남은 시도 횟수 추가
+            Map<String, Object> additionalInfo = new HashMap<>();
+            additionalInfo.put("remainingAttempts", remainingAttempts);
+            throw new UserException(UserResponseStatus.INVALID_PIN_CODE, additionalInfo);
         }
         
         // 로그인 성공 시 시도 횟수 초기화

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.userservice.dto.request.LoginRequestDto;
 import kr.ssok.userservice.dto.request.TokenRefreshRequestDto;
+import kr.ssok.userservice.dto.response.ExtendedResponse;
 import kr.ssok.userservice.dto.response.LoginResponseDto;
 import kr.ssok.userservice.entity.User;
 import kr.ssok.userservice.exception.UserResponseStatus;
@@ -12,6 +13,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 인증 관련 API를 처리하는 컨트롤러
@@ -24,10 +30,12 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 로그인 API
      * 사용자 ID와 PIN 코드로 인증하고 JWT 토큰을 발급합니다.
+     * 성공 시 토큰 유효 기간도 같이 반환합니다.
      * 
      * @param requestDto 로그인 요청 정보 (userId, pinCode)
      * @return 액세스 토큰과 리프레시 토큰이 포함된 응답
@@ -36,7 +44,19 @@ public class AuthController {
     public ResponseEntity<BaseResponse<LoginResponseDto>> login(@Valid @RequestBody LoginRequestDto requestDto) {
         log.info("로그인 요청. 사용자 ID: {}", requestDto.getUserId());
         LoginResponseDto responseDto = authService.login(requestDto);
-        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.LOGIN_SUCCESS, responseDto));
+        
+        // 토큰 만료 시간을 날짜와 시간 형태로 추가 표시
+        ExtendedResponse<LoginResponseDto> extendedResponse = new ExtendedResponse<>(UserResponseStatus.LOGIN_SUCCESS, responseDto);
+        
+        Map<String, Object> additionalInfo = new HashMap<>();
+        // 토큰 만료 시간 계산 및 포맷팅
+        LocalDateTime expiryDateTime = LocalDateTime.now().plusSeconds(responseDto.getAccessTokenExpiresIn());
+        additionalInfo.put("accessTokenExpiryTime", expiryDateTime.format(DATE_FORMATTER));
+        additionalInfo.put("tokenType", "Bearer");
+        
+        extendedResponse.setAdditionalInfo(additionalInfo);
+        
+        return ResponseEntity.ok(extendedResponse);
     }
 
     /**
@@ -50,7 +70,19 @@ public class AuthController {
     public ResponseEntity<BaseResponse<LoginResponseDto>> refreshToken(@Valid @RequestBody TokenRefreshRequestDto requestDto) {
         log.info("토큰 갱신 요청");
         LoginResponseDto responseDto = authService.refreshToken(requestDto.getRefreshToken());
-        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.TOKEN_REFRESH_SUCCESS, responseDto));
+        
+        // 토큰 갱신 시에도 만료 시간 정보 추가
+        ExtendedResponse<LoginResponseDto> extendedResponse = new ExtendedResponse<>(UserResponseStatus.TOKEN_REFRESH_SUCCESS, responseDto);
+        
+        Map<String, Object> additionalInfo = new HashMap<>();
+        // 토큰 만료 시간 계산 및 포맷팅
+        LocalDateTime expiryDateTime = LocalDateTime.now().plusSeconds(responseDto.getAccessTokenExpiresIn());
+        additionalInfo.put("accessTokenExpiryTime", expiryDateTime.format(DATE_FORMATTER));
+        additionalInfo.put("tokenType", "Bearer");
+        
+        extendedResponse.setAdditionalInfo(additionalInfo);
+        
+        return ResponseEntity.ok(extendedResponse);
     }
 
     /**
@@ -93,7 +125,19 @@ public class AuthController {
         log.info("포그라운드 복귀 요청. 사용자 ID: {}", requestDto.getUserId());
         // 포그라운드 복귀는 실제로 새로운 로그인 요청과 동일하게 처리
         LoginResponseDto responseDto = authService.login(requestDto);
-        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.LOGIN_SUCCESS, responseDto));
+        
+        // 토큰 만료 시간 정보 추가
+        ExtendedResponse<LoginResponseDto> extendedResponse = new ExtendedResponse<>(UserResponseStatus.LOGIN_SUCCESS, responseDto);
+        
+        Map<String, Object> additionalInfo = new HashMap<>();
+        // 토큰 만료 시간 계산 및 포맷팅
+        LocalDateTime expiryDateTime = LocalDateTime.now().plusSeconds(responseDto.getAccessTokenExpiresIn());
+        additionalInfo.put("accessTokenExpiryTime", expiryDateTime.format(DATE_FORMATTER));
+        additionalInfo.put("tokenType", "Bearer");
+        
+        extendedResponse.setAdditionalInfo(additionalInfo);
+        
+        return ResponseEntity.ok(extendedResponse);
     }
 
     /**
