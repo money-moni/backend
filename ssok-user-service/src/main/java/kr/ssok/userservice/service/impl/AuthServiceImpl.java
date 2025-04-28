@@ -16,6 +16,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 인증 서비스 구현체
+ * 사용자 인증, 토큰 관리, 로그인 시도 제한 등의 기능을 구현합니다.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -44,6 +48,14 @@ public class AuthServiceImpl implements AuthService {
     // 계정 잠금 시간 (24시간)
     private static final long ACCOUNT_LOCKED_DURATION = 24 * 60 * 60;
 
+    /**
+     * 로그인 처리 구현
+     * 사용자 ID와 PIN 코드 검증 후 토큰 발급, 로그인 시도 제한 관리
+     * 
+     * @param requestDto 로그인 요청 정보 (userId, pinCode)
+     * @return 액세스 토큰과 리프레시 토큰이 포함된 응답
+     * @throws UserException 계정 잠금, 로그인 제한, 인증 실패 등의 경우 발생
+     */
     @Override
     public LoginResponseDto login(LoginRequestDto requestDto) {
         // 계정 잠금 확인
@@ -129,6 +141,14 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
+    /**
+     * 토큰 갱신 구현
+     * Refresh Token 검증 후 새로운 Access/Refresh Token 발급
+     * 
+     * @param refreshToken 리프레시 토큰
+     * @return 새로운 액세스 토큰과 리프레시 토큰이 포함된 응답
+     * @throws UserException 토큰 검증 실패 시 발생
+     */
     @Override
     public LoginResponseDto refreshToken(String refreshToken) {
         // 토큰 유효성 검증
@@ -174,6 +194,13 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
+    /**
+     * 로그아웃 처리 구현
+     * Access Token 블랙리스트 추가 및 Refresh Token 삭제
+     * 
+     * @param accessToken 로그아웃할 액세스 토큰
+     * @throws UserException 토큰이 유효하지 않을 경우 발생
+     */
     @Override
     public void logout(String accessToken) {
         // 토큰에서 Bearer 제거
@@ -203,6 +230,13 @@ public class AuthServiceImpl implements AuthService {
         log.info("로그아웃 성공. 사용자: {}", userId);
     }
 
+    /**
+     * 앱 백그라운드 전환 처리 구현
+     * 현재 사용 중인 Access Token을 블랙리스트에 추가
+     * 
+     * @param accessToken 현재 사용 중인 액세스 토큰
+     * @throws UserException 토큰이 유효하지 않을 경우 발생
+     */
     @Override
     public void handleBackground(String accessToken) {
         // 토큰에서 Bearer 제거
@@ -225,6 +259,14 @@ public class AuthServiceImpl implements AuthService {
         log.info("백그라운드 전환 처리 성공. 토큰 무효화.");
     }
 
+    /**
+     * 사용자 ID로 사용자 조회 구현
+     * 주로 Gateway에서 인증 확인용으로 사용
+     * 
+     * @param userId 조회할 사용자 ID
+     * @return 사용자 정보
+     * @throws UserException 사용자를 찾을 수 없는 경우 발생
+     */
     @Override
     public User getUserForAuth(Long userId) {
         return userRepository.findById(userId)

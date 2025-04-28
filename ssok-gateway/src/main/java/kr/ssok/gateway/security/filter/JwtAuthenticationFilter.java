@@ -39,6 +39,13 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         this.whiteList = whiteList;
     }
 
+    /**
+     * 요청을 필터링하여 JWT 토큰 검증 및 사용자 정보 추가
+     * 
+     * @param exchange 요청/응답 교환 객체
+     * @param chain 다음 필터 체인
+     * @return 필터 체인 실행 결과
+     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -84,6 +91,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     /**
      * 필터 우선순위 설정 (낮을수록 먼저 실행)
+     * 
+     * @return 필터 우선순위 값
      */
     @Override
     public int getOrder() {
@@ -91,7 +100,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     }
     
     /**
-     * 인증이 필요없는 경로인지 확인
+     * 인증이 필요 없는 경로인지 확인
+     * 
+     * @param path 요청 경로
+     * @return 화이트리스트 포함 여부
      */
     private boolean isWhiteListPath(String path) {
         return whiteList.stream().anyMatch(path::startsWith);
@@ -99,6 +111,11 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     
     /**
      * 인증 오류 처리
+     * 
+     * @param exchange 요청/응답 교환 객체
+     * @param message 오류 메시지
+     * @param status HTTP 상태 코드
+     * @return 오류 응답
      */
     private Mono<Void> onError(ServerWebExchange exchange, String message, HttpStatus status) {
         log.error("Authentication error: {}", message);

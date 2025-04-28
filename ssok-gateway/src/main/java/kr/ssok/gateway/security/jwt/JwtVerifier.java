@@ -33,6 +33,9 @@ public class JwtVerifier {
 
     /**
      * 토큰 유효성 검증
+     * 
+     * @param token 검증할 JWT 토큰
+     * @return 토큰 유효성 여부 (true: 유효, false: 유효하지 않음)
      */
     public boolean validateToken(String token) {
         try {
@@ -49,6 +52,9 @@ public class JwtVerifier {
 
     /**
      * 토큰에서 사용자 ID 추출
+     * 
+     * @param token JWT 토큰
+     * @return 토큰에 저장된 사용자 ID, 실패 시 null
      */
     public Long getUserIdFromToken(String token) {
         try {
@@ -67,6 +73,9 @@ public class JwtVerifier {
 
     /**
      * Bearer 토큰에서 JWT 추출
+     * 
+     * @param bearerToken Bearer 토큰
+     * @return JWT 토큰 (Bearer 프리픽스 제거된)
      */
     public String resolveToken(String bearerToken) {
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {

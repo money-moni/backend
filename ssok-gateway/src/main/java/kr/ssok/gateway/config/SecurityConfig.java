@@ -26,6 +26,13 @@ public class SecurityConfig {
     @Value("${auth.whitelist}")
     private List<String> whiteList;
 
+    /**
+     * Spring Security 웹 필터 체인 구성
+     * 인증 및 권한 설정, CORS, CSRF 등 보안 정책 정의
+     * 
+     * @param http ServerHttpSecurity 객체
+     * @return 구성된 SecurityWebFilterChain
+     */
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
@@ -40,6 +47,12 @@ public class SecurityConfig {
                 .build();
     }
 
+    /**
+     * CORS 설정
+     * 크로스 오리진 리소스 공유 정책 구성
+     * 
+     * @return 구성된 CorsConfigurationSource
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -56,6 +69,9 @@ public class SecurityConfig {
 
     /**
      * 인증 화이트리스트 제공
+     * 인증이 필요 없는 URL 패턴 목록
+     * 
+     * @return 화이트리스트 URL 패턴 목록
      */
     @Bean
     public List<String> whiteList() {
