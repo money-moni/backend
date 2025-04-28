@@ -1,6 +1,7 @@
 package kr.ssok.transferservice.client;
 
 import kr.ssok.common.exception.BaseResponse;
+import kr.ssok.transferservice.dto.request.OpenBankingTransferRequestDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,5 +21,5 @@ public interface OpenBankingClient {
      * @return BaseResponse 형식의 송금 응답 객체
      */
     @PostMapping("/api/openbank/transfer")
-    BaseResponse<Object> sendTransferRequest(@RequestBody Map<String, Object> requestBody);
+    BaseResponse<Object> sendTransferRequest(@RequestBody OpenBankingTransferRequestDto requestBody);
 }

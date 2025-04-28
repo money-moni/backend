@@ -3,6 +3,7 @@ package kr.ssok.transferservice.service;
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
+import kr.ssok.transferservice.dto.request.OpenBankingTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
@@ -177,7 +178,7 @@ public class TransferServiceTest {
         private boolean failTransfer = false;
 
         @Override
-        public BaseResponse<Object> sendTransferRequest(Map<String, Object> requestBody) {
+        public BaseResponse<Object> sendTransferRequest(OpenBankingTransferRequestDto requestBody) {
             if (failTransfer) {
                 return new BaseResponse<>(false, 400, "송금 실패", null);
             }
