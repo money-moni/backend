@@ -15,7 +15,6 @@ dependencies {
 
     // Spring boot
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
@@ -25,16 +24,18 @@ dependencies {
     // Spring Cloud Dependencies
     implementation libs.springCloud
 
-    // mariadb
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    // mysql
+    runtimeOnly 'com.mysql:mysql-connector-j'
 
     // JWT
     implementation libs.jwtApi
     runtimeOnly libs.jwtImpl
     runtimeOnly libs.jwtJackson
 
+    // OpeneFeign
+    implementation libs.openfeign
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // config-service
