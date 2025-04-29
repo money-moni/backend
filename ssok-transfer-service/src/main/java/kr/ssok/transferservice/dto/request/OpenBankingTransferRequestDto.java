@@ -11,7 +11,9 @@ import lombok.Getter;
 public class OpenBankingTransferRequestDto {
     private String sendAccountNumber;
     private Integer sendBankCode;
+    private String sendName;
     private String recvAccountNumber;
     private Integer recvBankCode;
+    private String recvName;
     private Long amount;
 }

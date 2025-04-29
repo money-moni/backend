@@ -114,8 +114,10 @@ public class TransferServiceImpl implements TransferService {
         OpenBankingTransferRequestDto request = OpenBankingTransferRequestDto.builder()
                 .sendAccountNumber(sendAccountNumber)
                 .sendBankCode(dto.getSendBankCode())
+                .sendName(dto.getSendName())
                 .recvAccountNumber(dto.getRecvAccountNumber())
                 .recvBankCode(dto.getRecvBankCode())
+                .recvName(dto.getRecvName())
                 .amount(dto.getAmount())
                 .build();
 
