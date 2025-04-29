@@ -35,7 +35,6 @@ public interface AccountService {
      *
      * @param userId 사용자 ID
      * @return 조회된 연동 계좌 목록을 담은 List<AccountBalanceResponseDto>
-     * @throws kr.ssok.accountservice.exception.AccountException 계좌가 하나도 존재하지 않는 경우 발생
      */
     List<AccountBalanceResponseDto> findAllAccounts(Long userId);
 
@@ -45,7 +44,15 @@ public interface AccountService {
      * @param userId 사용자 ID
      * @param accountId 조회할 계좌 ID
      * @return 조회된 연동 계좌 정보를 담은 AccountBalanceResponseDto
-     * @throws kr.ssok.accountservice.exception.AccountException 해당 계좌가 존재하지 않는 경우 발생
      */
     AccountBalanceResponseDto findAccountById(Long userId, Long accountId);
+
+    /**
+     * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 삭제합니다.
+     *
+     * @param userId 사용자 ID
+     * @param accountId 삭제할 계좌 ID
+     * @return 삭제된 계좌의 기본 정보를 담은 {@link AccountResponseDto}
+     */
+    AccountResponseDto deleteLinkedAccount(Long userId, Long accountId);
 }

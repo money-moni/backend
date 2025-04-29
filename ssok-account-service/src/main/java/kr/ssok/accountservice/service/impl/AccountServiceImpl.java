@@ -69,10 +69,10 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public List<AccountBalanceResponseDto> findAllAccounts(Long userId) {
-        List<LinkedAccount> accounts = accountRepository.findByUserId(userId);
+        List<LinkedAccount> accounts = this.accountRepository.findByUserId(userId);
 
         if (accounts.isEmpty()) {
-            log.warn("[GET] No accounts found for userId: {}", userId);
+            log.warn("[GET] Account not found: userId={}", userId);
             throw new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
         }
 
@@ -94,7 +94,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public AccountBalanceResponseDto findAccountById(Long userId, Long accountId) {
-        LinkedAccount account = accountRepository.findByAccountIdAndUserId(accountId, userId)
+        LinkedAccount account = this.accountRepository.findByAccountIdAndUserId(accountId, userId)
                 .orElseThrow(() -> {
                     log.warn("[GET] Account not found: accountId={}, userId={}", accountId, userId);
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
@@ -102,6 +102,29 @@ public class AccountServiceImpl implements AccountService {
 
         // TODO. 추후, 으픈뱅킹 API 호출을 통해 balance 값에 실제 값을 대입
         return AccountBalanceResponseDto.from(100000000L, account);
+    }
+
+    /**
+     * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 삭제합니다.
+     *
+     * <p>해당하는 계좌가 존재하지 않는 경우 {@link AccountException}을 발생시킵니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param accountId 삭제할 계좌 ID
+     * @return 삭제된 계좌의 기본 정보를 담은 {@link AccountResponseDto}
+     * @throws AccountException 계좌를 찾을 수 없는 경우 발생
+     */
+    @Override
+    public AccountResponseDto deleteLinkedAccount(Long userId, Long accountId) {
+        LinkedAccount account = this.accountRepository.findByAccountIdAndUserId(accountId, userId)
+                .orElseThrow(() -> {
+                    log.warn("[DELETE] Account not found: accountId={}, userId={}", accountId, userId);
+                    return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
+                });
+
+        this.accountRepository.delete(account);
+
+        return AccountResponseDto.from(account);
     }
 
 

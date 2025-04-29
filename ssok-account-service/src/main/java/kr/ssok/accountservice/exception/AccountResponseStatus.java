@@ -12,8 +12,9 @@ public enum AccountResponseStatus implements ResponseStatus {
     /**
      * 1. 요청에 성공한 경우(2000~2999)
      */
-    ACCOUNT_CREATE_SUCCESS(true, 2001, "계좌 생성이 성공적으로 완료되었습니다."),
+    ACCOUNT_CREATE_SUCCESS(true, 2001, "계좌 등록을 완료했습니다."),
     ACCOUNT_GET_SUCCESS(true, 2000, "계좌 조회를 완료했습니다."),
+    ACCOUNT_DELETE_SUCCESS(true, 2000, "연동 계좌 삭제를 완료했습니다."),
 
     /**
      * 2. 클라이언트 에러(4000~4999)
