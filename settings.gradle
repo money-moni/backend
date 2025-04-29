@@ -16,7 +16,7 @@ dependencyResolutionManagement {
             version('springBoot', '3.4.4')
             version('springDependencyManagement', '1.1.7')
             version('gson', '2.7')
-            version('jwt', '0.12.6')
+            version('jwt', '0.11.5')
             version('springCloud', '2024.0.0')
             version('swagger', '2.3.0')
             version('lombok', '1.18.24')

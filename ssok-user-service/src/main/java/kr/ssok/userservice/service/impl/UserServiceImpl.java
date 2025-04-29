@@ -79,7 +79,6 @@ public class UserServiceImpl implements UserService {
         try {
             createAccountByBank(requestDto);
 
-            // 응답 생성 (hashedUserCode 포함)
             return SignupResponseDto.builder()
                     .userId(savedUser.getId())
                     .build();
