@@ -1,6 +1,7 @@
 package kr.ssok.accountservice.controller;
 
 import kr.ssok.accountservice.dto.request.CreateAccountRequestDto;
+import kr.ssok.accountservice.dto.request.UpdateAliasRequestDto;
 import kr.ssok.accountservice.dto.response.AccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.AccountResponseDto;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
@@ -83,6 +84,39 @@ public class AccountController {
         AccountResponseDto result = this.accountService.deleteLinkedAccount(Long.parseLong(userId), accountId);
 
         return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_DELETE_SUCCESS, result));
+    }
+
+    /**
+     * 특정 계좌의 별명(alias)을 수정합니다.
+     *
+     * @param userId Gateway에서 전달된 사용자 ID (요청 헤더 "X-User-Id")
+     * @param accountId 별칭을 수정할 계좌 ID (Path Variable)
+     * @return 수정된 계좌 정보를 담은 {@link BaseResponse}
+     */
+    @PatchMapping("/{accountId}/alias")
+    public ResponseEntity<BaseResponse<AccountResponseDto>> updateAccountAlias(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable("accountId") Long accountId,
+            @RequestBody UpdateAliasRequestDto updateAliasRequestDto) {
+        AccountResponseDto result = this.accountService.updateAccountAlias(Long.parseLong(userId), accountId, updateAliasRequestDto);
+
+        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_ALIAS_UPDATE_SUCCESS, result));
+    }
+
+    /**
+     * 특정 계좌를 주계좌(primary account)로 설정합니다.
+     *
+     * @param userId Gateway에서 전달된 사용자 ID (요청 헤더 "X-User-Id")
+     * @param accountId 주계좌로 지정할 계좌 ID (Path Variable)
+     * @return 수정된 계좌 정보를 담은 {@link BaseResponse}
+     */
+    @PatchMapping("/{accountId}/primary")
+    public ResponseEntity<BaseResponse<AccountResponseDto>> updatePrimaryAccount(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable("accountId") Long accountId) {
+        AccountResponseDto result = this.accountService.updatePrimaryAccount(Long.parseLong(userId), accountId);
+
+        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_PRIMARY_UPDATE_SUCCESS, result));
     }
 
 

@@ -1,6 +1,7 @@
 package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.dto.request.CreateAccountRequestDto;
+import kr.ssok.accountservice.dto.request.UpdateAliasRequestDto;
 import kr.ssok.accountservice.dto.response.AccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.AccountResponseDto;
 import kr.ssok.accountservice.entity.LinkedAccount;
@@ -13,8 +14,10 @@ import kr.ssok.accountservice.service.AccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -35,11 +38,12 @@ public class AccountServiceImpl implements AccountService {
      * <p>이미 동일한 계좌 번호가 존재하는 경우 {@link AccountException}을 발생시킵니다.</p>
      *
      * @param userId 사용자 ID
-     * @param createAccountRequestDto 계좌 생성 요청 데이터
+     * @param createAccountRequestDto 계좌 생성 요청 DTO
      * @return 생성된 계좌 정보를 담은 응답 DTO
      * @throws AccountException 이미 동일한 계좌가 존재하는 경우 발생
      */
     @Override
+    @Transactional
     public AccountResponseDto createLinkedAccount(Long userId, CreateAccountRequestDto createAccountRequestDto) {
         if (this.accountRepository.existsByAccountNumber(createAccountRequestDto.getAccountNumber())) {
             log.warn("[POST] Account {} already exists", createAccountRequestDto.getAccountNumber());
@@ -68,16 +72,17 @@ public class AccountServiceImpl implements AccountService {
      * @throws AccountException 사용자의 연동 계좌가 하나도 없는 경우 발생
      */
     @Override
+    @Transactional(readOnly = true)
     public List<AccountBalanceResponseDto> findAllAccounts(Long userId) {
-        List<LinkedAccount> accounts = this.accountRepository.findByUserId(userId);
+        List<LinkedAccount> linkedAccounts = this.accountRepository.findByUserId(userId);
 
-        if (accounts.isEmpty()) {
+        if (linkedAccounts.isEmpty()) {
             log.warn("[GET] Account not found: userId={}", userId);
             throw new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
         }
 
         // TODO. 추후, 으픈뱅킹 API 호출을 통해 balance 값에 실제 값을 대입
-        return accounts.stream()
+        return linkedAccounts.stream()
                 .map(account -> AccountBalanceResponseDto.from(9999999L, account))
                 .collect(Collectors.toList());
     }
@@ -93,15 +98,16 @@ public class AccountServiceImpl implements AccountService {
      * @throws AccountException 계좌를 찾을 수 없는 경우 발생
      */
     @Override
+    @Transactional(readOnly = true)
     public AccountBalanceResponseDto findAccountById(Long userId, Long accountId) {
-        LinkedAccount account = this.accountRepository.findByAccountIdAndUserId(accountId, userId)
+        LinkedAccount linkedAccount = this.accountRepository.findByAccountIdAndUserId(accountId, userId)
                 .orElseThrow(() -> {
                     log.warn("[GET] Account not found: accountId={}, userId={}", accountId, userId);
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
                 });
 
         // TODO. 추후, 으픈뱅킹 API 호출을 통해 balance 값에 실제 값을 대입
-        return AccountBalanceResponseDto.from(100000000L, account);
+        return AccountBalanceResponseDto.from(100000000L, linkedAccount);
     }
 
     /**
@@ -115,16 +121,86 @@ public class AccountServiceImpl implements AccountService {
      * @throws AccountException 계좌를 찾을 수 없는 경우 발생
      */
     @Override
+    @Transactional
     public AccountResponseDto deleteLinkedAccount(Long userId, Long accountId) {
-        LinkedAccount account = this.accountRepository.findByAccountIdAndUserId(accountId, userId)
+        LinkedAccount linkedAccount = this.accountRepository.findByAccountIdAndUserId(accountId, userId)
                 .orElseThrow(() -> {
                     log.warn("[DELETE] Account not found: accountId={}, userId={}", accountId, userId);
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
                 });
 
-        this.accountRepository.delete(account);
+        this.accountRepository.delete(linkedAccount);
 
-        return AccountResponseDto.from(account);
+        return AccountResponseDto.from(linkedAccount);
+    }
+
+    /**
+     * 사용자 ID와 계좌 ID에 해당하는 연동 계좌의 별칭(alias)을 수정합니다.
+     *
+     * <p>요청한 사용자 ID와 계좌 ID가 일치하는 계좌가 존재하지 않으면 {@link AccountException}을 발생시킵니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param accountId 별명을 수정할 계좌 ID
+     * @param updateAliasRequestDto 새 별칭 정보를 담고 있는 요청 DTO
+     * @return 별칭이 수정된 계좌 정보를 담은 {@link AccountResponseDto}
+     * @throws AccountException 계좌를 찾을 수 없는 경우 발생
+     */
+    @Override
+    @Transactional
+    public AccountResponseDto updateAccountAlias(Long userId, Long accountId, UpdateAliasRequestDto updateAliasRequestDto) {
+        LinkedAccount linkedAccount = this.accountRepository.findByAccountIdAndUserId(accountId, userId)
+                .orElseThrow(() -> {
+                    log.warn("[PATCH] Account not found: accountId={}, userId={}", accountId, userId);
+                    return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
+                });
+        linkedAccount.updateAlias(updateAliasRequestDto.getAccountAlias());
+        this.accountRepository.save(linkedAccount);
+
+        return AccountResponseDto.from(linkedAccount);
+    }
+
+    /**
+     * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 주계좌(primary account)로 설정합니다.
+     *
+     * <p>기존 주계좌가 있으면 isPrimaryAccount 를 false로 바꾸고,
+     * 해당 계좌의 isPrimaryAccount를 true로 설정합니다.
+     * 계좌가 존재하지 않거나 유효하지 않은 요청일 경우 {@link AccountException}이 발생합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param accountId 주계좌로 설정할 계좌 ID
+     * @return 주계좌로 변경된 계좌 정보를 담은 {@link AccountResponseDto}
+     * @throws AccountException 계좌를 찾을 수 없거나 기존 주 계좌에 주 계좌 설정을 요청할 경우 발생
+     */
+    @Override
+    @Transactional
+    public AccountResponseDto updatePrimaryAccount(Long userId, Long accountId) {
+        Optional<LinkedAccount> existingPrimaryOpt = accountRepository.findByUserIdAndIsPrimaryAccountTrue(userId);
+
+        LinkedAccount linkedAccount = accountRepository.findByAccountIdAndUserId(accountId, userId)
+                .orElseThrow(() -> {
+                    log.warn("[PATCH] Account not found: accountId={}, userId={}", accountId, userId);
+                    return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
+                });
+
+        // 동일 계좌일 경우 예외 처리
+        existingPrimaryOpt
+                .filter(existing -> existing.getAccountId().equals(accountId))
+                .ifPresent(existing -> {
+                    log.warn("[PATCH] Account {} is already the primary account", accountId);
+                    throw new AccountException(AccountResponseStatus.ACCOUNT_ALREADY_PRIMARY);
+                });
+
+        // 기존 주계좌가 존재하면 해제
+        existingPrimaryOpt.ifPresent(existing -> {
+            existing.updatePrimaryAccount(false);
+            accountRepository.save(existing);
+        });
+
+        // 요청 계좌를 주계좌로 설정
+        linkedAccount.updatePrimaryAccount(true);
+        accountRepository.save(linkedAccount);
+
+        return AccountResponseDto.from(linkedAccount);
     }
 
 
