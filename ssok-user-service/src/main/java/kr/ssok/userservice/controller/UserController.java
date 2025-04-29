@@ -2,9 +2,11 @@ package kr.ssok.userservice.controller;
 
 import jakarta.validation.Valid;
 import kr.ssok.common.exception.BaseResponse;
+import kr.ssok.userservice.dto.request.PinCodeRequestDto;
 import kr.ssok.userservice.dto.request.PhoneVerificationRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
 import kr.ssok.userservice.dto.response.SignupResponseDto;
+import kr.ssok.userservice.dto.response.UserInfoResponseDto;
 import kr.ssok.userservice.exception.UserResponseStatus;
 import kr.ssok.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -61,8 +63,8 @@ public class UserController {
      * @return 인증 코드 발송 성공 여부
      */
     @PostMapping("/pin/{userId}")
-    public ResponseEntity<BaseResponse<Void>> requestPhoneVerificationForPinCode(@PathVariable Long userId) {
-        userService.requestPhoneVerificationForPinCode(userId);
+    public ResponseEntity<BaseResponse<Void>> requestPinVerification(@PathVariable Long userId) {
+        userService.requestPinVerification(userId);
         return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
     }
 
@@ -81,5 +83,27 @@ public class UserController {
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new BaseResponse<>(UserResponseStatus.CODE_VERIFICATION_FAIL));
         }
+    }
+
+    /**
+     * PIN 번호 변경 API
+     * @param requestDto
+     * @return PIN 번호 변경 결과
+     */
+    @PatchMapping("/pin")
+    public ResponseEntity<BaseResponse<Void>> updatePinCode(@RequestBody PinCodeRequestDto requestDto) {
+        userService.updatePinCode(requestDto.getUserId(), requestDto.getPinCode());
+        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
+    }
+
+    /**
+     * 특정 유저 정보 조회 API
+     * @param userId Gateway에서 전달한 사용자 ID (헤더)
+     * @return 유저 정보 조회 결과
+     */
+    @GetMapping("/info")
+    public ResponseEntity<BaseResponse<UserInfoResponseDto>> getUserInfo(@RequestHeader("X-User-Id") String userId) {
+        UserInfoResponseDto responseDto = userService.getUserInfo(Long.parseLong(userId));
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(UserResponseStatus.SUCCESS, responseDto));
     }
 }

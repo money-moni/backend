@@ -3,6 +3,7 @@ package kr.ssok.userservice.service;
 import jakarta.validation.Valid;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
 import kr.ssok.userservice.dto.response.SignupResponseDto;
+import kr.ssok.userservice.dto.response.UserInfoResponseDto;
 import org.springframework.validation.BindingResult;
 
 /**
@@ -42,7 +43,23 @@ public interface UserService {
     /**
      * PIN 번호 변경을 위한 핸드폰 인증 서비스
      * 인증코드를 생성하고 SMS로 발송하며, Redis에 인증코드를 저장합니다.
-     * @param userId
+     * @param userId 앱 내에 저장해놓은 userId
      */
-    void requestPhoneVerificationForPinCode(Long userId);
+    void requestPinVerification(Long userId);
+
+
+    /**
+     * PIN 번호 변경 서비스
+     * @param userId 앱 내에 저장해놓은 userId
+     * @param pinCode 사용자에게 입력받은 pinCode
+     */
+    void updatePinCode(Long userId, String pinCode);
+
+
+    /**
+     * 특정 유저 정보 조회 서비스
+     * @param userId Gateway에서 전달한 사용자 ID (헤더)
+     * @return 유저 정보 조회 결과가 담긴 DTO
+     */
+    UserInfoResponseDto getUserInfo(long userId);
 }

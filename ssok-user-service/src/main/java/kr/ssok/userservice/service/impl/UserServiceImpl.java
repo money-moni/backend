@@ -7,6 +7,7 @@ import kr.ssok.userservice.dto.request.BankAccountRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
 import kr.ssok.userservice.dto.response.BankAccountResponseDto;
 import kr.ssok.userservice.dto.response.SignupResponseDto;
+import kr.ssok.userservice.dto.response.UserInfoResponseDto;
 import kr.ssok.userservice.entity.User;
 import kr.ssok.userservice.exception.UserException;
 import kr.ssok.userservice.exception.UserResponseStatus;
@@ -89,24 +90,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /**
-     * 뱅크 서버를 통한 계좌 생성
-     * Feign Client를 사용하여 뱅크 서비스에 계좌 개설을 요청합니다.
-     * 
-     * @param requestDto 회원가입 요청 정보 (계좌 생성에 필요한 이름, 전화번호 포함)
-     */
-    private void createAccountByBank(SignupRequestDto requestDto) {
-        // 뱅크 서버에 계좌 개설 요청
-        BankAccountRequestDto bankRequest = BankAccountRequestDto.builder()
-                .username(requestDto.getUsername())
-                .phoneNumber(requestDto.getPhoneNumber())
-                .accountTypeCode(1) // 1 예금 고정. 확장 필요 시 수정
-                .build();
 
-        // Feign Client를 통한 계좌 개설 요청
-        BankAccountResponseDto bankResponse = bankClient.createAccount(bankRequest);
-        log.info("계좌 생성 성공: {}", bankResponse.getAccountNumber());
-    }
 
     /**
      * 휴대폰 본인 인증 구현
@@ -179,11 +163,72 @@ public class UserServiceImpl implements UserService {
      * @param userId 앱 내에 저장되어있던 userId
      */
     @Override
-    public void requestPhoneVerificationForPinCode(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new UserException(UserResponseStatus.USER_NOT_FOUND));
+    public void requestPinVerification(Long userId) {
+        User user = getUserFromRepository(userId);
         String phoneNumber = user.getPhoneNumber();
 
         phoneVerification(phoneNumber);
+    }
+
+    /**
+     * PIN 번호 변경 서비스
+     * @param userId  앱 내에 저장해놓은 userId
+     * @param pinCode 사용자에게 입력받은 pinCode
+     */
+    @Override
+    @Transactional
+    public void updatePinCode(Long userId, String pinCode) {
+        User user = getUserFromRepository(userId);
+        user.updatePinCode(passwordEncoder.encode(pinCode));
+    }
+
+
+    /**
+     * 특정 유저 정보 조회 서비스
+     * @param userId Gateway에서 전달한 사용자 ID (헤더)
+     * @return 유저 정보 조회 결과 DTO
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public UserInfoResponseDto getUserInfo(long userId) {
+        User user = getUserFromRepository(userId);
+
+        return UserInfoResponseDto.builder()
+                .username(user.getUsername())
+                .phoneNumber(user.getPhoneNumber())
+                .profileImage(user.getProfileImage().getUrl())
+                .build();
+    }
+
+    //
+
+    /**
+     * 뱅크 서버를 통한 계좌 생성
+     * Feign Client를 사용하여 뱅크 서비스에 계좌 개설을 요청합니다.
+     *
+     * @param requestDto 회원가입 요청 정보 (계좌 생성에 필요한 이름, 전화번호 포함)
+     */
+    private void createAccountByBank(SignupRequestDto requestDto) {
+        // 뱅크 서버에 계좌 개설 요청
+        BankAccountRequestDto bankRequest = BankAccountRequestDto.builder()
+                .username(requestDto.getUsername())
+                .phoneNumber(requestDto.getPhoneNumber())
+                .accountTypeCode(1) // 1 예금 고정. 확장 필요 시 수정
+                .build();
+
+        // Feign Client를 통한 계좌 개설 요청
+        BankAccountResponseDto bankResponse = bankClient.createAccount(bankRequest);
+        log.info("계좌 생성 성공: {}", bankResponse.getAccountNumber());
+    }
+
+    /**
+     * userRepository에서 userId로 User를 조회합니다.
+     * @param userId User 식별자
+     * @return User 객체
+     */
+    private User getUserFromRepository(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new UserException(UserResponseStatus.USER_NOT_FOUND));
+        return user;
     }
 }
