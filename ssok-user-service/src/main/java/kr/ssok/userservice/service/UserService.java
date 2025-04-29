@@ -62,4 +62,14 @@ public interface UserService {
      * @return 유저 정보 조회 결과가 담긴 DTO
      */
     UserInfoResponseDto getUserInfo(long userId);
+
+
+    /**
+     * PIN 번호 변경을 위한 인증코드 확인
+     * @param phoneNumber 전화번호
+     * @param verificationCode 인증코드
+     * @param userId 사용자 ID
+     * @return 인증 성공 여부
+     */
+    boolean verifyCodeForPinChange(String phoneNumber, String verificationCode, long userId);
 }

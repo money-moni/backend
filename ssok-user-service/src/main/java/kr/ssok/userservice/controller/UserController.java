@@ -7,6 +7,7 @@ import kr.ssok.userservice.dto.request.PhoneVerificationRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
 import kr.ssok.userservice.dto.response.SignupResponseDto;
 import kr.ssok.userservice.dto.response.UserInfoResponseDto;
+import kr.ssok.userservice.entity.User;
 import kr.ssok.userservice.exception.UserResponseStatus;
 import kr.ssok.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 사용자 관련 API를 처리하는 컨트롤러
@@ -58,17 +61,6 @@ public class UserController {
     }
 
     /**
-     * PIN 번호 변경을 위한 핸드폰 인증 API
-     * @param userId 앱 내에 저장되어있던 userId
-     * @return 인증 코드 발송 성공 여부
-     */
-    @PostMapping("/pin/{userId}")
-    public ResponseEntity<BaseResponse<Void>> requestPinVerification(@PathVariable Long userId) {
-        userService.requestPinVerification(userId);
-        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
-    }
-
-    /**
      * 인증코드 확인 API
      * 사용자가 입력한 인증코드와 Redis에 저장된 인증코드를 비교하여 유효성을 검증합니다.
      * 
@@ -82,6 +74,38 @@ public class UserController {
             return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new BaseResponse<>(UserResponseStatus.CODE_VERIFICATION_FAIL));
+        }
+    }
+
+    /**
+     * PIN 번호 변경을 위한 핸드폰 인증 API
+     * @param userId 앱 내에 저장되어있던 userId
+     * @return 인증 코드 발송 성공 여부
+     */
+    @PostMapping("/pin/{userId}")
+    public ResponseEntity<BaseResponse<Void>> requestPinVerification(@PathVariable Long userId) {
+        userService.requestPinVerification(userId);
+        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
+    }
+
+    /**
+     * PIN 번호 변경을 위한 인증코드 확인 API
+     */
+    @PostMapping("/pin/verify")
+    public ResponseEntity<BaseResponse<Void>> verifyCodeForPinChange(
+            @RequestBody PhoneVerificationRequestDto verificationDto,
+            @RequestHeader("X-User-Id") String userId) {
+
+        boolean isValid = userService.verifyCodeForPinChange(
+                verificationDto.getPhoneNumber(),
+                verificationDto.getVerificationCode(),
+                Long.parseLong(userId));
+
+        if (isValid) {
+            return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new BaseResponse<>(UserResponseStatus.CODE_VERIFICATION_FAIL));
         }
     }
 

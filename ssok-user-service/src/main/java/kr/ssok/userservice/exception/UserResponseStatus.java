@@ -25,7 +25,9 @@ public enum UserResponseStatus implements ResponseStatus {
     LOGIN_FAILED(false, 4014, "로그인에 실패했습니다."),
     TOO_MANY_LOGIN_ATTEMPTS(false, 4015, "로그인 시도 횟수가 초과되었습니다. 잠시 후 다시 시도해주세요."),
     ACCOUNT_LOCKED(false, 4016, "계정이 잠금 상태입니다."),
-    
+    PIN_CHANGE_AUTH_REQUIRED(false, 4017, "PIN 번호 변경을 위한 인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
+    PHONE_NUMBER_MISMATCH(false, 4018, "요청된 전화번호가 사용자 정보와 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
+
     // 뱅크 서버 관련 오류
     USER_ALREADY_EXISTS(false, 5000, "이미 존재하는 사용자입니다."),
     USER_NOT_FOUND(false, 5000, "사용자를 찾을 수 없습니다."),

@@ -171,6 +171,36 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * PIN 번호 변경을 위한 인증코드 확인
+     * @param phoneNumber      전화번호
+     * @param verificationCode 인증코드
+     * @param userId           사용자 ID
+     * @return 인증 여부 boolean
+     */
+    @Override
+    public boolean verifyCodeForPinChange(String phoneNumber, String verificationCode, long userId) {
+        // 1. 사용자 존재 여부 확인
+        User user = getUserFromRepository(userId);
+
+        // 2. 요청된 전화번호가 사용자의 전화번호와 일치하는지 확인
+        if (!user.getPhoneNumber().equals(phoneNumber)) {
+            throw new UserException(UserResponseStatus.PHONE_NUMBER_MISMATCH);
+        }
+
+        // 3. 기존 verifyCode 메서드로 인증코드 검증
+        boolean isValid = verifyCode(phoneNumber, verificationCode);
+
+        // 4. 인증 성공 시 PIN 변경 권한 부여 (Redis에 저장)
+        if (isValid) {
+            String pinAuthKey = "pin:auth:" + userId;
+            redisTemplate.opsForValue().set(pinAuthKey, "true", 5, TimeUnit.MINUTES);
+            log.info("PIN 변경 인증 성공. 사용자: {}", userId);
+        }
+
+        return isValid;
+    }
+
+    /**
      * PIN 번호 변경 서비스
      * @param userId  앱 내에 저장해놓은 userId
      * @param pinCode 사용자에게 입력받은 pinCode
@@ -178,8 +208,25 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updatePinCode(Long userId, String pinCode) {
+        // 1. PIN 변경 권한 확인
+        String pinAuthKey = "pin:auth:" + userId;
+        Boolean hasAuth = Boolean.TRUE.equals(redisTemplate.hasKey(pinAuthKey));
+
+        if (!hasAuth) {
+            throw new UserException(UserResponseStatus.PIN_CHANGE_AUTH_REQUIRED);
+        }
+
+        // 2. 사용자 조회
         User user = getUserFromRepository(userId);
-        user.updatePinCode(passwordEncoder.encode(pinCode));
+
+        // 3. PIN 코드 암호화
+        String encodedPinCode = passwordEncoder.encode(pinCode);
+
+        // 4. PIN 코드 업데이트
+        user.updatePinCode(encodedPinCode);
+
+        // 5. 인증 정보 삭제 (1회성)
+        redisTemplate.delete(pinAuthKey);
     }
 
 
