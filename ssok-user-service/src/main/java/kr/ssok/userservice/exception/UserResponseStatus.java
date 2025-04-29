@@ -32,7 +32,8 @@ public enum UserResponseStatus implements ResponseStatus {
     USER_ALREADY_EXISTS(false, 5000, "이미 존재하는 사용자입니다."),
     USER_NOT_FOUND(false, 5000, "사용자를 찾을 수 없습니다."),
     BANK_SERVER_ERROR(false, 5000, "뱅크 서버와 통신 중 오류가 발생했습니다."),
-    ACCOUNT_CREATION_FAILED(false, 5000, "계좌 생성에 실패했습니다.");
+    ACCOUNT_CREATION_FAILED(false, 5000, "계좌 생성에 실패했습니다."),
+    TERMS_NOT_FOUND(false, 5001, "약관 정보를 찾을 수 없습니다.");
 
     private final boolean success;
     private final int code;
