@@ -167,6 +167,11 @@ public class TransferServiceTest {
             return new BaseResponse<>(true, 2000, "계좌 ID 조회 성공",
                     new AccountIdResponse.Result(10L));
         }
+
+        @Override
+        public BaseResponse<AccountIdsResponse.Result> getAccountIdsByUserId(Long userId) {
+            return null;
+        }
     }
 
     /**
