@@ -29,7 +29,7 @@ public class TransferController {
     @PostMapping
     public ResponseEntity<BaseResponse<TransferResponseDto>> transfer(
             @RequestBody TransferRequestDto requestDto,
-            @RequestHeader("X-user-Id") String userId) {
+            @RequestHeader("X-User-Id") String userId) {
         TransferResponseDto result = this.transferService.transfer(Long.parseLong(userId), requestDto);
         return ResponseEntity.ok(new BaseResponse<>(TransferResponseStatus.TRANSFER_SUCCESS, result));
     }

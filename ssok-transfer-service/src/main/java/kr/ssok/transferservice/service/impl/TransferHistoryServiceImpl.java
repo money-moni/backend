@@ -1,5 +1,8 @@
 package kr.ssok.transferservice.service.impl;
 
+import kr.ssok.common.exception.BaseResponse;
+import kr.ssok.transferservice.client.AccountServiceClient;
+import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
 import kr.ssok.transferservice.exception.TransferException;
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransferHistoryServiceImpl implements TransferHistoryService {
 
+    private final AccountServiceClient accountServiceClient;
     private final TransferHistoryRepository transferHistoryRepository;
 
     /**
@@ -56,5 +60,34 @@ public class TransferHistoryServiceImpl implements TransferHistoryService {
                         .createdAt(history.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 사용자 ID로 최근 송금한 상대 목록 조회
+     *
+     * @param userId 사용자 ID
+     * @return 송금 상대 목록
+     */
+    @Override
+    public List<TransferCounterpartResponseDto> getRecentCounterparts(Long userId) {
+        if (userId == null) {
+            throw new TransferException(TransferResponseStatus.INVALID_USER_ID);
+        }
+
+        // 1. 계좌 서비스에서 사용자 ID로 모든 계좌 ID 조회
+        BaseResponse<AccountServiceClient.AccountIdsResponse.Result> accountListResponse =
+                this.accountServiceClient.getAccountIdsByUserId(userId);
+
+        // NPE 방지
+        if (!accountListResponse.getIsSuccess() ||
+                accountListResponse.getResult() == null ||
+                accountListResponse.getResult().getAccountIds() == null ||
+                accountListResponse.getResult().getAccountIds().isEmpty()) {
+            return List.of(); // 비어 있는 리스트 반환
+        }
+
+        // 2. 계좌 ID 목록으로 송금 상대 조회 (QueryDSL)
+        List<Long> accountIds = accountListResponse.getResult().getAccountIds();
+        return this.transferHistoryRepository.findRecentCounterparts(accountIds);
     }
 }

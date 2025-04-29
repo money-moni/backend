@@ -4,7 +4,10 @@ import kr.ssok.common.exception.BaseResponse;
 import lombok.Getter;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
  * 계좌 서비스와 통신하는 Feign 클라이언트 인터페이스
@@ -23,7 +26,7 @@ public interface AccountServiceClient {
     @GetMapping("/api/account-lookup")
     BaseResponse<AccountResponse.Result> getAccountInfo(
             @RequestParam("accountId") Long accountId,
-            @RequestParam("userId") Long userId
+            @RequestHeader("X-User-Id") Long userId
     );
 
     /**
@@ -36,6 +39,17 @@ public interface AccountServiceClient {
     BaseResponse<AccountIdResponse.Result> getAccountId(
             @RequestParam("accountNumber") String accountNumber
     );
+
+    /**
+     * 사용자 ID를 기반으로 해당 사용자의 모든 계좌 ID 리스트를 조회
+     *
+     * @param userId 사용자 ID
+     * @return BaseResponse 객체에 계좌 ID 리스트를 담아 반환
+     */
+    @GetMapping("/api/accounts/ids")
+    BaseResponse<AccountIdsResponse.Result> getAccountIdsByUserId(
+            @RequestHeader("X-User-Id") Long userId);
+
 
     /**
      * 계좌 번호 응답 객체 구조
@@ -63,6 +77,21 @@ public interface AccountServiceClient {
 
             public Result(Long accountId) {
                 this.accountId = accountId;
+            }
+        }
+    }
+
+    /**
+     * 계좌 ID 리스트 응답 객체 구조
+     */
+    @Getter
+    class AccountIdsResponse {
+        @Getter
+        public static class Result {
+            private final List<Long> accountIds;
+
+            public Result(List<Long> accountIds) {
+                this.accountIds = accountIds;
             }
         }
     }
