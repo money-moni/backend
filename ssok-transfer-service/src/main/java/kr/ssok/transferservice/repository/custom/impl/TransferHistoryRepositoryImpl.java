@@ -10,6 +10,7 @@ import kr.ssok.transferservice.repository.custom.TransferHistoryRepositoryCustom
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,11 @@ public class TransferHistoryRepositoryImpl implements TransferHistoryRepositoryC
     @Override
     public List<TransferCounterpartResponseDto> findRecentCounterparts(List<Long> accountIds) {
         QTransferHistory history = QTransferHistory.transferHistory;
+
+        if (accountIds == null || accountIds.isEmpty()) {
+            // 빈 결과 리턴
+            return List.of();
+        }
 
         // 1. DB에서 조건에 맞는 송금 이력만 조회하고 바로 DTO로 매핑
         List<TransferCounterpartResponseDto> fetchedResults = queryFactory
