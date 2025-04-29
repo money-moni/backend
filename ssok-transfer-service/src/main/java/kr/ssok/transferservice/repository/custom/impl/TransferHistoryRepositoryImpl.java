@@ -57,6 +57,7 @@ public class TransferHistoryRepositoryImpl implements TransferHistoryRepositoryC
                 )
                 .groupBy(history.counterpartAccount, history.counterpartName) // 상대방 계좌번호 + 이름 기준 그룹핑
                 .orderBy(history.createdAt.max().desc()) // 최근 송금 시점 기준 정렬
+                .limit(50) // 최대 50개만 조회
                 .fetch(); // SQL 실행 및 결과 fetch
 
         return fetchedResults;
