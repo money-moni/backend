@@ -7,6 +7,7 @@ import kr.ssok.userservice.dto.request.BankAccountRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
 import kr.ssok.userservice.dto.response.BankAccountResponseDto;
 import kr.ssok.userservice.dto.response.SignupResponseDto;
+import kr.ssok.userservice.dto.response.UserInfoResponseDto;
 import kr.ssok.userservice.entity.User;
 import kr.ssok.userservice.exception.UserException;
 import kr.ssok.userservice.exception.UserResponseStatus;
@@ -79,7 +80,6 @@ public class UserServiceImpl implements UserService {
         try {
             createAccountByBank(requestDto);
 
-            // 응답 생성 (hashedUserCode 포함)
             return SignupResponseDto.builder()
                     .userId(savedUser.getId())
                     .build();
@@ -90,24 +90,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /**
-     * 뱅크 서버를 통한 계좌 생성
-     * Feign Client를 사용하여 뱅크 서비스에 계좌 개설을 요청합니다.
-     * 
-     * @param requestDto 회원가입 요청 정보 (계좌 생성에 필요한 이름, 전화번호 포함)
-     */
-    private void createAccountByBank(SignupRequestDto requestDto) {
-        // 뱅크 서버에 계좌 개설 요청
-        BankAccountRequestDto bankRequest = BankAccountRequestDto.builder()
-                .username(requestDto.getUsername())
-                .phoneNumber(requestDto.getPhoneNumber())
-                .accountTypeCode(1) // 1 예금 고정. 확장 필요 시 수정
-                .build();
 
-        // Feign Client를 통한 계좌 개설 요청
-        BankAccountResponseDto bankResponse = bankClient.createAccount(bankRequest);
-        log.info("계좌 생성 성공: {}", bankResponse.getAccountNumber());
-    }
 
     /**
      * 휴대폰 본인 인증 구현
@@ -130,7 +113,7 @@ public class UserServiceImpl implements UserService {
                 .verificationCode(verificationCode)
                 .build();
 
-        // Feign Client를 통한 계좌 개설 요청
+        // Feign Client를 통한 인증번호 발송 요청
         aligoClient.sendVerificationCode(requestDto);
         log.info(phoneNumber + " " + verificationCode + ": 인증코드 전송");
 
@@ -169,5 +152,130 @@ public class UserServiceImpl implements UserService {
         } else {
             return false;
         }
+    }
+
+    /**
+     * PIN 번호 변경을 위한 핸드폰 인증 구현
+     * 1. 앱에 저장되어있던 userId로 DB 내 user phoneNumber 검증, 조회
+     * 2. 6자리 랜덤 인증코드 생성
+     * 3. 알리고 서비스를 통한 SMS 발송
+     * 4. Redis에 인증코드 저장 (유효시간 3분)
+     * @param userId 앱 내에 저장되어있던 userId
+     */
+    @Override
+    public void requestPinVerification(Long userId) {
+        User user = getUserFromRepository(userId);
+        String phoneNumber = user.getPhoneNumber();
+
+        phoneVerification(phoneNumber);
+    }
+
+    /**
+     * PIN 번호 변경을 위한 인증코드 확인
+     * @param phoneNumber      전화번호
+     * @param verificationCode 인증코드
+     * @param userId           사용자 ID
+     * @return 인증 여부 boolean
+     */
+    @Override
+    public boolean verifyCodeForPinChange(String phoneNumber, String verificationCode, long userId) {
+        // 1. 사용자 존재 여부 확인
+        User user = getUserFromRepository(userId);
+
+        // 2. 요청된 전화번호가 사용자의 전화번호와 일치하는지 확인
+        if (!user.getPhoneNumber().equals(phoneNumber)) {
+            throw new UserException(UserResponseStatus.PHONE_NUMBER_MISMATCH);
+        }
+
+        // 3. 기존 verifyCode 메서드로 인증코드 검증
+        boolean isValid = verifyCode(phoneNumber, verificationCode);
+
+        // 4. 인증 성공 시 PIN 변경 권한 부여 (Redis에 저장)
+        if (isValid) {
+            String pinAuthKey = "pin:auth:" + userId;
+            redisTemplate.opsForValue().set(pinAuthKey, "true", 5, TimeUnit.MINUTES);
+            log.info("PIN 변경 인증 성공. 사용자: {}", userId);
+        }
+
+        return isValid;
+    }
+
+    /**
+     * PIN 번호 변경 서비스
+     * @param userId  앱 내에 저장해놓은 userId
+     * @param pinCode 사용자에게 입력받은 pinCode
+     */
+    @Override
+    @Transactional
+    public void updatePinCode(Long userId, String pinCode) {
+        // 1. PIN 변경 권한 확인
+        String pinAuthKey = "pin:auth:" + userId;
+        Boolean hasAuth = Boolean.TRUE.equals(redisTemplate.hasKey(pinAuthKey));
+
+        if (!hasAuth) {
+            throw new UserException(UserResponseStatus.PIN_CHANGE_AUTH_REQUIRED);
+        }
+
+        // 2. 사용자 조회
+        User user = getUserFromRepository(userId);
+
+        // 3. PIN 코드 암호화
+        String encodedPinCode = passwordEncoder.encode(pinCode);
+
+        // 4. PIN 코드 업데이트
+        user.updatePinCode(encodedPinCode);
+
+        // 5. 인증 정보 삭제 (1회성)
+        redisTemplate.delete(pinAuthKey);
+    }
+
+
+    /**
+     * 특정 유저 정보 조회 서비스
+     * @param userId Gateway에서 전달한 사용자 ID (헤더)
+     * @return 유저 정보 조회 결과 DTO
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public UserInfoResponseDto getUserInfo(long userId) {
+        User user = getUserFromRepository(userId);
+
+        return UserInfoResponseDto.builder()
+                .username(user.getUsername())
+                .phoneNumber(user.getPhoneNumber())
+                .profileImage(user.getProfileImage().getUrl())
+                .build();
+    }
+
+    //
+
+    /**
+     * 뱅크 서버를 통한 계좌 생성
+     * Feign Client를 사용하여 뱅크 서비스에 계좌 개설을 요청합니다.
+     *
+     * @param requestDto 회원가입 요청 정보 (계좌 생성에 필요한 이름, 전화번호 포함)
+     */
+    private void createAccountByBank(SignupRequestDto requestDto) {
+        // 뱅크 서버에 계좌 개설 요청
+        BankAccountRequestDto bankRequest = BankAccountRequestDto.builder()
+                .username(requestDto.getUsername())
+                .phoneNumber(requestDto.getPhoneNumber())
+                .accountTypeCode(1) // 1 예금 고정. 확장 필요 시 수정
+                .build();
+
+        // Feign Client를 통한 계좌 개설 요청
+        BankAccountResponseDto bankResponse = bankClient.createAccount(bankRequest);
+        log.info("계좌 생성 성공: {}", bankResponse.getAccountNumber());
+    }
+
+    /**
+     * userRepository에서 userId로 User를 조회합니다.
+     * @param userId User 식별자
+     * @return User 객체
+     */
+    private User getUserFromRepository(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new UserException(UserResponseStatus.USER_NOT_FOUND));
+        return user;
     }
 }
