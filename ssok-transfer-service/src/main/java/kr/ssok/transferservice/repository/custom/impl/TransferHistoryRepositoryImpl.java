@@ -46,10 +46,10 @@ public class TransferHistoryRepositoryImpl implements TransferHistoryRepositoryC
                 .select(
                         // Projections.constructor을 통해 SELECT 결과를 바로 DTO 생성자로 매핑
                         Projections.constructor(
-                            TransferCounterpartResponseDto.class,
-                            history.counterpartName,
-                            history.counterpartAccount,
-                            history.createdAt
+                                TransferCounterpartResponseDto.class,
+                                history.counterpartName,
+                                history.counterpartAccount,
+                                history.createdAt.max() // max(createdAt)로 최신 송금 시간
                         )
                 )
                 .from(history)
@@ -58,20 +58,10 @@ public class TransferHistoryRepositoryImpl implements TransferHistoryRepositoryC
                         history.transferType.eq(TransferType.WITHDRAWAL),   // 출금 건만
                         history.transferMethod.eq(TransferMethod.GENERAL)   // 일반 송금만
                 )
-                .orderBy(history.createdAt.desc()) // 가장 최근 송금 순 정렬
+                .groupBy(history.counterpartAccount, history.counterpartName) // 상대방 계좌번호 + 이름 기준 그룹핑
+                .orderBy(history.createdAt.max().desc()) // 최근 송금 시점 기준 정렬
                 .fetch(); // SQL 실행 및 결과 fetch
 
-        // 2. counterpartAccount(상대 계좌번호) 기준으로 중복 제거
-        Map<String, TransferCounterpartResponseDto> uniqueMap = new LinkedHashMap<>();
-
-        for (TransferCounterpartResponseDto dto : fetchedResults) {
-            String key = dto.getCounterpartAccountNumber(); // 상대 계좌번호를 중복 키로 사용
-            if (!uniqueMap.containsKey(key)) {
-                uniqueMap.put(key, dto);
-            }
-        }
-
-        // 3. 중복 제거된 결과를 리스트로 변환해서 반환
-        return uniqueMap.values().stream().toList();
+        return fetchedResults;
     }
 }
