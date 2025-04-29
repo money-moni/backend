@@ -12,10 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 사용자 관련 API를 처리하는 컨트롤러
@@ -46,7 +43,7 @@ public class UserController {
     }
 
     /**
-     * 휴대폰 본인 인증 API
+     * 휴대폰 본인 인증 API (가입)
      * 사용자의 휴대폰 번호로 인증 코드를 생성하고 SMS를 발송합니다.
      * 
      * @param requestDto 휴대폰 번호가 포함된 요청 DTO
@@ -55,6 +52,17 @@ public class UserController {
     @PostMapping("/phone")
     public ResponseEntity<BaseResponse<Void>> phoneVerification(@RequestBody PhoneVerificationRequestDto requestDto) {
         userService.phoneVerification(requestDto.getPhoneNumber());
+        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
+    }
+
+    /**
+     * PIN 번호 변경을 위한 핸드폰 인증 API
+     * @param userId 앱 내에 저장되어있던 userId
+     * @return 인증 코드 발송 성공 여부
+     */
+    @PostMapping("/pin/{userId}")
+    public ResponseEntity<BaseResponse<Void>> requestPhoneVerificationForPinCode(@PathVariable Long userId) {
+        userService.requestPhoneVerificationForPinCode(userId);
         return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
     }
 

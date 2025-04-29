@@ -38,4 +38,11 @@ public interface UserService {
      * @return 인증코드 일치 여부 (true: 일치, false: 불일치)
      */
     boolean verifyCode(String phoneNumber, String verificationCode);
+
+    /**
+     * PIN 번호 변경을 위한 핸드폰 인증 서비스
+     * 인증코드를 생성하고 SMS로 발송하며, Redis에 인증코드를 저장합니다.
+     * @param userId
+     */
+    void requestPhoneVerificationForPinCode(Long userId);
 }

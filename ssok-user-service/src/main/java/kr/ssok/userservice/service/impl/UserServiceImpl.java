@@ -129,7 +129,7 @@ public class UserServiceImpl implements UserService {
                 .verificationCode(verificationCode)
                 .build();
 
-        // Feign Client를 통한 계좌 개설 요청
+        // Feign Client를 통한 인증번호 발송 요청
         aligoClient.sendVerificationCode(requestDto);
         log.info(phoneNumber + " " + verificationCode + ": 인증코드 전송");
 
@@ -168,5 +168,22 @@ public class UserServiceImpl implements UserService {
         } else {
             return false;
         }
+    }
+
+    /**
+     * PIN 번호 변경을 위한 핸드폰 인증 구현
+     * 1. 앱에 저장되어있던 userId로 DB 내 user phoneNumber 검증, 조회
+     * 2. 6자리 랜덤 인증코드 생성
+     * 3. 알리고 서비스를 통한 SMS 발송
+     * 4. Redis에 인증코드 저장 (유효시간 3분)
+     * @param userId 앱 내에 저장되어있던 userId
+     */
+    @Override
+    public void requestPhoneVerificationForPinCode(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new UserException(UserResponseStatus.USER_NOT_FOUND));
+        String phoneNumber = user.getPhoneNumber();
+
+        phoneVerification(phoneNumber);
     }
 }
