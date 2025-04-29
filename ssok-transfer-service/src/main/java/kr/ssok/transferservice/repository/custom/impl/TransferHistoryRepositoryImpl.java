@@ -10,10 +10,7 @@ import kr.ssok.transferservice.repository.custom.TransferHistoryRepositoryCustom
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 송금 이력 QueryDSL 쿼리 구현체
