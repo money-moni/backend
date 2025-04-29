@@ -1,6 +1,7 @@
 package kr.ssok.accountservice.service;
 
 import kr.ssok.accountservice.dto.request.CreateAccountRequestDto;
+import kr.ssok.accountservice.dto.request.UpdateAliasRequestDto;
 import kr.ssok.accountservice.dto.response.AccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.AccountResponseDto;
 
@@ -55,4 +56,23 @@ public interface AccountService {
      * @return 삭제된 계좌의 기본 정보를 담은 {@link AccountResponseDto}
      */
     AccountResponseDto deleteLinkedAccount(Long userId, Long accountId);
+
+    /**
+     * 사용자 ID와 계좌 ID에 해당하는 연동 계좌의 별칭(alias)을 수정합니다.
+     *
+     * @param userId 사용자 ID
+     * @param accountId 별칭을 수정할 계좌 ID
+     * @param updateAliasRequestDto 별칭 수정 요청 DTO (수정할 alias 포함)
+     * @return 별칭이 수정된 계좌 정보를 담은 {@link AccountResponseDto}
+     */
+    AccountResponseDto updateAccountAlias(Long userId, Long accountId, UpdateAliasRequestDto updateAliasRequestDto);
+
+    /**
+     * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 주계좌(primary account)로 설정합니다.
+     *
+     * @param userId 사용자 ID
+     * @param accountId 주계좌로 설정할 계좌 ID
+     * @return 주계좌로 변경된 계좌 정보를 담은 {@link AccountResponseDto}
+     */
+    AccountResponseDto updatePrimaryAccount(Long userId, Long accountId);
 }

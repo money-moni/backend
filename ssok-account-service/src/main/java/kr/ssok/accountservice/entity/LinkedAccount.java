@@ -1,8 +1,6 @@
 package kr.ssok.accountservice.entity;
 
 import jakarta.persistence.*;
-import kr.ssok.accountservice.dto.response.AccountBalanceResponseDto;
-import kr.ssok.accountservice.dto.response.AccountResponseDto;
 import kr.ssok.accountservice.entity.enums.AccountTypeCode;
 import kr.ssok.accountservice.entity.enums.BankCode;
 import kr.ssok.common.entity.TimeStamp;
@@ -12,11 +10,6 @@ import lombok.*;
  * 사용자가 연동한 계좌 정보를 저장하는 JPA 엔티티
  *
  * <p>계좌 번호, 은행 코드, 계좌 별칭, 주계좌 여부, 계좌 타입, 사용자 ID 등을 관리합니다.</p>
- *
- * <p>주로 연동 계좌 생성 및 연동 계좌 조회 기능에서 사용되며,
- * {@link AccountResponseDto}, {@link AccountBalanceResponseDto}로 변환하는 메소드를 제공합니다.</p>
- *
- * <p>생성일자, 수정일자는 스프링 데이터 JPA의 Auditing 기능을 통해 자동 관리됩니다.</p>
  */
 @Entity
 @Builder
@@ -49,4 +42,22 @@ public class LinkedAccount extends TimeStamp {
     @Enumerated(EnumType.STRING)
     @Column(name = "account_type_code", nullable = false, updatable = false)
     private AccountTypeCode accountTypeCode;
+
+    /**
+     * 계좌의 별칭(alias)을 업데이트합니다.
+     *
+     * @param accountAlias 새로 설정할 계좌 별칭
+     */
+    public void updateAlias(String accountAlias) {
+        this.accountAlias = accountAlias;
+    }
+
+    /**
+     * 주계좌(primary account) 여부를 업데이트합니다.
+     *
+     * @param isPrimaryAccount 주계좌로 설정할지 여부 (true 또는 false)
+     */
+    public void updatePrimaryAccount(Boolean isPrimaryAccount) {
+        this.isPrimaryAccount = isPrimaryAccount;
+    }
 }
