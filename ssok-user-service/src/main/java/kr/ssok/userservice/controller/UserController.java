@@ -7,7 +7,6 @@ import kr.ssok.userservice.dto.request.PhoneVerificationRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
 import kr.ssok.userservice.dto.response.SignupResponseDto;
 import kr.ssok.userservice.dto.response.UserInfoResponseDto;
-import kr.ssok.userservice.entity.User;
 import kr.ssok.userservice.exception.UserResponseStatus;
 import kr.ssok.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.concurrent.TimeUnit;
 
 /**
  * 사용자 관련 API를 처리하는 컨트롤러
