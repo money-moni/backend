@@ -1,9 +1,6 @@
 package kr.ssok.userservice.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import kr.ssok.common.entity.TimeStamp;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,5 +19,6 @@ public class Terms extends TimeStamp {
 
     private String title; // 약관 제목
 
+    @Column(columnDefinition = "text")
     private String content; // 약관 내용 (html 형태로)
 }
