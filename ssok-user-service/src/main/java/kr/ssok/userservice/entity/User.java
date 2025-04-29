@@ -28,4 +28,12 @@ public class User extends TimeStamp {
 
     @Column(nullable = false)
     private String pinCode;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private ProfileImage profileImage;
+
+    // pinCode update
+    public void updatePinCode(String pinCode) {
+        this.pinCode = pinCode;
+    }
 }

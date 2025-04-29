@@ -2,9 +2,12 @@ package kr.ssok.userservice.controller;
 
 import jakarta.validation.Valid;
 import kr.ssok.common.exception.BaseResponse;
+import kr.ssok.userservice.dto.request.PinCodeRequestDto;
 import kr.ssok.userservice.dto.request.PhoneVerificationRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
 import kr.ssok.userservice.dto.response.SignupResponseDto;
+import kr.ssok.userservice.dto.response.UserInfoResponseDto;
+import kr.ssok.userservice.entity.User;
 import kr.ssok.userservice.exception.UserResponseStatus;
 import kr.ssok.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 사용자 관련 API를 처리하는 컨트롤러
@@ -46,7 +48,7 @@ public class UserController {
     }
 
     /**
-     * 휴대폰 본인 인증 API
+     * 휴대폰 본인 인증 API (가입)
      * 사용자의 휴대폰 번호로 인증 코드를 생성하고 SMS를 발송합니다.
      * 
      * @param requestDto 휴대폰 번호가 포함된 요청 DTO
@@ -73,5 +75,59 @@ public class UserController {
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new BaseResponse<>(UserResponseStatus.CODE_VERIFICATION_FAIL));
         }
+    }
+
+    /**
+     * PIN 번호 변경을 위한 핸드폰 인증 API
+     * @param userId 앱 내에 저장되어있던 userId
+     * @return 인증 코드 발송 성공 여부
+     */
+    @PostMapping("/pin/{userId}")
+    public ResponseEntity<BaseResponse<Void>> requestPinVerification(@PathVariable Long userId) {
+        userService.requestPinVerification(userId);
+        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
+    }
+
+    /**
+     * PIN 번호 변경을 위한 인증코드 확인 API
+     */
+    @PostMapping("/pin/verify")
+    public ResponseEntity<BaseResponse<Void>> verifyCodeForPinChange(
+            @RequestBody PhoneVerificationRequestDto verificationDto,
+            @RequestHeader("X-User-Id") String userId) {
+
+        boolean isValid = userService.verifyCodeForPinChange(
+                verificationDto.getPhoneNumber(),
+                verificationDto.getVerificationCode(),
+                Long.parseLong(userId));
+
+        if (isValid) {
+            return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new BaseResponse<>(UserResponseStatus.CODE_VERIFICATION_FAIL));
+        }
+    }
+
+    /**
+     * PIN 번호 변경 API
+     * @param requestDto
+     * @return PIN 번호 변경 결과
+     */
+    @PatchMapping("/pin")
+    public ResponseEntity<BaseResponse<Void>> updatePinCode(@RequestBody PinCodeRequestDto requestDto) {
+        userService.updatePinCode(requestDto.getUserId(), requestDto.getPinCode());
+        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
+    }
+
+    /**
+     * 특정 유저 정보 조회 API
+     * @param userId Gateway에서 전달한 사용자 ID (헤더)
+     * @return 유저 정보 조회 결과
+     */
+    @GetMapping("/info")
+    public ResponseEntity<BaseResponse<UserInfoResponseDto>> getUserInfo(@RequestHeader("X-User-Id") String userId) {
+        UserInfoResponseDto responseDto = userService.getUserInfo(Long.parseLong(userId));
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(UserResponseStatus.SUCCESS, responseDto));
     }
 }
