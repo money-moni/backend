@@ -38,8 +38,8 @@ public enum BankCode {
         }
     }
 
-    public static BankCode fromIdx(Long idx) {
-        BankCode bankCode = IDX_MAP.get(idx.intValue());
+    public static BankCode fromIdx(int idx) {
+        BankCode bankCode = IDX_MAP.get(idx);
         if (bankCode == null) {
             throw new IllegalArgumentException("Invalid BankCode idx: " + idx);
         }

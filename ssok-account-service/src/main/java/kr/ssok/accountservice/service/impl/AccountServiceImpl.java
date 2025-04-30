@@ -2,6 +2,7 @@ package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.dto.request.CreateAccountRequestDto;
 import kr.ssok.accountservice.dto.request.UpdateAliasRequestDto;
+import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountBalanceRequestDto;
 import kr.ssok.accountservice.dto.response.AccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.AccountResponseDto;
 import kr.ssok.accountservice.entity.LinkedAccount;
@@ -10,6 +11,7 @@ import kr.ssok.accountservice.entity.enums.BankCode;
 import kr.ssok.accountservice.exception.AccountException;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
 import kr.ssok.accountservice.repository.AccountRepository;
+import kr.ssok.accountservice.service.AccountOpenBankingService;
 import kr.ssok.accountservice.service.AccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 계좌 서비스 비즈니스 로직을 구현한 클래스
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
-
+    private final AccountOpenBankingService accountOpenBankingService;
 
     /**
      * 사용자의 연동 계좌를 생성합니다.
@@ -81,10 +82,23 @@ public class AccountServiceImpl implements AccountService {
             throw new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
         }
 
-        // TODO. 추후, 으픈뱅킹 API 호출을 통해 balance 값에 실제 값을 대입
-        return linkedAccounts.stream()
-                .map(account -> AccountBalanceResponseDto.from(9999999L, account))
-                .collect(Collectors.toList());
+        // 병렬 처리
+        return linkedAccounts.parallelStream()
+                .map(account -> {
+                    try {
+                        OpenBankingAccountBalanceRequestDto requestDto =
+                                OpenBankingAccountBalanceRequestDto.from(account);
+
+                        Long balance = accountOpenBankingService
+                                .fetchAccountBalanceFromOpenBanking(requestDto)
+                                .getBalance();
+                        return AccountBalanceResponseDto.from(balance, account);
+                    } catch (Exception e) {
+                        log.error("[OPENBANKING][병렬] 잔액 조회 실패: {}", account.getAccountNumber());
+                        return AccountBalanceResponseDto.from(-1L, account);
+                    }
+                })
+                .toList();
     }
 
     /**
@@ -106,8 +120,19 @@ public class AccountServiceImpl implements AccountService {
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
                 });
 
-        // TODO. 추후, 으픈뱅킹 API 호출을 통해 balance 값에 실제 값을 대입
-        return AccountBalanceResponseDto.from(100000000L, linkedAccount);
+        OpenBankingAccountBalanceRequestDto requestDto =
+                OpenBankingAccountBalanceRequestDto.from(linkedAccount);
+
+        Long balance;
+        try {
+            balance = this.accountOpenBankingService
+                    .fetchAccountBalanceFromOpenBanking(requestDto)
+                    .getBalance();
+        } catch (Exception e) {
+            log.error("[OPENBANKING] 잔액 조회 실패: accountId={}, userId={}", accountId, userId, e);
+            balance = -1L;
+        }
+        return AccountBalanceResponseDto.from(balance, linkedAccount);
     }
 
     /**
@@ -154,7 +179,6 @@ public class AccountServiceImpl implements AccountService {
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
                 });
         linkedAccount.updateAlias(updateAliasRequestDto.getAccountAlias());
-        this.accountRepository.save(linkedAccount);
 
         return AccountResponseDto.from(linkedAccount);
     }
@@ -174,9 +198,9 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public AccountResponseDto updatePrimaryAccount(Long userId, Long accountId) {
-        Optional<LinkedAccount> existingPrimaryOpt = accountRepository.findByUserIdAndIsPrimaryAccountTrue(userId);
+        Optional<LinkedAccount> existingPrimaryOpt = this.accountRepository.findByUserIdAndIsPrimaryAccountTrue(userId);
 
-        LinkedAccount linkedAccount = accountRepository.findByAccountIdAndUserId(accountId, userId)
+        LinkedAccount linkedAccount = this.accountRepository.findByAccountIdAndUserId(accountId, userId)
                 .orElseThrow(() -> {
                     log.warn("[PATCH] Account not found: accountId={}, userId={}", accountId, userId);
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
@@ -193,12 +217,10 @@ public class AccountServiceImpl implements AccountService {
         // 기존 주계좌가 존재하면 해제
         existingPrimaryOpt.ifPresent(existing -> {
             existing.updatePrimaryAccount(false);
-            accountRepository.save(existing);
         });
 
         // 요청 계좌를 주계좌로 설정
         linkedAccount.updatePrimaryAccount(true);
-        accountRepository.save(linkedAccount);
 
         return AccountResponseDto.from(linkedAccount);
     }

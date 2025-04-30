@@ -27,6 +27,7 @@ public class AccountResponseDto {
     /**
      * LinkedAccount 엔티티를 AccountResponseDto로 변환합니다.
      *
+     * @param account 연동 계좌 엔티티
      * @return AccountResponseDto 객체
      */
     public static AccountResponseDto from(LinkedAccount account) {
