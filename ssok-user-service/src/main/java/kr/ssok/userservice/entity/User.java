@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 @Builder
+@Table(name = "users")
 public class User extends TimeStamp {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

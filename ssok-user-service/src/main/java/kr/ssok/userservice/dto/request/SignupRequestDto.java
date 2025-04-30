@@ -3,13 +3,13 @@ package kr.ssok.userservice.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class SignupRequestDto {
     @NotBlank(message = "사용자 이름을 입력해 주세요.")
     @Pattern(regexp = "^[a-zA-Z가-힣]+$", message = "사용자 이름은 한글 또는 영문 대소문자만 포함할 수 있습니다.")
