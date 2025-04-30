@@ -12,7 +12,7 @@ public enum CommonResponseStatus implements ResponseStatus {
     /**
      * 1. 요청에 성공한 경우(2000)
      */
-    SUCCESS(true, 1000, "요청에 성공하였습니다."),
+    SUCCESS(true, 2000, "요청에 성공하였습니다."),
 
     /**
      * 2. 클라이언트 에러(4000)
