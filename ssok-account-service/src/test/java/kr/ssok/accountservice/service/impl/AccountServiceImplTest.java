@@ -41,8 +41,8 @@ class AccountServiceImplTest {
         Long userId = 1L;
         CreateAccountRequestDto requestDto = CreateAccountRequestDto.builder()
                 .accountNumber("123-456-789")
-                .bankCode(1L)
-                .accountTypeCode(1L)
+                .bankCode(1)
+                .accountTypeCode(1)
                 .build();
 
         when(accountRepository.existsByAccountNumber(requestDto.getAccountNumber())).thenReturn(false);
@@ -73,8 +73,8 @@ class AccountServiceImplTest {
         Long userId = 1L;
         CreateAccountRequestDto requestDto = CreateAccountRequestDto.builder()
                 .accountNumber("123-456-789")
-                .bankCode(1L)
-                .accountTypeCode(1L)
+                .bankCode(1)
+                .accountTypeCode(1)
                 .build();
 
         when(accountRepository.existsByAccountNumber(requestDto.getAccountNumber())).thenReturn(true);

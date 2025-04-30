@@ -24,7 +24,13 @@ public enum AccountResponseStatus implements ResponseStatus {
      */
     ACCOUNT_NOT_FOUND(false, 4000, "계좌를 찾을 수 없습니다."),
     ACCOUNT_ALREADY_EXISTS(false, 4001, "이미 계좌가 존재합니다."),
-    ACCOUNT_ALREADY_PRIMARY(false, 4000, "이미 해당 계좌가 주 계좌입니다.");
+    ACCOUNT_ALREADY_PRIMARY(false, 4000, "이미 해당 계좌가 주 계좌입니다."),
+
+    OPENBANKING_ACCOUNT_LIST_FAILED(false, 4001, "오픈뱅킹 계좌 목록 조회에 실패했습니다."),
+    OPENBANKING_BALANCE_LOOKUP_FAILED(false, 4002, "오픈뱅킹 계좌 잔액 조회에 실패했습니다."),
+    OPENBANKING_OWNER_LOOKUP_FAILED(false, 4003, "오픈뱅킹 실명 조회에 실패했습니다."),
+
+    USER_INFO_NOT_FOUND(false, 4001, "사용자 정보를 찾을 수 없습니다.");;
 
     private final boolean success;
     private final int code;

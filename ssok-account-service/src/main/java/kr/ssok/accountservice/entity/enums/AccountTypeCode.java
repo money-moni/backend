@@ -31,8 +31,8 @@ public enum AccountTypeCode {
         }
     }
 
-    public static AccountTypeCode fromIdx(Long idx) {
-        AccountTypeCode code = IDX_MAP.get(idx.intValue());
+    public static AccountTypeCode fromIdx(int idx) {
+        AccountTypeCode code = IDX_MAP.get(idx);
         if (code == null) {
             throw new IllegalArgumentException("Invalid AccountTypeCode idx: " + idx);
         }

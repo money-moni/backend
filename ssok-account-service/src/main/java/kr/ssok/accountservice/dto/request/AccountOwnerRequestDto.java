@@ -6,10 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 계좌 생성 요청 시 클라이언트로부터 전달받는 DTO
+ * 연동 계좌 실명 확인 요청을 위한 DTO
  *
- * <p>계좌 번호, 은행 코드, 계좌 타입 코드를 포함하며,
- * 이를 기반으로 새로운 연동 계좌를 생성할 때 사용됩니다.</p>
+ * <p>클라이언트가 입력한 계좌번호와 은행 코드 정보를 포함하며,
+ * 오픈뱅킹 서버에 실명 조회 요청을 전달하기 위해 사용됩니다.</p>
  *
  * <p>이 객체는 읽기 전용으로 사용되며, 빌더 패턴을 통해 생성됩니다.</p>
  */
@@ -17,11 +17,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateAccountRequestDto {
-    // 계좌 번호
+public class AccountOwnerRequestDto {
+    // 계좌번호
     private String accountNumber;
     // 은행 코드 (BankCode Enum의 idx 값)
     private int bankCode;
-    // 계좌 타입 코드 (AccountTypeCode Enum의 idx 값)
-    private int accountTypeCode;
 }

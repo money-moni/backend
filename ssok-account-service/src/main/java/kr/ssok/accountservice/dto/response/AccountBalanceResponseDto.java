@@ -21,6 +21,7 @@ public class AccountBalanceResponseDto extends AccountResponseDto {
      * LinkedAccount 엔티티를 AccountBalanceResponseDto로 변환합니다.
      *
      * @param balance 계좌 잔액
+     * @param account 연동 계좌 엔티티
      * @return AccountBalanceResponseDto 객체
      */
     public static AccountBalanceResponseDto from(Long balance, LinkedAccount account) {
