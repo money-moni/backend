@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * 알리고 SMS 서비스를 호출하기 위한 Feign Client 인터페이스
  * notification-service의 API를 호출하여 SMS 발송 기능을 사용합니다.
  */
-@FeignClient(name = "notification-service", url = "${notification.server.url:http://localhost:8083}")
+@FeignClient(name = "notification-service", url = "${notification.server.url:http://localhost:8084}")
 public interface AligoClient {
 
     /**
