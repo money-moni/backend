@@ -24,13 +24,11 @@ dependencies {
     // Spring Cloud Dependencies
     implementation libs.springCloud
 
-    // JWT
-    implementation libs.jwtApi
-    runtimeOnly libs.jwtImpl
-    runtimeOnly libs.jwtJackson
-
     // OpeneFeign
     implementation libs.openfeign
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
