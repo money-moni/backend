@@ -38,7 +38,7 @@ public class AccountInternalServiceImpl implements AccountInternalService {
     @Override
     @Transactional(readOnly = true)
     public AccountInfoResponseDto findAccountByUserIdAndAccountId(Long userId, Long accountId) {
-        LinkedAccount linkedAccount = this.accountRepository.findByAccountIdAndUserId(accountId, userId)
+        LinkedAccount linkedAccount = this.accountRepository.findByAccountIdAndUserIdAndIsDeletedFalse(accountId, userId)
                 .orElseThrow(() -> {
                     log.warn("[GET] Account not found: accountId={}, userId={}", accountId, userId);
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
@@ -57,7 +57,7 @@ public class AccountInternalServiceImpl implements AccountInternalService {
     @Override
     @Transactional(readOnly = true)
     public AccountIdResponseDto findAccountIdByAccountNumber(String accountNumber) {
-        LinkedAccount linkedAccount = this.accountRepository.findByAccountNumber(accountNumber)
+        LinkedAccount linkedAccount = this.accountRepository.findByAccountNumberAndIsDeletedFalse(accountNumber)
                 .orElseThrow(() -> {
                     log.warn("[GET] Account not found: accountNumber={}", accountNumber);
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
@@ -76,7 +76,7 @@ public class AccountInternalServiceImpl implements AccountInternalService {
     @Override
     @Transactional(readOnly = true)
     public List<AccountIdResponseDto> findAllAccountIds(Long userId) {
-        List<LinkedAccount> linkedAccounts = this.accountRepository.findByUserId(userId);
+        List<LinkedAccount> linkedAccounts = this.accountRepository.findByUserIdAndIsDeletedFalse(userId);
 
         if (CollectionUtils.isEmpty(linkedAccounts)) {
             log.warn("[GET] Account not found: userId={}", userId);
