@@ -1,16 +1,14 @@
 package kr.ssok.transferservice.client;
 
 import kr.ssok.common.exception.BaseResponse;
-import kr.ssok.transferservice.client.dto.AccountIdResponse;
-import kr.ssok.transferservice.client.dto.AccountIdsResponse;
-import kr.ssok.transferservice.client.dto.AccountResponse;
-import lombok.Getter;
+import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
+import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
+import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
+import kr.ssok.transferservice.client.dto.response.PrimaryAccountResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.List;
 
 /**
  * 계좌 서비스와 통신하는 Feign 클라이언트 인터페이스
@@ -27,9 +25,9 @@ public interface AccountServiceClient {
      * @return BaseResponse 형식의 계좌 응답 객체 (계좌번호)
      */
     @GetMapping("/api/account-lookup")
-    BaseResponse<AccountResponse> getAccountInfo(
+    BaseResponse<AccountResponseDto> getAccountInfo(
             @RequestParam("accountId") Long accountId,
-            @RequestHeader("X-User-Id") Long userId
+            @RequestHeader("X-User-Id") String userId
     );
 
     /**
@@ -39,7 +37,7 @@ public interface AccountServiceClient {
      * @return BaseResponse 형식의 계좌 응답 객체 (계좌 ID)
      * */
     @GetMapping("/api/accounts/id")
-    BaseResponse<AccountIdResponse> getAccountId(
+    BaseResponse<AccountIdResponseDto> getAccountId(
             @RequestParam("accountNumber") String accountNumber
     );
 
@@ -50,52 +48,16 @@ public interface AccountServiceClient {
      * @return BaseResponse 객체에 계좌 ID 리스트를 담아 반환
      */
     @GetMapping("/api/accounts/ids")
-    BaseResponse<AccountIdsResponse> getAccountIdsByUserId(
-            @RequestHeader("X-User-Id") Long userId);
+    BaseResponse<AccountIdsResponseDto> getAccountIdsByUserId(
+            @RequestHeader("X-User-Id") String userId);
 
-
-//    /**
-//     * 계좌 번호 응답 객체 구조
-//     */
-//    @Getter
-//    class AccountResponse {
-//        @Getter
-//        public static class Result {
-//            private final String accountNumber;
-//
-//            public Result(String accountNumber) {
-//                this.accountNumber = accountNumber;
-//            }
-//        }
-//    }
-//
-//    /**
-//     * 계좌 ID 응답 객체 구조
-//     */
-//    @Getter
-//    class AccountIdResponse {
-//        @Getter
-//        public static class Result {
-//            private final Long accountId;
-//
-//            public Result(Long accountId) {
-//                this.accountId = accountId;
-//            }
-//        }
-//    }
-//
-//    /**
-//     * 계좌 ID 리스트 응답 객체 구조
-//     */
-//    @Getter
-//    class AccountIdsResponse {
-//        @Getter
-//        public static class Result {
-//            private final List<Long> accountIds;
-//
-//            public Result(List<Long> accountIds) {
-//                this.accountIds = accountIds;
-//            }
-//        }
-//    }
+    /**
+     * 사용자 주 계좌 정보를 조회
+     *
+     * @param userId 사용자 ID를 담고 있는 헤더 값 (X-User-Id)
+     * @return BaseResponse<AccountResponseDto> 사용자 계좌 정보가 포함된 응답
+     */
+    @GetMapping("/api/accounts/user-info")
+    BaseResponse<PrimaryAccountResponseDto> getAccountInfo(
+            @RequestHeader("X-User-Id") String userId);
 }

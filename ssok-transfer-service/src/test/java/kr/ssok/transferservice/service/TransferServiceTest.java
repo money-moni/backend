@@ -3,13 +3,17 @@ package kr.ssok.transferservice.service;
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
-import kr.ssok.transferservice.client.dto.AccountIdResponse;
-import kr.ssok.transferservice.client.dto.AccountIdsResponse;
-import kr.ssok.transferservice.client.dto.AccountResponse;
-import kr.ssok.transferservice.dto.request.OpenBankingTransferRequestDto;
+import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
+import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
+import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
+import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
+import kr.ssok.transferservice.client.dto.response.PrimaryAccountResponseDto;
+import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
+import kr.ssok.transferservice.dto.response.BluetoothTransferResponseDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
+import kr.ssok.transferservice.entity.enums.TransferMethod;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
@@ -54,7 +58,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When
-        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto);
+        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto, TransferMethod.GENERAL);
 
         // Then
         assertThat(responseDto.getSendAccountId()).isEqualTo(5L);
@@ -73,7 +77,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When
-        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto);
+        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto, TransferMethod.GENERAL);
 
         // Then
         assertThat(responseDto.getSendAccountId()).isEqualTo(5L);
@@ -92,7 +96,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When & Then
-        assertThatThrownBy(() -> transferService.transfer(userId, requestDto))
+        assertThatThrownBy(() -> transferService.transfer(userId, requestDto, TransferMethod.GENERAL))
                 .isInstanceOf(TransferException.class)
                 .satisfies(ex -> {
                     TransferException exception = (TransferException) ex;
@@ -110,7 +114,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When & Then
-        assertThatThrownBy(() -> transferService.transfer(userId, requestDto))
+        assertThatThrownBy(() -> transferService.transfer(userId, requestDto, TransferMethod.GENERAL))
                 .isInstanceOf(TransferException.class)
                 .satisfies(ex -> {
                     TransferException exception = (TransferException) ex;
@@ -133,7 +137,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When & Then
-        assertThatThrownBy(() -> transferService.transfer(userId, requestDto))
+        assertThatThrownBy(() -> transferService.transfer(userId, requestDto, TransferMethod.GENERAL))
                 .isInstanceOf(TransferException.class)
                 .satisfies(ex -> {
                     TransferException exception = (TransferException) ex;
@@ -154,26 +158,41 @@ public class TransferServiceTest {
         private boolean failRecvAccountId = false;
 
         @Override
-        public BaseResponse<AccountResponse> getAccountInfo(Long accountId, Long userId) {
+        public BaseResponse<AccountResponseDto> getAccountInfo(Long accountId, String userId) {
             if (failRecvAccountInfo) {
                 return new BaseResponse<>(false, 4001, "계좌 조회 실패", null);
             }
             return new BaseResponse<>(true, 2000, "계좌 조회 성공",
-                    new AccountResponse("1111-111-1111"));
+                    new AccountResponseDto("1111-111-1111"));
         }
 
         @Override
-        public BaseResponse<AccountIdResponse> getAccountId(String accountNumber) {
+        public BaseResponse<AccountIdResponseDto> getAccountId(String accountNumber) {
             if (failRecvAccountId) {
                 return new BaseResponse<>(true, 2001, "계좌 ID 없음", null); // accountId 없으면 code=2001
             }
             return new BaseResponse<>(true, 2000, "계좌 ID 조회 성공",
-                    new AccountIdResponse(10L));
+                    new AccountIdResponseDto(10L));
         }
 
         @Override
-        public BaseResponse<AccountIdsResponse> getAccountIdsByUserId(Long userId) {
+        public BaseResponse<AccountIdsResponseDto> getAccountIdsByUserId(String userId) {
             return null;
+        }
+
+        @Override
+        public BaseResponse<PrimaryAccountResponseDto> getAccountInfo(String userId) {
+            if (failRecvAccountInfo) {
+                return new BaseResponse<>(false, 4001, "계좌 조회 실패", null);
+            }
+            // 블루투스 송금용 기본 응답 설정
+            PrimaryAccountResponseDto primaryAccountResponseDto = PrimaryAccountResponseDto.builder()
+                    .accountNumber("1111-111-1112")
+                    .bankCode(1)
+                    .accountName("테스트수신자")
+                    .accountId(10L)
+                    .build();
+            return new BaseResponse<>(true, 2000, "계좌 조회 성공", primaryAccountResponseDto);
         }
     }
 
@@ -205,6 +224,93 @@ public class TransferServiceTest {
                 .recvBankCode(1)
                 .amount(15000L)
                 .recvName("테스트수신자")
+                .build();
+    }
+
+    @Test
+    void 블루투스_송금이_성공하면_출금과_입금_내역을_모두_저장한다() {
+        // Given
+        BluetoothTransferRequestDto requestDto = 기본_블루투스_송금요청();
+        Long userId = 3L;
+
+        // When
+        BluetoothTransferResponseDto responseDto = this.transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH);
+
+        // Then
+        assertThat(responseDto.getSendAccountId()).isEqualTo(5L);
+        assertThat(responseDto.getRecvName()).isEqualTo("테*트수신자");
+        assertThat(responseDto.getAmount()).isEqualTo(15000L);
+
+        // 출금 + 입금 내역이 모두 저장되었는지 검증 (2번 호출)
+        verify(transferHistoryRepository, times(2)).save(any(TransferHistory.class));
+    }
+
+    @Test
+    void 블루투스_계좌_조회에_실패하면_ACCOUNT_LOOKUP_FAILED_예외를_던진다() {
+        // Given
+        fakeAccountServiceClient.failRecvAccountInfo = true;
+        BluetoothTransferRequestDto requestDto = 기본_블루투스_송금요청();
+        Long userId = 3L;
+
+        // When & Then
+        assertThatThrownBy(() -> transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH))
+                .isInstanceOf(TransferException.class)
+                .satisfies(ex -> {
+                    TransferException exception = (TransferException) ex;
+                    assertThat(exception.getStatus().getCode()).isEqualTo(TransferResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED.getCode());
+                    assertThat(exception.getStatus().getMessage()).isEqualTo(TransferResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED.getMessage());
+                });
+    }
+
+    @Test
+    void 블루투스_오픈뱅킹_송금에_실패하면_REMITTANCE_FAILED_예외를_던진다() {
+        // Given
+        fakeOpenBankingClient.failTransfer = true;
+        BluetoothTransferRequestDto requestDto = 기본_블루투스_송금요청();
+        Long userId = 3L;
+
+        // When & Then
+        assertThatThrownBy(() -> transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH))
+                .isInstanceOf(TransferException.class)
+                .satisfies(ex -> {
+                    TransferException exception = (TransferException) ex;
+                    assertThat(exception.getStatus().getCode()).isEqualTo(TransferResponseStatus.REMITTANCE_FAILED.getCode());
+                    assertThat(exception.getStatus().getMessage()).isEqualTo(TransferResponseStatus.REMITTANCE_FAILED.getMessage());
+                });
+    }
+
+    @Test
+    void 블루투스_송금금액이_0원이면_INVALID_TRANSFER_AMOUNT_예외를_던진다() {
+        // Given
+        BluetoothTransferRequestDto requestDto = BluetoothTransferRequestDto.builder()
+                .sendAccountId(5L)
+                .sendBankCode(1)
+                .sendName("테스트송신자")
+                .recvUserId(10L)
+                .amount(0L)
+                .build();
+        Long userId = 3L;
+
+        // When & Then
+        assertThatThrownBy(() -> transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH))
+                .isInstanceOf(TransferException.class)
+                .satisfies(ex -> {
+                    TransferException exception = (TransferException) ex;
+                    assertThat(exception.getStatus().getCode()).isEqualTo(TransferResponseStatus.INVALID_TRANSFER_AMOUNT.getCode());
+                    assertThat(exception.getStatus().getMessage()).isEqualTo(TransferResponseStatus.INVALID_TRANSFER_AMOUNT.getMessage());
+                });
+    }
+
+    // ----------------------------------------------------------
+    // 헬퍼 메서드
+    // ----------------------------------------------------------
+    private BluetoothTransferRequestDto 기본_블루투스_송금요청() {
+        return BluetoothTransferRequestDto.builder()
+                .sendAccountId(5L)
+                .sendBankCode(1)
+                .sendName("테스트송신자")
+                .recvUserId(10L)
+                .amount(15000L)
                 .build();
     }
 }

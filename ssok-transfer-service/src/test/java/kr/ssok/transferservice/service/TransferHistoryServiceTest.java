@@ -2,7 +2,7 @@ package kr.ssok.transferservice.service;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
-import kr.ssok.transferservice.client.dto.AccountIdsResponse;
+import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
@@ -103,9 +103,9 @@ public class TransferHistoryServiceTest {
         List<Long> accountIds = List.of(10L, 20L);
 
         // 1. 계좌 서비스 모킹
-        when(accountServiceClient.getAccountIdsByUserId(userId))
+        when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
                 .thenReturn(new BaseResponse<>(true, 2000, "성공",
-                        new AccountIdsResponse(accountIds)));
+                        new AccountIdsResponseDto(accountIds)));
 
         // 2. 송금 상대 조회 모킹
         List<TransferCounterpartResponseDto> dummyResult = List.of(
@@ -122,7 +122,7 @@ public class TransferHistoryServiceTest {
         assertThat(results.get(0).getCounterpartName()).isEqualTo("최지훈");
         assertThat(results.get(1).getCounterpartName()).isEqualTo("홍길동");
 
-        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId);
+        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId.toString());
         verify(transferHistoryRepository, times(1)).findRecentCounterparts(accountIds);
     }
 
@@ -133,9 +133,9 @@ public class TransferHistoryServiceTest {
         List<Long> accountIds = List.of(10L, 20L);
 
         // 1. 계좌 서비스 모킹
-        when(accountServiceClient.getAccountIdsByUserId(userId))
+        when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
                 .thenReturn(new BaseResponse<>(true, 2000, "성공",
-                        new AccountIdsResponse(accountIds)));
+                        new AccountIdsResponseDto(accountIds)));
 
         // 2. 송금 이력 더미 데이터
         List<TransferHistory> dummyHistories = List.of(
@@ -192,7 +192,7 @@ public class TransferHistoryServiceTest {
         assertThat(counterpart2.getCounterpartName()).isEqualTo("김영희");
         assertThat(counterpart2.getCounterpartAccountNumber()).isEqualTo("222-333-444");
 
-        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId);
+        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId.toString());
         verify(transferHistoryRepository, times(1)).findRecentCounterparts(accountIds);
     }
 
@@ -220,7 +220,7 @@ public class TransferHistoryServiceTest {
         // Given
         Long userId = 1L;
 
-        when(accountServiceClient.getAccountIdsByUserId(userId))
+        when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
                 .thenReturn(new BaseResponse<>(true, 2000, "성공", null)); // 계좌 리스트 null
 
         // When
@@ -228,7 +228,7 @@ public class TransferHistoryServiceTest {
 
         // Then
         assertThat(results).isEmpty();
-        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId);
+        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId.toString());
         verifyNoInteractions(transferHistoryRepository);
     }
 
@@ -237,16 +237,16 @@ public class TransferHistoryServiceTest {
         // Given
         Long userId = 1L;
 
-        when(accountServiceClient.getAccountIdsByUserId(userId))
+        when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
                 .thenReturn(new BaseResponse<>(true, 2000, "성공",
-                        new AccountIdsResponse(List.of()))); // 계좌 리스트 비어 있음
+                        new AccountIdsResponseDto(List.of()))); // 계좌 리스트 비어 있음
 
         // When
         List<TransferCounterpartResponseDto> results = transferHistoryService.getRecentCounterparts(userId);
 
         // Then
         assertThat(results).isEmpty();
-        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId);
+        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId.toString());
         verifyNoInteractions(transferHistoryRepository);
     }
 
@@ -255,7 +255,7 @@ public class TransferHistoryServiceTest {
         // Given
         Long userId = 1L;
 
-        when(accountServiceClient.getAccountIdsByUserId(userId))
+        when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
                 .thenReturn(new BaseResponse<>(false, 4001, "계좌 조회 실패", null)); // 실패 응답
 
         // When
@@ -263,7 +263,7 @@ public class TransferHistoryServiceTest {
 
         // Then
         assertThat(results).isEmpty();
-        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId);
+        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId.toString());
         verifyNoInteractions(transferHistoryRepository);
     }
 

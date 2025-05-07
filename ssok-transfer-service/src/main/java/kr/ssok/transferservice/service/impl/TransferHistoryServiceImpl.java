@@ -2,7 +2,7 @@ package kr.ssok.transferservice.service.impl;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
-import kr.ssok.transferservice.client.dto.AccountIdsResponse;
+import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
@@ -76,8 +76,8 @@ public class TransferHistoryServiceImpl implements TransferHistoryService {
         }
 
         // 1. 계좌 서비스에서 사용자 ID로 모든 계좌 ID 조회
-        BaseResponse<AccountIdsResponse> accountListResponse =
-                this.accountServiceClient.getAccountIdsByUserId(userId);
+        BaseResponse<AccountIdsResponseDto> accountListResponse =
+                this.accountServiceClient.getAccountIdsByUserId(userId.toString());
 
         // NPE 방지
         if (!accountListResponse.getIsSuccess() ||
