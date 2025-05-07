@@ -110,8 +110,18 @@ public class BluetoothServiceImpl implements BluetoothService {
                         // Redis에서 블루투스 UUID에 매핑된 사용자 ID를 조회
                         String userIdStr = redisTemplate.opsForValue().get("uuid:" + uuid);
                         if (userIdStr == null) return null;
+
                         // 유저 서비스에서 사용자 정보를 조회하여 반환
-                        return userServiceClient.getUserInfo(userIdStr).getResult();
+                        UserInfoDto userInfo = userServiceClient.getUserInfo(userIdStr).getResult();
+
+                        if(userInfo == null) return null;
+
+                        // 유저 이름 마스킹 처리 후 반환
+                        return UserInfoDto.builder()
+                                .userId(userInfo.getUserId())
+                                .username(maskUsername(userInfo.getUsername()))
+                                .profileImage(userInfo.getProfileImage())
+                                .build();
                     })
                     .filter(user -> user != null)
                     .collect(Collectors.toList());
@@ -127,5 +137,20 @@ public class BluetoothServiceImpl implements BluetoothService {
         } catch (DataAccessException e) {
             throw new BluetoothException(BluetoothResponseStatus.REDIS_ACCESS_FAILED);
         }
+    }
+
+    /**
+     * 유저 이름 마스킹 처리 (두 번째 글자를 *로 변경)
+     * @param username 원본 유저 이름
+     * @return 마스킹 처리된 유저 이름
+     */
+    private String maskUsername(String username) {
+        if (username == null || username.length() < 2) {
+            return username; // 이름이 한글자면 그대로 반환
+        }
+        // 두 번째 글자를 *로 마스킹
+        StringBuilder maskedName = new StringBuilder(username);
+        maskedName.setCharAt(1, '*');
+        return maskedName.toString();
     }
 }

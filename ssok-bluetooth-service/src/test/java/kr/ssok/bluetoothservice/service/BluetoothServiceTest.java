@@ -140,7 +140,7 @@ class BluetoothServiceTest {
 
         UserInfoDto matchedUser = UserInfoDto.builder()
                 .userId(101L)
-                .username("최*훈")
+                .username("최지훈")
                 .profileImage("https://example.com/img/cjh.jpg")
                 .build();
         when(userServiceClient.getUserInfo("101")).thenReturn(new BaseResponse<>(true, 200, "success", matchedUser));
@@ -156,6 +156,7 @@ class BluetoothServiceTest {
 
         // then
         assertThat(response.getUsers().get(0).getUserId()).isEqualTo(101L);
+        assertThat(response.getUsers().get(0).getUsername()).isEqualTo("최*훈");
         assertThat(response.getPrimaryAccount().getAccountNumber()).isEqualTo("110-1234-567890");
     }
 
