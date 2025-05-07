@@ -131,4 +131,88 @@ class BluetoothServiceTest {
         }
     }
 
+    @Test
+    void 블루투스_매칭_성공() {
+        // given
+        String uuid = "abc-def-ghi";
+        String userId = "101";
+        when(redisTemplate.opsForValue().get("uuid:" + uuid)).thenReturn(userId);
+
+        UserInfoDto matchedUser = UserInfoDto.builder()
+                .userId(101L)
+                .username("최*훈")
+                .profileImage("https://example.com/img/cjh.jpg")
+                .build();
+        when(userServiceClient.getUserInfo("101")).thenReturn(new BaseResponse<>(true, 200, "success", matchedUser));
+
+        AccountInfoDto primaryAccount = AccountInfoDto.builder()
+                .accountNumber("110-1234-567890")
+                .balance(1000000L)
+                .build();
+        when(accountServiceClient.getPrimaryAccount("101")).thenReturn(new BaseResponse<>(true, 200, "success", primaryAccount));
+
+        // when
+        BluetoothMatchResponseDto response = bluetoothService.matchBluetoothUsers(userId, List.of(uuid));
+
+        // then
+        assertThat(response.getUsers().get(0).getUserId()).isEqualTo(101L);
+        assertThat(response.getPrimaryAccount().getAccountNumber()).isEqualTo("110-1234-567890");
+    }
+
+    @Test
+    void UUID_목록이_비어있는_경우() {
+        // given
+        String userId = "101";
+        List<String> emptyUUIDList = Collections.emptyList();
+
+        // when & then
+        assertThatThrownBy(() -> bluetoothService.matchBluetoothUsers(userId, emptyUUIDList))
+                .isInstanceOf(BluetoothException.class)
+                .hasMessage(BluetoothResponseStatus.NO_SCAN_UUID.getMessage());
+    }
+
+    @Test
+    void UUID와_매칭되는_사용자가_없는_경우() {
+        // given
+        String uuid = "non-existent-uuid";
+        String userId = "101";
+
+        when(redisTemplate.opsForValue().get("uuid:" + uuid)).thenReturn(null);
+
+        // when & then
+        assertThatThrownBy(() -> bluetoothService.matchBluetoothUsers(userId, List.of(uuid)))
+                .isInstanceOf(BluetoothException.class)
+                .hasMessage(BluetoothResponseStatus.NO_MATCH_FOUND.getMessage());
+    }
+
+    @Test
+    void Redis_접근_오류() {
+        // given
+        String uuid = "abc-def-ghi";
+        String userId = "101";
+
+        when(redisTemplate.opsForValue().get("uuid:" + uuid)).thenThrow(new DataAccessException("Redis 접근 오류") {});
+
+        // when & then
+        assertThatThrownBy(() -> bluetoothService.matchBluetoothUsers(userId, List.of(uuid)))
+                .isInstanceOf(BluetoothException.class)
+                .hasMessage(BluetoothResponseStatus.REDIS_ACCESS_FAILED.getMessage());
+    }
+
+    @Test
+    void 유저_정보_조회_실패() {
+        // given
+        String uuid = "abc-def-ghi";
+        String userId = "101";
+
+        when(redisTemplate.opsForValue().get("uuid:" + uuid)).thenReturn(userId);
+
+        // UserServiceClient 호출 시 null 반환 (조회 실패)
+        when(userServiceClient.getUserInfo("101")).thenReturn(new BaseResponse<>(true, 200, "success", null));
+
+        // when & then
+        assertThatThrownBy(() -> bluetoothService.matchBluetoothUsers(userId, List.of(uuid)))
+                .isInstanceOf(BluetoothException.class)
+                .hasMessage(BluetoothResponseStatus.NO_MATCH_FOUND.getMessage());
+    }
 }
