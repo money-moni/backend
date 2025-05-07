@@ -12,19 +12,19 @@ public enum BluetoothResponseStatus implements ResponseStatus {
     /**
      * 1. 요청에 성공한 경우(2000~2999)
      */
-    REGISTER_SUCCESS(true, 2000, "Bluetooth UUID가 정상적으로 등록되었습니다."),
+    REGISTER_SUCCESS(true, 2400, "Bluetooth UUID가 정상적으로 등록되었습니다."),
 
 
     /**
      * 2. 클라이언트 에러(4000~4999)
      */
-    UUID_REQUIRED(false, 4001, "UUID는 필수입니다."),
-    USER_ID_REQUIRED(false, 4002, "유저 ID가 없습니다."),
+    UUID_REQUIRED(false, 4401, "UUID는 필수입니다."),
+    USER_ID_REQUIRED(false, 4402, "유저 ID가 없습니다."),
 
     /**
      * 3. 서버 에러 (5000~5999)
      */
-    REDIS_ACCESS_FAILED(false, 5000, "Redis 처리 중 서버 오류가 발생했습니다.");
+    REDIS_ACCESS_FAILED(false, 5400, "Redis 처리 중 서버 오류가 발생했습니다.");
 
     private final boolean success;
     private final int code;

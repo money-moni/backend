@@ -29,7 +29,7 @@ public class BluetoothController {
     public ResponseEntity<?> registerUuid(
             @RequestBody BluetoothUuidRequestDto requestDto,
             @RequestHeader("X-User-Id") String userId) {
-        bluetoothService.registerBluetoothUuid(Long.parseLong(userId), requestDto.getBluetoothUUID());
+        this.bluetoothService.registerBluetoothUuid(Long.parseLong(userId), requestDto.getBluetoothUUID());
         return ResponseEntity.ok(new BaseResponse<>(BluetoothResponseStatus.REGISTER_SUCCESS));
     }
 }
