@@ -241,7 +241,7 @@ class AccountServiceImplTest {
         when(accountRepository.save(any(LinkedAccount.class))).thenReturn(account);
 
         var dto = new UpdateAliasRequestDto(newAlias);
-        AccountResponseDto result = accountService.updateAccountAlias(userId, accountId, dto);
+        AccountResponseDto result = accountService.updateLinkedAccountAlias(userId, accountId, dto);
 
         assertThat(result.getAccountAlias()).isEqualTo(newAlias);
 
@@ -261,7 +261,7 @@ class AccountServiceImplTest {
 
         when(accountRepository.findByAccountIdAndUserId(accountId, userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> accountService.updateAccountAlias(userId, accountId, new UpdateAliasRequestDto("새 별칭")))
+        assertThatThrownBy(() -> accountService.updateLinkedAccountAlias(userId, accountId, new UpdateAliasRequestDto("새 별칭")))
                 .isInstanceOf(AccountException.class);
 
         verify(accountRepository, never()).save(any());
@@ -295,7 +295,7 @@ class AccountServiceImplTest {
         when(accountRepository.findByUserIdAndIsPrimaryAccountTrue(userId)).thenReturn(Optional.of(currentPrimary));
         when(accountRepository.findByAccountIdAndUserId(newPrimaryId, userId)).thenReturn(Optional.of(newPrimary));
 
-        AccountResponseDto result = accountService.updatePrimaryAccount(userId, newPrimaryId);
+        AccountResponseDto result = accountService.updatePrimaryLinkedAccount(userId, newPrimaryId);
 
         assertThat(result.getAccountId()).isEqualTo(newPrimaryId);
 
@@ -331,7 +331,7 @@ class AccountServiceImplTest {
         when(accountRepository.findByUserIdAndIsPrimaryAccountTrue(userId)).thenReturn(Optional.of(account));
         when(accountRepository.findByAccountIdAndUserId(accountId, userId)).thenReturn(Optional.of(account));
 
-        assertThatThrownBy(() -> accountService.updatePrimaryAccount(userId, accountId))
+        assertThatThrownBy(() -> accountService.updatePrimaryLinkedAccount(userId, accountId))
                 .isInstanceOf(AccountException.class);
 
         verify(accountRepository, never()).save(any());
@@ -345,7 +345,7 @@ class AccountServiceImplTest {
 
         when(accountRepository.findByAccountIdAndUserId(accountId, userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> accountService.updatePrimaryAccount(userId, accountId))
+        assertThatThrownBy(() -> accountService.updatePrimaryLinkedAccount(userId, accountId))
                 .isInstanceOf(AccountException.class);
 
         verify(accountRepository, never()).save(any());

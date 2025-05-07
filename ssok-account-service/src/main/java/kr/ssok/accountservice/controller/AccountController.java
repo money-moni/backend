@@ -98,7 +98,7 @@ public class AccountController {
             @RequestHeader("X-User-Id") String userId,
             @PathVariable("accountId") Long accountId,
             @RequestBody UpdateAliasRequestDto updateAliasRequestDto) {
-        AccountResponseDto result = this.accountService.updateAccountAlias(Long.parseLong(userId), accountId, updateAliasRequestDto);
+        AccountResponseDto result = this.accountService.updateLinkedAccountAlias(Long.parseLong(userId), accountId, updateAliasRequestDto);
 
         return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_ALIAS_UPDATE_SUCCESS, result));
     }
@@ -114,7 +114,7 @@ public class AccountController {
     public ResponseEntity<BaseResponse<AccountResponseDto>> updatePrimaryAccount(
             @RequestHeader("X-User-Id") String userId,
             @PathVariable("accountId") Long accountId) {
-        AccountResponseDto result = this.accountService.updatePrimaryAccount(Long.parseLong(userId), accountId);
+        AccountResponseDto result = this.accountService.updatePrimaryLinkedAccount(Long.parseLong(userId), accountId);
 
         return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_PRIMARY_UPDATE_SUCCESS, result));
     }

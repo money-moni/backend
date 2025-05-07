@@ -22,7 +22,7 @@ public class LinkedAccount extends TimeStamp {
     @Column(name = "account_id")
     private Long accountId;
 
-    @Column(name = "account_number", nullable = false, updatable = false)
+    @Column(name = "account_number", nullable = false, updatable = false, unique = true)    // unique = true 설정 시, Hibernate가 자동으로 인덱스를 생성함
     private String accountNumber;
 
     @Enumerated(EnumType.STRING)

@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -66,18 +67,19 @@ public class AccountServiceImpl implements AccountService {
     /**
      * 사용자 ID에 해당하는 모든 연동 계좌 목록을 조회합니다.
      *
-     * <p>등록된 연동 계좌가 없는 경우 {@link AccountException}을 발생시킵니다.</p>
+     * <p>오픈뱅킹 서버를 통해 각 계좌의 잔액을 병렬로 조회하며,
+     * 잔액 조회 실패 시 해당 계좌의 잔액은 -1로 처리됩니다.</p>
      *
      * @param userId 사용자 ID
      * @return 연동 계좌 정보를 담은 {@link List}<{@link AccountBalanceResponseDto}>
-     * @throws AccountException 사용자의 연동 계좌가 하나도 없는 경우 발생
+     * @throws AccountException 사용자의 연동 계좌가 존재하지 않는 경우 발생
      */
     @Override
     @Transactional(readOnly = true)
     public List<AccountBalanceResponseDto> findAllAccounts(Long userId) {
         List<LinkedAccount> linkedAccounts = this.accountRepository.findByUserId(userId);
 
-        if (linkedAccounts.isEmpty()) {
+        if (CollectionUtils.isEmpty(linkedAccounts)) {
             log.warn("[GET] Account not found: userId={}", userId);
             throw new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
         }
@@ -104,12 +106,13 @@ public class AccountServiceImpl implements AccountService {
     /**
      * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 상세 조회합니다.
      *
-     * <p>해당하는 계좌가 존재하지 않는 경우 {@link AccountException}을 발생시킵니다.</p>
+     * <p>오픈뱅킹 서버를 통해 해당 계좌의 잔액을 조회하며,
+     * 잔액 조회 실패 시 잔액은 -1로 설정됩니다.</p>
      *
      * @param userId 사용자 ID
      * @param accountId 조회할 계좌 ID
      * @return 연동 계좌 정보를 담은 {@link AccountBalanceResponseDto}
-     * @throws AccountException 계좌를 찾을 수 없는 경우 발생
+     * @throws AccountException 해당하는 계좌가 존재하지 않는 경우 발생
      */
     @Override
     @Transactional(readOnly = true)
@@ -172,7 +175,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     @Transactional
-    public AccountResponseDto updateAccountAlias(Long userId, Long accountId, UpdateAliasRequestDto updateAliasRequestDto) {
+    public AccountResponseDto updateLinkedAccountAlias(Long userId, Long accountId, UpdateAliasRequestDto updateAliasRequestDto) {
         LinkedAccount linkedAccount = this.accountRepository.findByAccountIdAndUserId(accountId, userId)
                 .orElseThrow(() -> {
                     log.warn("[PATCH] Account not found: accountId={}, userId={}", accountId, userId);
@@ -197,7 +200,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     @Transactional
-    public AccountResponseDto updatePrimaryAccount(Long userId, Long accountId) {
+    public AccountResponseDto updatePrimaryLinkedAccount(Long userId, Long accountId) {
         Optional<LinkedAccount> existingPrimaryOpt = this.accountRepository.findByUserIdAndIsPrimaryAccountTrue(userId);
 
         LinkedAccount linkedAccount = this.accountRepository.findByAccountIdAndUserId(accountId, userId)

@@ -44,4 +44,12 @@ public interface AccountRepository extends JpaRepository<LinkedAccount, Long> {
      * @return 주계좌가 존재하면 {@link Optional}로 반환, 존재하지 않으면 빈 Optional 반환
      */
     Optional<LinkedAccount> findByUserIdAndIsPrimaryAccountTrue(Long userId);
+
+    /**
+     * 계좌번호에 해당하는 LinkedAccount를 조회합니다.
+     *
+     * @param accountNumber 조회할 계좌번호
+     * @return 조회된 LinkedAccount가 존재하면 {@link Optional}로 반환, 존재하지 않으면 빈 Optional 반환
+     */
+    Optional<LinkedAccount> findByAccountNumber(String accountNumber);
 }
