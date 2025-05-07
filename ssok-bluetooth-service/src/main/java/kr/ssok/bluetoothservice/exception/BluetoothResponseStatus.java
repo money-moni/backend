@@ -13,13 +13,15 @@ public enum BluetoothResponseStatus implements ResponseStatus {
      * 1. 요청에 성공한 경우(2000~2999)
      */
     REGISTER_SUCCESS(true, 2400, "Bluetooth UUID가 정상적으로 등록되었습니다."),
-
+    MATCH_SUCCESS(true, 2400, "Bluetooth UUID에 대한 유저가 조회되었습니다."),
 
     /**
      * 2. 클라이언트 에러(4000~4999)
      */
     UUID_REQUIRED(false, 4401, "UUID는 필수입니다."),
     USER_ID_REQUIRED(false, 4402, "유저 ID가 없습니다."),
+    NO_MATCH_FOUND(false, 4403, "UUID와 매칭된 유저가 없습니다."),
+    NO_SCAN_UUID(false, 4404, "스캔된 UUID가 없습니다."),
 
     /**
      * 3. 서버 에러 (5000~5999)

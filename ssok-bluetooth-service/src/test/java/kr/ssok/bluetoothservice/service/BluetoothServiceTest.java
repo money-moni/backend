@@ -1,8 +1,14 @@
 package kr.ssok.bluetoothservice.service;
 
+import kr.ssok.bluetoothservice.client.AccountServiceClient;
+import kr.ssok.bluetoothservice.client.UserServiceClient;
+import kr.ssok.bluetoothservice.client.dto.AccountInfoDto;
+import kr.ssok.bluetoothservice.client.dto.UserInfoDto;
+import kr.ssok.bluetoothservice.dto.response.BluetoothMatchResponseDto;
 import kr.ssok.bluetoothservice.exception.BluetoothException;
 import kr.ssok.bluetoothservice.exception.BluetoothResponseStatus;
 import kr.ssok.bluetoothservice.service.impl.BluetoothServiceImpl;
+import kr.ssok.common.exception.BaseResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -13,7 +19,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -32,10 +42,16 @@ class BluetoothServiceTest {
     @Mock
     private ValueOperations<String, String> valueOperations;
 
+    @Mock
+    private AccountServiceClient accountServiceClient;
+
+    @Mock
+    private UserServiceClient userServiceClient;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        bluetoothService = new BluetoothServiceImpl(redisTemplate);
+        bluetoothService = new BluetoothServiceImpl(redisTemplate, userServiceClient, accountServiceClient);
         setField(bluetoothService, "ttlSeconds", 3600L); // TTL 주입
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
@@ -114,4 +130,5 @@ class BluetoothServiceTest {
             throw new RuntimeException(e);
         }
     }
+
 }
