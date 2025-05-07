@@ -8,6 +8,7 @@ include 'ssok-account-service'
 include 'ssok-gateway'
 include 'ssok-config'
 include 'ssok-notification-service'
+include 'ssok-bluetooth-service'
 
 dependencyResolutionManagement {
     versionCatalogs {
