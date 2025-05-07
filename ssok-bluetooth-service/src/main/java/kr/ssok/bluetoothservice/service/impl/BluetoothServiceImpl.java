@@ -1,5 +1,10 @@
 package kr.ssok.bluetoothservice.service.impl;
 
+import kr.ssok.bluetoothservice.client.AccountServiceClient;
+import kr.ssok.bluetoothservice.client.UserServiceClient;
+import kr.ssok.bluetoothservice.client.dto.AccountInfoDto;
+import kr.ssok.bluetoothservice.client.dto.UserInfoDto;
+import kr.ssok.bluetoothservice.dto.response.BluetoothMatchResponseDto;
 import kr.ssok.bluetoothservice.exception.BluetoothException;
 import kr.ssok.bluetoothservice.exception.BluetoothResponseStatus;
 import kr.ssok.bluetoothservice.service.BluetoothService;
@@ -8,17 +13,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Bluetooth UUID 등록 비즈니스 로직 구현체
+ * Bluetooth UUID 비즈니스 로직 구현체
  */
 @Service
 @RequiredArgsConstructor
 public class BluetoothServiceImpl implements BluetoothService {
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final UserServiceClient userServiceClient;
+    private final AccountServiceClient accountServiceClient;
 
     @Value("${bluetooth.uuid-ttl-seconds}")
     private long ttlSeconds; // UUID 유효 기간
@@ -51,8 +61,10 @@ public class BluetoothServiceImpl implements BluetoothService {
             }
 
             if (oldUUID != null) {
-                // 기존 uuid:{UUID} 키 제거
+                // 기존 uuid:{UUID} 키 삭제 (TTL 제거)
                 redisTemplate.delete(uuidKey(oldUUID));
+                // 기존 user:{userId} 키 삭제 (TTL 제거)
+                redisTemplate.delete(userKey(userId));
             }
 
             // 새 값 저장: uuid:{UUID} → userId
@@ -73,5 +85,73 @@ public class BluetoothServiceImpl implements BluetoothService {
 
     private String userKey(Long userId) {
         return "user:" + userId;
+    }
+
+    /**
+     * Bluetooth UUID를 이용하여 주변 블루투스 기기와 매칭된 사용자를 조회하는 서비스 메서드
+     * - Redis에 등록된 UUID와 비교하여 매칭된 사용자 정보를 조회
+     * - 유저 정보를 조회할 때 내부 서비스인 ssok-user-service를 이용
+     * - ssok-account-service를 이용하여 현재 사용자의 주 계좌 정보도 함께 반환
+     *
+     * @param userId        요청을 보낸 사용자의 ID
+     * @param bluetoothUUIDs 탐색한 주변 블루투스 UUID 리스트
+     * @return BluetoothMatchResponseDto 매칭된 사용자 정보와 주 계좌 정보가 포함된 응답 객체
+     * @throws BluetoothException 매칭되는 Bluetooth UUID가 없는 경우
+     */
+    @Override
+    public BluetoothMatchResponseDto matchBluetoothUsers(String userId, List<String> bluetoothUUIDs) {
+        if (CollectionUtils.isEmpty(bluetoothUUIDs)) {
+            throw new BluetoothException(BluetoothResponseStatus.NO_SCAN_UUID);
+        }
+
+        try {
+            // Bluetooth UUID 목록을 순회하며 Redis에 저장된 사용자 ID를 조회하고, 유저 정보를 수집
+            List<UserInfoDto> matchedUsers = bluetoothUUIDs.stream()
+                    .map(uuid -> {
+                        // Redis에서 블루투스 UUID에 매핑된 사용자 ID를 조회
+                        String userIdStr = redisTemplate.opsForValue().get("uuid:" + uuid);
+                        if (userIdStr == null) return null;
+
+                        // 유저 서비스에서 사용자 정보를 조회하여 반환
+                        UserInfoDto userInfo = userServiceClient.getUserInfo(userIdStr).getResult();
+
+                        if(userInfo == null) return null;
+
+                        // 유저 이름 마스킹 처리 후 반환
+                        return UserInfoDto.builder()
+                                .userId(userInfo.getUserId())
+                                .username(maskUsername(userInfo.getUsername()))
+                                .profileImage(userInfo.getProfileImage())
+                                .build();
+                    })
+                    .filter(user -> user != null)
+                    .collect(Collectors.toList());
+
+            // 매칭된 사용자가 없는 경우 예외 발생
+            if (CollectionUtils.isEmpty(matchedUsers)) {
+                throw new BluetoothException(BluetoothResponseStatus.NO_MATCH_FOUND);
+            }
+
+            // 사용자의 주 계좌 정보를 조회
+            AccountInfoDto primaryAccount = accountServiceClient.getPrimaryAccount(userId).getResult();
+            return new BluetoothMatchResponseDto(matchedUsers, primaryAccount);
+        } catch (DataAccessException e) {
+            throw new BluetoothException(BluetoothResponseStatus.REDIS_ACCESS_FAILED);
+        }
+    }
+
+    /**
+     * 유저 이름 마스킹 처리 (두 번째 글자를 *로 변경)
+     * @param username 원본 유저 이름
+     * @return 마스킹 처리된 유저 이름
+     */
+    private String maskUsername(String username) {
+        if (username == null || username.length() < 2) {
+            return username; // 이름이 한글자면 그대로 반환
+        }
+        // 두 번째 글자를 *로 마스킹
+        StringBuilder maskedName = new StringBuilder(username);
+        maskedName.setCharAt(1, '*');
+        return maskedName.toString();
     }
 }

@@ -1,6 +1,9 @@
 package kr.ssok.transferservice.client;
 
 import kr.ssok.common.exception.BaseResponse;
+import kr.ssok.transferservice.client.dto.AccountIdResponse;
+import kr.ssok.transferservice.client.dto.AccountIdsResponse;
+import kr.ssok.transferservice.client.dto.AccountResponse;
 import lombok.Getter;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +27,7 @@ public interface AccountServiceClient {
      * @return BaseResponse 형식의 계좌 응답 객체 (계좌번호)
      */
     @GetMapping("/api/account-lookup")
-    BaseResponse<AccountResponse.Result> getAccountInfo(
+    BaseResponse<AccountResponse> getAccountInfo(
             @RequestParam("accountId") Long accountId,
             @RequestHeader("X-User-Id") Long userId
     );
@@ -36,7 +39,7 @@ public interface AccountServiceClient {
      * @return BaseResponse 형식의 계좌 응답 객체 (계좌 ID)
      * */
     @GetMapping("/api/accounts/id")
-    BaseResponse<AccountIdResponse.Result> getAccountId(
+    BaseResponse<AccountIdResponse> getAccountId(
             @RequestParam("accountNumber") String accountNumber
     );
 
@@ -47,52 +50,52 @@ public interface AccountServiceClient {
      * @return BaseResponse 객체에 계좌 ID 리스트를 담아 반환
      */
     @GetMapping("/api/accounts/ids")
-    BaseResponse<AccountIdsResponse.Result> getAccountIdsByUserId(
+    BaseResponse<AccountIdsResponse> getAccountIdsByUserId(
             @RequestHeader("X-User-Id") Long userId);
 
 
-    /**
-     * 계좌 번호 응답 객체 구조
-     */
-    @Getter
-    class AccountResponse {
-        @Getter
-        public static class Result {
-            private final String accountNumber;
-
-            public Result(String accountNumber) {
-                this.accountNumber = accountNumber;
-            }
-        }
-    }
-
-    /**
-     * 계좌 ID 응답 객체 구조
-     */
-    @Getter
-    class AccountIdResponse {
-        @Getter
-        public static class Result {
-            private final Long accountId;
-
-            public Result(Long accountId) {
-                this.accountId = accountId;
-            }
-        }
-    }
-
-    /**
-     * 계좌 ID 리스트 응답 객체 구조
-     */
-    @Getter
-    class AccountIdsResponse {
-        @Getter
-        public static class Result {
-            private final List<Long> accountIds;
-
-            public Result(List<Long> accountIds) {
-                this.accountIds = accountIds;
-            }
-        }
-    }
+//    /**
+//     * 계좌 번호 응답 객체 구조
+//     */
+//    @Getter
+//    class AccountResponse {
+//        @Getter
+//        public static class Result {
+//            private final String accountNumber;
+//
+//            public Result(String accountNumber) {
+//                this.accountNumber = accountNumber;
+//            }
+//        }
+//    }
+//
+//    /**
+//     * 계좌 ID 응답 객체 구조
+//     */
+//    @Getter
+//    class AccountIdResponse {
+//        @Getter
+//        public static class Result {
+//            private final Long accountId;
+//
+//            public Result(Long accountId) {
+//                this.accountId = accountId;
+//            }
+//        }
+//    }
+//
+//    /**
+//     * 계좌 ID 리스트 응답 객체 구조
+//     */
+//    @Getter
+//    class AccountIdsResponse {
+//        @Getter
+//        public static class Result {
+//            private final List<Long> accountIds;
+//
+//            public Result(List<Long> accountIds) {
+//                this.accountIds = accountIds;
+//            }
+//        }
+//    }
 }

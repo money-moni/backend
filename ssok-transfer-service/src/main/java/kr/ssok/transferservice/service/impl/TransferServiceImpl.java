@@ -3,6 +3,8 @@ package kr.ssok.transferservice.service.impl;
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
+import kr.ssok.transferservice.client.dto.AccountIdResponse;
+import kr.ssok.transferservice.client.dto.AccountResponse;
 import kr.ssok.transferservice.dto.request.OpenBankingTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
@@ -93,7 +95,7 @@ public class TransferServiceImpl implements TransferService {
      * @return 출금 계좌번호
      */
     private String findSendAccountNumber(Long accountId, Long userId) {
-        BaseResponse<AccountServiceClient.AccountResponse.Result> response =
+        BaseResponse<AccountResponse> response =
                 this.accountServiceClient.getAccountInfo(accountId, userId);
 
         if (!response.getIsSuccess()) {
@@ -163,7 +165,7 @@ public class TransferServiceImpl implements TransferService {
      * @param dto 송금 요청 DTO
      */
     private void saveDepositHistoryIfReceiverExists(String sendAccountNumber, TransferRequestDto dto) {
-        BaseResponse<AccountServiceClient.AccountIdResponse.Result> response =
+        BaseResponse<AccountIdResponse> response =
                 this.accountServiceClient.getAccountId(dto.getRecvAccountNumber());
 
         if (response.getIsSuccess()
