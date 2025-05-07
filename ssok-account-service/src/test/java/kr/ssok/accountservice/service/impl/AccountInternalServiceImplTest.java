@@ -47,7 +47,7 @@ class AccountInternalServiceImplTest {
                 .accountTypeCode(AccountTypeCode.DEPOSIT)
                 .build();
 
-        when(accountRepository.findByAccountIdAndUserId(accountId, userId)).thenReturn(Optional.of(account));
+        when(accountRepository.findByAccountIdAndUserIdAndIsDeletedFalse(accountId, userId)).thenReturn(Optional.of(account));
 
         AccountInfoResponseDto result = accountInternalService.findAccountByUserIdAndAccountId(userId, accountId);
 
@@ -61,7 +61,7 @@ class AccountInternalServiceImplTest {
     void findAccountByUserIdAndAccountId_NotFound() {
         Long userId = 1L;
         Long accountId = 100L;
-        when(accountRepository.findByAccountIdAndUserId(accountId, userId)).thenReturn(Optional.empty());
+        when(accountRepository.findByAccountIdAndUserIdAndIsDeletedFalse(accountId, userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> accountInternalService.findAccountByUserIdAndAccountId(userId, accountId))
                 .isInstanceOf(AccountException.class);
@@ -75,7 +75,7 @@ class AccountInternalServiceImplTest {
                 .accountNumber("222-2222")
                 .build();
 
-        when(accountRepository.findByAccountNumber("222-2222")).thenReturn(Optional.of(account));
+        when(accountRepository.findByAccountNumberAndIsDeletedFalse("222-2222")).thenReturn(Optional.of(account));
 
         AccountIdResponseDto result = accountInternalService.findAccountIdByAccountNumber("222-2222");
 
@@ -85,7 +85,7 @@ class AccountInternalServiceImplTest {
     @Test
     @DisplayName("계좌번호로 계좌 ID 조회 시 존재하지 않으면 예외가 발생한다")
     void findAccountIdByAccountNumber_NotFound() {
-        when(accountRepository.findByAccountNumber("not-found")).thenReturn(Optional.empty());
+        when(accountRepository.findByAccountNumberAndIsDeletedFalse("not-found")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> accountInternalService.findAccountIdByAccountNumber("not-found"))
                 .isInstanceOf(AccountException.class);
@@ -98,7 +98,7 @@ class AccountInternalServiceImplTest {
         LinkedAccount acc1 = LinkedAccount.builder().accountId(1L).userId(userId).build();
         LinkedAccount acc2 = LinkedAccount.builder().accountId(2L).userId(userId).build();
 
-        when(accountRepository.findByUserId(userId)).thenReturn(List.of(acc1, acc2));
+        when(accountRepository.findByUserIdAndIsDeletedFalse(userId)).thenReturn(List.of(acc1, acc2));
 
         List<AccountIdResponseDto> result = accountInternalService.findAllAccountIds(userId);
 
@@ -110,7 +110,7 @@ class AccountInternalServiceImplTest {
     @Test
     @DisplayName("사용자의 계좌 ID 조회 시 아무 계좌도 없으면 예외가 발생한다")
     void findAllAccountIds_Empty() {
-        when(accountRepository.findByUserId(1L)).thenReturn(List.of());
+        when(accountRepository.findByUserIdAndIsDeletedFalse(1L)).thenReturn(List.of());
 
         assertThatThrownBy(() -> accountInternalService.findAllAccountIds(1L))
                 .isInstanceOf(AccountException.class);

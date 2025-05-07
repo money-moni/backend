@@ -15,11 +15,14 @@ import kr.ssok.accountservice.dto.response.userservice.UserInfoResponseDto;
 import kr.ssok.accountservice.exception.AccountException;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
 import kr.ssok.accountservice.service.AccountOpenBankingService;
+import kr.ssok.accountservice.util.AccountIdentifierUtil;
 import kr.ssok.common.exception.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -33,20 +36,28 @@ import java.util.List;
 public class AccountOpenBankingServiceImpl implements AccountOpenBankingService {
     private final OpenBankingClient openBankingClient;
     private final UserServiceClient userServiceClient;
+    private final RedisTemplate<String, String> redisTemplate;
 
     /**
-     * 오픈뱅킹 서버로부터 전체 계좌 목록을 조회합니다.
+     * 오픈뱅킹 서버와 사용자 서비스로부터 사용자 정보를 기반으로 전체 연동 계좌 목록을 조회합니다.
+     *
+     * <ul>
+     *     <li>유저 서비스로부터 사용자 정보를 조회합니다.</li>
+     *     <li>해당 정보를 기반으로 오픈뱅킹 서버에 전체 계좌 조회 요청을 보냅니다.</li>
+     *     <li>조회된 계좌 정보를 Redis에 캐시하여 계좌 유효성 검사에 활용합니다 (TTL 5분).</li>
+     *     <li>오픈뱅킹 응답 데이터를 도메인 응답 DTO로 변환하여 반환합니다.</li>
+     * </ul>
      *
      * @param userId 사용자 ID
-     * @return 전체 계좌 목록 응답 DTO 리스트
-     * @throws AccountException 유저 정보 조회 또는 계좌 조회 실패 시 발생
+     * @return 전체 계좌 정보 DTO
+     * @throws AccountException 사용자 정보 또는 오픈뱅킹 응답이 유효하지 않을 경우 발생
      */
     @Override
     public List<AllAccountsResponseDto> fetchAllAccountsFromOpenBanking(Long userId) {
         BaseResponse<UserInfoResponseDto> userInfoResponse = this.userServiceClient.sendUserInfoRequest(userId);
 
         if (userInfoResponse == null || userInfoResponse.getResult() == null) {
-            log.warn("[OPENBANKING] 사용자 정보 조회 실패: userId={}", userId);
+            log.warn("[USERSERVICE] 사용자 정보 조회 실패: userId={}", userId);
             throw new AccountException(AccountResponseStatus.USER_INFO_NOT_FOUND);
         }
 
@@ -60,6 +71,20 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
             log.warn("[OPENBANKING] 전체 계좌 조회 실패: userId={}, username={}", userId, requestDto.getUsername());
             throw new AccountException(AccountResponseStatus.OPENBANKING_ACCOUNT_LIST_FAILED);
         }
+
+        // 계좌 유효성 검사를 위한 로직 - redis에 오픈뱅킹으로 받은 정보 캐싱
+        String redisKey = AccountIdentifierUtil.buildLookupKey(userId);
+
+        redisTemplate.opsForSet().add(redisKey, response.getResult().stream()
+                .map(dto -> AccountIdentifierUtil.buildLookupValue(
+                        dto.getBankCode(),
+                        dto.getAccountNumber(),
+                        dto.getAccountTypeCode()))
+                .distinct()
+                .toArray(String[]::new));
+
+        redisTemplate.expire(redisKey, Duration.ofMinutes(5)); // TTL 5분
+
 
         return response.getResult()
                 .stream()

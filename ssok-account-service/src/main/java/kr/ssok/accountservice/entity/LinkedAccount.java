@@ -43,6 +43,10 @@ public class LinkedAccount extends TimeStamp {
     @Column(name = "account_type_code", nullable = false, updatable = false)
     private AccountTypeCode accountTypeCode;
 
+    @Builder.Default
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
     /**
      * 계좌의 별칭(alias)을 업데이트합니다.
      *
@@ -60,4 +64,14 @@ public class LinkedAccount extends TimeStamp {
     public void updatePrimaryAccount(Boolean isPrimaryAccount) {
         this.isPrimaryAccount = isPrimaryAccount;
     }
+
+    /**
+     * 해당 계좌를 논리적으로 삭제 처리합니다.
+     */
+    public void markAsDeleted() { this.isDeleted = true; }
+
+    /**
+     * 논리적으로 삭제된 계좌를 다시 활성 상태로 복구합니다.
+     */
+    public void markAsActive() { this.isDeleted = false; }
 }
