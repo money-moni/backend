@@ -76,23 +76,26 @@ public class TransferServiceImpl implements TransferService {
     @Transactional
     @Override
     public BluetoothTransferResponseDto bluetoothTransfer(Long userId, BluetoothTransferRequestDto requestDto, TransferMethod transferMethod) {
-        // 0. 상대방 계좌 정보 조회 및 송금 요청 DTO 생성
+        // 0. 송금 금액이 0보다 큰지 검증
+        validateTransferAmount(requestDto.getAmount());
+
+        // 1. 상대방 계좌 정보 조회 및 송금 요청 DTO 생성
         TransferRequestDto transferRequestDto = createTransferRequest(requestDto);
 
-        // 1. 계좌 서비스에서 출금 계좌번호 조회
+        // 2. 계좌 서비스에서 출금 계좌번호 조회
         String sendAccountNumber = findSendAccountNumber(transferRequestDto.getSendAccountId(), userId);
 
-        // 2. 오픈뱅킹 송금 요청
+        // 3. 오픈뱅킹 송금 요청
         requestOpenBankingTransfer(sendAccountNumber, transferRequestDto);
 
-        // 3. 출금 내역 저장 (마스킹 처리)
+        // 4. 출금 내역 저장 (마스킹 처리)
         saveTransferHistory(transferRequestDto.getSendAccountId(),
                 maskAccountNumber(transferRequestDto.getRecvAccountNumber()), // 계좌 번호 마스킹
                 maskUsername(transferRequestDto.getRecvName()),               // 상대방 이름 마스킹
                 TransferType.WITHDRAWAL, transferRequestDto.getAmount(),
                 CurrencyCode.KRW, transferMethod);
 
-        // 4. 입금 내역 저장 (블루투스 송금은 상대방도 SSOK 유저)
+        // 5. 입금 내역 저장 (블루투스 송금은 상대방도 SSOK 유저)
         saveTransferHistory(requestDto.getRecvUserId(),
                 maskAccountNumber(sendAccountNumber),                         // 상대방 계좌 번호 마스킹
                 maskUsername(transferRequestDto.getSendName()),               // 상대방 이름 마스킹

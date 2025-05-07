@@ -1,10 +1,14 @@
 package kr.ssok.transferservice.dto.request;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class BluetoothTransferRequestDto {
     private Long sendAccountId;        // 출금 계좌 ID
     private Integer sendBankCode;      // 출금 은행 코드
