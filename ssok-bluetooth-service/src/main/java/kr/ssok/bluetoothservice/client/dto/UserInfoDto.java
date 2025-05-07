@@ -1,13 +1,17 @@
 package kr.ssok.bluetoothservice.client.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 유저 정보 DTO
  * - UserServiceClient를 통해 가져오는 사용자 정보 데이터 구조
  */
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class UserInfoDto {
 
