@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class AccountInfoDto {
+    private Long accountId;         // 주 계좌 id
     private String accountNumber;   // 주 계좌 번호
+    private Integer bankCode;       // 은행 코드
     private Long balance;           // 계좌 잔액
 }

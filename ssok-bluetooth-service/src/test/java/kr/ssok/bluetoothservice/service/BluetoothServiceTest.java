@@ -146,7 +146,9 @@ class BluetoothServiceTest {
         when(userServiceClient.getUserInfo("101")).thenReturn(new BaseResponse<>(true, 200, "success", matchedUser));
 
         AccountInfoDto primaryAccount = AccountInfoDto.builder()
+                .accountId(1L)
                 .accountNumber("110-1234-567890")
+                .bankCode(1)
                 .balance(1000000L)
                 .build();
         when(accountServiceClient.getPrimaryAccount("101")).thenReturn(new BaseResponse<>(true, 200, "success", primaryAccount));
