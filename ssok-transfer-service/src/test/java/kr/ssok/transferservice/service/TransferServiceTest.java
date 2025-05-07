@@ -7,6 +7,7 @@ import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
 import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
+import kr.ssok.transferservice.client.dto.response.PrimaryAccountResponseDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
@@ -178,7 +179,7 @@ public class TransferServiceTest {
         }
 
         @Override
-        public BaseResponse<AccountResponseDto> getAccountInfo(String userId) {
+        public BaseResponse<PrimaryAccountResponseDto> getAccountInfo(String userId) {
             return null;
         }
     }
