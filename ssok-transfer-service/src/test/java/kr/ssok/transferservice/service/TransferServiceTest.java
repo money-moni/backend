@@ -3,13 +3,14 @@ package kr.ssok.transferservice.service;
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
-import kr.ssok.transferservice.client.dto.AccountIdResponse;
-import kr.ssok.transferservice.client.dto.AccountIdsResponse;
-import kr.ssok.transferservice.client.dto.AccountResponse;
-import kr.ssok.transferservice.dto.request.OpenBankingTransferRequestDto;
+import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
+import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
+import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
+import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
+import kr.ssok.transferservice.entity.enums.TransferMethod;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
@@ -54,7 +55,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When
-        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto);
+        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto, TransferMethod.GENERAL);
 
         // Then
         assertThat(responseDto.getSendAccountId()).isEqualTo(5L);
@@ -73,7 +74,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When
-        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto);
+        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto, TransferMethod.GENERAL);
 
         // Then
         assertThat(responseDto.getSendAccountId()).isEqualTo(5L);
@@ -92,7 +93,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When & Then
-        assertThatThrownBy(() -> transferService.transfer(userId, requestDto))
+        assertThatThrownBy(() -> transferService.transfer(userId, requestDto, TransferMethod.GENERAL))
                 .isInstanceOf(TransferException.class)
                 .satisfies(ex -> {
                     TransferException exception = (TransferException) ex;
@@ -110,7 +111,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When & Then
-        assertThatThrownBy(() -> transferService.transfer(userId, requestDto))
+        assertThatThrownBy(() -> transferService.transfer(userId, requestDto, TransferMethod.GENERAL))
                 .isInstanceOf(TransferException.class)
                 .satisfies(ex -> {
                     TransferException exception = (TransferException) ex;
@@ -133,7 +134,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When & Then
-        assertThatThrownBy(() -> transferService.transfer(userId, requestDto))
+        assertThatThrownBy(() -> transferService.transfer(userId, requestDto, TransferMethod.GENERAL))
                 .isInstanceOf(TransferException.class)
                 .satisfies(ex -> {
                     TransferException exception = (TransferException) ex;
@@ -154,25 +155,30 @@ public class TransferServiceTest {
         private boolean failRecvAccountId = false;
 
         @Override
-        public BaseResponse<AccountResponse> getAccountInfo(Long accountId, Long userId) {
+        public BaseResponse<AccountResponseDto> getAccountInfo(Long accountId, String userId) {
             if (failRecvAccountInfo) {
                 return new BaseResponse<>(false, 4001, "계좌 조회 실패", null);
             }
             return new BaseResponse<>(true, 2000, "계좌 조회 성공",
-                    new AccountResponse("1111-111-1111"));
+                    new AccountResponseDto("1111-111-1111"));
         }
 
         @Override
-        public BaseResponse<AccountIdResponse> getAccountId(String accountNumber) {
+        public BaseResponse<AccountIdResponseDto> getAccountId(String accountNumber) {
             if (failRecvAccountId) {
                 return new BaseResponse<>(true, 2001, "계좌 ID 없음", null); // accountId 없으면 code=2001
             }
             return new BaseResponse<>(true, 2000, "계좌 ID 조회 성공",
-                    new AccountIdResponse(10L));
+                    new AccountIdResponseDto(10L));
         }
 
         @Override
-        public BaseResponse<AccountIdsResponse> getAccountIdsByUserId(Long userId) {
+        public BaseResponse<AccountIdsResponseDto> getAccountIdsByUserId(String userId) {
+            return null;
+        }
+
+        @Override
+        public BaseResponse<AccountResponseDto> getAccountInfo(String userId) {
             return null;
         }
     }

@@ -1,4 +1,4 @@
-package kr.ssok.transferservice.dto.request;
+package kr.ssok.transferservice.client.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

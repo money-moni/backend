@@ -1,14 +1,16 @@
-package kr.ssok.transferservice.client.dto;
+package kr.ssok.transferservice.client.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountIdResponse {
-    private Long accountId;
+public class AccountIdsResponseDto {
+    private List<Long> accountIds;
 }

@@ -3,9 +3,9 @@ package kr.ssok.transferservice.service.impl;
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
-import kr.ssok.transferservice.client.dto.AccountIdResponse;
-import kr.ssok.transferservice.client.dto.AccountResponse;
-import kr.ssok.transferservice.dto.request.OpenBankingTransferRequestDto;
+import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
+import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
+import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
@@ -44,7 +44,7 @@ public class TransferServiceImpl implements TransferService {
      */
     @Transactional
     @Override
-    public TransferResponseDto transfer(Long userId, TransferRequestDto dto) {
+    public TransferResponseDto transfer(Long userId, TransferRequestDto dto, TransferMethod transferMethod) {
         // 0. 송금 금액이 0보다 큰지 검증
         validateTransferAmount(dto.getAmount());
 
@@ -62,11 +62,11 @@ public class TransferServiceImpl implements TransferService {
                 TransferType.WITHDRAWAL,
                 dto.getAmount(),
                 CurrencyCode.KRW,
-                TransferMethod.GENERAL
+                transferMethod
         );
 
         // 4. 상대방 계좌번호로 계좌 ID 조회 후, 입금 이력 추가 저장 (SSOK 유저인 경우만)
-        saveDepositHistoryIfReceiverExists(sendAccountNumber, dto);
+        saveDepositHistoryIfReceiverExists(sendAccountNumber, dto, transferMethod);
 
         // 5. 최종 송금 응답 반환
         return TransferResponseDto.builder()
@@ -95,8 +95,8 @@ public class TransferServiceImpl implements TransferService {
      * @return 출금 계좌번호
      */
     private String findSendAccountNumber(Long accountId, Long userId) {
-        BaseResponse<AccountResponse> response =
-                this.accountServiceClient.getAccountInfo(accountId, userId);
+        BaseResponse<AccountResponseDto> response =
+                this.accountServiceClient.getAccountInfo(accountId, userId.toString());
 
         if (!response.getIsSuccess()) {
             log.error("계좌 조회 실패: {}", response.getMessage());
@@ -164,8 +164,8 @@ public class TransferServiceImpl implements TransferService {
      * @param sendAccountNumber 송금자 계좌번호
      * @param dto 송금 요청 DTO
      */
-    private void saveDepositHistoryIfReceiverExists(String sendAccountNumber, TransferRequestDto dto) {
-        BaseResponse<AccountIdResponse> response =
+    private void saveDepositHistoryIfReceiverExists(String sendAccountNumber, TransferRequestDto dto, TransferMethod transferMethod) {
+        BaseResponse<AccountIdResponseDto> response =
                 this.accountServiceClient.getAccountId(dto.getRecvAccountNumber());
 
         if (response.getIsSuccess()
@@ -180,7 +180,7 @@ public class TransferServiceImpl implements TransferService {
                     TransferType.DEPOSIT,
                     dto.getAmount(),
                     CurrencyCode.KRW,
-                    TransferMethod.GENERAL
+                    transferMethod
             );
         }
     }

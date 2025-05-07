@@ -1,4 +1,4 @@
-package kr.ssok.transferservice.client.dto;
+package kr.ssok.transferservice.client.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountResponse {
+public class AccountResponseDto {
     private String accountNumber;
 
 }

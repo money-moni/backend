@@ -1,16 +1,13 @@
 package kr.ssok.transferservice.client;
 
 import kr.ssok.common.exception.BaseResponse;
-import kr.ssok.transferservice.client.dto.AccountIdResponse;
-import kr.ssok.transferservice.client.dto.AccountIdsResponse;
-import kr.ssok.transferservice.client.dto.AccountResponse;
-import lombok.Getter;
+import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
+import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
+import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.List;
 
 /**
  * 계좌 서비스와 통신하는 Feign 클라이언트 인터페이스
@@ -27,9 +24,9 @@ public interface AccountServiceClient {
      * @return BaseResponse 형식의 계좌 응답 객체 (계좌번호)
      */
     @GetMapping("/api/account-lookup")
-    BaseResponse<AccountResponse> getAccountInfo(
+    BaseResponse<AccountResponseDto> getAccountInfo(
             @RequestParam("accountId") Long accountId,
-            @RequestHeader("X-User-Id") Long userId
+            @RequestHeader("X-User-Id") String userId
     );
 
     /**
@@ -39,7 +36,7 @@ public interface AccountServiceClient {
      * @return BaseResponse 형식의 계좌 응답 객체 (계좌 ID)
      * */
     @GetMapping("/api/accounts/id")
-    BaseResponse<AccountIdResponse> getAccountId(
+    BaseResponse<AccountIdResponseDto> getAccountId(
             @RequestParam("accountNumber") String accountNumber
     );
 
@@ -50,10 +47,12 @@ public interface AccountServiceClient {
      * @return BaseResponse 객체에 계좌 ID 리스트를 담아 반환
      */
     @GetMapping("/api/accounts/ids")
-    BaseResponse<AccountIdsResponse> getAccountIdsByUserId(
-            @RequestHeader("X-User-Id") Long userId);
+    BaseResponse<AccountIdsResponseDto> getAccountIdsByUserId(
+            @RequestHeader("X-User-Id") String userId);
 
-
+    @GetMapping("/api/accounts/user-info")
+    BaseResponse<AccountResponseDto> getAccountInfo(
+            @RequestHeader("X-User-Id") String userId);
 //    /**
 //     * 계좌 번호 응답 객체 구조
 //     */
