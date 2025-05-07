@@ -6,7 +6,10 @@ import kr.ssok.transferservice.client.OpenBankingClient;
 import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
+import kr.ssok.transferservice.client.dto.response.PrimaryAccountResponseDto;
+import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
+import kr.ssok.transferservice.dto.response.BluetoothTransferResponseDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
 import kr.ssok.transferservice.entity.enums.CurrencyCode;
@@ -183,5 +186,82 @@ public class TransferServiceImpl implements TransferService {
                     transferMethod
             );
         }
+    }
+
+    @Transactional
+    @Override
+    public BluetoothTransferResponseDto bluetoothTransfer(Long userId, BluetoothTransferRequestDto requestDto, TransferMethod transferMethod) {
+        // 1. 상대방 계좌 정보 조회
+        BaseResponse<PrimaryAccountResponseDto> accountResponse = accountServiceClient.getAccountInfo(requestDto.getRecvUserId().toString());
+
+        if (!accountResponse.getIsSuccess()) {
+            throw new TransferException(TransferResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED);
+        }
+
+        PrimaryAccountResponseDto accountInfo = accountResponse.getResult();
+
+        // 2. 송금 요청 DTO 생성
+        TransferRequestDto transferRequestDto = TransferRequestDto.builder()
+                .sendAccountId(requestDto.getSendAccountId())
+                .sendBankCode(requestDto.getSendBankCode())
+                .sendName(requestDto.getSendName())
+                .recvAccountNumber(accountInfo.getAccountNumber())  // 상대방 계좌번호
+                .recvBankCode(accountInfo.getBankCode())            // 상대방 은행 코드
+                .recvName(accountInfo.getAccountName())             // 상대방 이름
+                .amount(requestDto.getAmount())
+                .build();
+
+        // 0. 송금 금액이 0보다 큰지 검증
+        validateTransferAmount(transferRequestDto.getAmount());
+
+        // 1. 계좌 서비스에서 출금 계좌번호 조회
+        String sendAccountNumber = findSendAccountNumber(transferRequestDto.getSendAccountId(), userId);
+
+        // 2. 오픈뱅킹 송금 요청
+        requestOpenBankingTransfer(sendAccountNumber, transferRequestDto);
+
+        // 3. 출금 내역 저장
+        saveTransferHistory(
+                transferRequestDto.getSendAccountId(),
+                transferRequestDto.getRecvAccountNumber(),
+                transferRequestDto.getRecvName(),
+                TransferType.WITHDRAWAL,
+                transferRequestDto.getAmount(),
+                CurrencyCode.KRW,
+                transferMethod
+        );
+
+        // 4. 입금 내역 저장 (블루투스 송금은 상대바도 SSOK 유저)
+        saveTransferHistory(
+                accountInfo.getAccountId(), // 상대방 계좌 ID
+                sendAccountNumber, // 출금자 계좌번호
+                transferRequestDto.getSendName(), // 송금자 이름 정보
+                TransferType.DEPOSIT,
+                transferRequestDto.getAmount(),
+                CurrencyCode.KRW,
+                transferMethod
+        );
+
+        // 5. 송금 결과 반환
+        return BluetoothTransferResponseDto.builder()
+                .sendAccountId(transferRequestDto.getSendAccountId())
+                .recvName(maskUsername(accountInfo.getAccountName())) // 마스킹된 이름
+                .amount(transferRequestDto.getAmount())
+                .build();
+    }
+
+    /**
+     * 유저 이름 마스킹 처리 (두 번째 글자를 *로 변경)
+     * @param username 원본 유저 이름
+     * @return 마스킹 처리된 유저 이름
+     */
+    private String maskUsername(String username) {
+        if (username == null || username.length() < 2) {
+            return username; // 이름이 한글자면 그대로 반환
+        }
+        // 두 번째 글자를 *로 마스킹
+        StringBuilder maskedName = new StringBuilder(username);
+        maskedName.setCharAt(1, '*');
+        return maskedName.toString();
     }
 }

@@ -48,7 +48,7 @@ public class TransferController {
     public ResponseEntity<BaseResponse<BluetoothTransferResponseDto>> bluetoothTransfer(
             @RequestBody BluetoothTransferRequestDto requestDto,
             @RequestHeader("X-User-Id") Long userId) {
-        BluetoothTransferResponseDto response = this.transferService.bluetoothTransfer(userId, requestDto);
+        BluetoothTransferResponseDto response = this.transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH);
         return ResponseEntity.ok(new BaseResponse<>(TransferResponseStatus.TRANSFER_SUCCESS, response));
     }
 }

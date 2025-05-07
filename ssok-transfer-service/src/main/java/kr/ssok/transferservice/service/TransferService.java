@@ -1,6 +1,8 @@
 package kr.ssok.transferservice.service;
 
+import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
+import kr.ssok.transferservice.dto.response.BluetoothTransferResponseDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
 import kr.ssok.transferservice.entity.enums.TransferMethod;
 
@@ -17,4 +19,6 @@ public interface TransferService {
      * @return 송금 처리 결과 DTO
      */
     TransferResponseDto transfer(Long userId, TransferRequestDto requestDto, TransferMethod transferMethod);
+
+    BluetoothTransferResponseDto bluetoothTransfer(Long userId, BluetoothTransferRequestDto requestDto, TransferMethod transferMethod);
 }
