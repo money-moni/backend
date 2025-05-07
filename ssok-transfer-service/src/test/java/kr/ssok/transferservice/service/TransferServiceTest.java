@@ -3,6 +3,9 @@ package kr.ssok.transferservice.service;
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
+import kr.ssok.transferservice.client.dto.AccountIdResponse;
+import kr.ssok.transferservice.client.dto.AccountIdsResponse;
+import kr.ssok.transferservice.client.dto.AccountResponse;
 import kr.ssok.transferservice.dto.request.OpenBankingTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
@@ -151,25 +154,25 @@ public class TransferServiceTest {
         private boolean failRecvAccountId = false;
 
         @Override
-        public BaseResponse<AccountResponse.Result> getAccountInfo(Long accountId, Long userId) {
+        public BaseResponse<AccountResponse> getAccountInfo(Long accountId, Long userId) {
             if (failRecvAccountInfo) {
                 return new BaseResponse<>(false, 4001, "계좌 조회 실패", null);
             }
             return new BaseResponse<>(true, 2000, "계좌 조회 성공",
-                    new AccountResponse.Result("1111-111-1111"));
+                    new AccountResponse("1111-111-1111"));
         }
 
         @Override
-        public BaseResponse<AccountIdResponse.Result> getAccountId(String accountNumber) {
+        public BaseResponse<AccountIdResponse> getAccountId(String accountNumber) {
             if (failRecvAccountId) {
                 return new BaseResponse<>(true, 2001, "계좌 ID 없음", null); // accountId 없으면 code=2001
             }
             return new BaseResponse<>(true, 2000, "계좌 ID 조회 성공",
-                    new AccountIdResponse.Result(10L));
+                    new AccountIdResponse(10L));
         }
 
         @Override
-        public BaseResponse<AccountIdsResponse.Result> getAccountIdsByUserId(Long userId) {
+        public BaseResponse<AccountIdsResponse> getAccountIdsByUserId(Long userId) {
             return null;
         }
     }

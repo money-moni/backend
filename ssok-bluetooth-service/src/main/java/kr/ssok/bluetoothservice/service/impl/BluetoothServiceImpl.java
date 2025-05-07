@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
 import java.util.List;
@@ -99,7 +100,7 @@ public class BluetoothServiceImpl implements BluetoothService {
      */
     @Override
     public BluetoothMatchResponseDto matchBluetoothUsers(String userId, List<String> bluetoothUUIDs) {
-        if (bluetoothUUIDs == null || bluetoothUUIDs.isEmpty()) {
+        if (CollectionUtils.isEmpty(bluetoothUUIDs)) {
             throw new BluetoothException(BluetoothResponseStatus.NO_SCAN_UUID);
         }
 
@@ -127,7 +128,7 @@ public class BluetoothServiceImpl implements BluetoothService {
                     .collect(Collectors.toList());
 
             // 매칭된 사용자가 없는 경우 예외 발생
-            if (matchedUsers.isEmpty()) {
+            if (CollectionUtils.isEmpty(matchedUsers)) {
                 throw new BluetoothException(BluetoothResponseStatus.NO_MATCH_FOUND);
             }
 

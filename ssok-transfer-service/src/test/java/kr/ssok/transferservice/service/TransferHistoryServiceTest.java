@@ -2,6 +2,7 @@ package kr.ssok.transferservice.service;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
+import kr.ssok.transferservice.client.dto.AccountIdsResponse;
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
@@ -104,7 +105,7 @@ public class TransferHistoryServiceTest {
         // 1. 계좌 서비스 모킹
         when(accountServiceClient.getAccountIdsByUserId(userId))
                 .thenReturn(new BaseResponse<>(true, 2000, "성공",
-                        new AccountServiceClient.AccountIdsResponse.Result(accountIds)));
+                        new AccountIdsResponse(accountIds)));
 
         // 2. 송금 상대 조회 모킹
         List<TransferCounterpartResponseDto> dummyResult = List.of(
@@ -134,7 +135,7 @@ public class TransferHistoryServiceTest {
         // 1. 계좌 서비스 모킹
         when(accountServiceClient.getAccountIdsByUserId(userId))
                 .thenReturn(new BaseResponse<>(true, 2000, "성공",
-                        new AccountServiceClient.AccountIdsResponse.Result(accountIds)));
+                        new AccountIdsResponse(accountIds)));
 
         // 2. 송금 이력 더미 데이터
         List<TransferHistory> dummyHistories = List.of(
@@ -238,7 +239,7 @@ public class TransferHistoryServiceTest {
 
         when(accountServiceClient.getAccountIdsByUserId(userId))
                 .thenReturn(new BaseResponse<>(true, 2000, "성공",
-                        new AccountServiceClient.AccountIdsResponse.Result(List.of()))); // 계좌 리스트 비어 있음
+                        new AccountIdsResponse(List.of()))); // 계좌 리스트 비어 있음
 
         // When
         List<TransferCounterpartResponseDto> results = transferHistoryService.getRecentCounterparts(userId);
