@@ -1,0 +1,7 @@
+services:
+  openbanking-api:
+    image: isasgp/openbanking-api-test:latest
+    container_name: openbanking-api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
