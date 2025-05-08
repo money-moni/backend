@@ -13,6 +13,6 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class BluetoothMatchResponseDto {
-    private List<UserInfoDto> users;
+    private List<UserInfoResponseDto> users;
     private AccountInfoDto primaryAccount;
 }

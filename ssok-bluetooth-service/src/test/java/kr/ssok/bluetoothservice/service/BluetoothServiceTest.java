@@ -139,8 +139,8 @@ class BluetoothServiceTest {
         when(redisTemplate.opsForValue().get("uuid:" + uuid)).thenReturn(userId);
 
         UserInfoDto matchedUser = UserInfoDto.builder()
-                .userId(101L)
                 .username("최지훈")
+                .phoneNumber("01012345678")
                 .profileImage("https://example.com/img/cjh.jpg")
                 .build();
         when(userServiceClient.getUserInfo("101")).thenReturn(new BaseResponse<>(true, 200, "success", matchedUser));
