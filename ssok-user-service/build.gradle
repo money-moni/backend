@@ -53,9 +53,6 @@ dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     implementation "org.springframework.cloud:spring-cloud-starter-bootstrap"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
-    
-    // config-service (마이그레이션 중 호환성을 위해 유지, 나중에 제거 예정)
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
 
     // H2(테스트용)
     runtimeOnly 'com.h2database:h2'
