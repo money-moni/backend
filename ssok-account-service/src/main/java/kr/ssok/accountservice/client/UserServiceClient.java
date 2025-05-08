@@ -4,7 +4,7 @@ import kr.ssok.accountservice.dto.response.userservice.UserInfoResponseDto;
 import kr.ssok.common.exception.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 /**
  * 내부 유저 서비스 서버와의 통신을 위한 Feign Client 인터페이스
@@ -22,7 +22,8 @@ public interface UserServiceClient {
      * @param userId 조회할 사용자 ID
      * @return 사용자 정보가 포함된 {@link BaseResponse}
      */
-    @GetMapping("/api/users/internal/{userId}")
-    BaseResponse<UserInfoResponseDto> sendUserInfoRequest(@PathVariable("userId") Long userId); // pathparameter로 유저 ID 넘겨주기
+    @GetMapping("/api/users/info")
+    BaseResponse<UserInfoResponseDto> sendUserInfoRequest(
+            @RequestHeader("X-User-Id") Long userId); // RequestHeader로 유저 ID 넘겨주기
 
 }
