@@ -27,11 +27,6 @@ dependencies {
     // mysql
     runtimeOnly 'com.mysql:mysql-connector-j'
 
-    // JWT
-    implementation libs.jwtApi
-    runtimeOnly libs.jwtImpl
-    runtimeOnly libs.jwtJackson
-
     // OpeneFeign
     implementation libs.openfeign
 
