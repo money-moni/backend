@@ -24,10 +24,13 @@ dependencies {
     // Spring Cloud Gateway
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
 
-    // Spring Cloud Config
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    // Spring Cloud Kubernetes
+    implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // Spring Cloud Config (마이그레이션 중 호환성을 위해 유지, 나중에 제거 예정)
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
     
     // Spring Security
     implementation 'org.springframework.boot:spring-boot-starter-security'

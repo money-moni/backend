@@ -32,11 +32,14 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // config-service
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    // Kubernetes Config
+    implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-config'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     implementation "org.springframework.cloud:spring-cloud-starter-bootstrap"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
+    
+    // config-service (마이그레이션 중 호환성을 위해 유지, 나중에 제거 예정)
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
 
     // redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
