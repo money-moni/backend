@@ -55,7 +55,7 @@ class AccountOpenBankingServiceImplTest {
         OpenBankingAllAccountsResponseDto account1 = new OpenBankingAllAccountsResponseDto(1, "1111", 1);
         OpenBankingAllAccountsResponseDto account2 = new OpenBankingAllAccountsResponseDto(2, "2222", 2);
 
-        when(userServiceClient.sendUserInfoRequest(userId))
+        when(userServiceClient.sendUserInfoRequest(userId.toString()))
                 .thenReturn(new BaseResponse<>(true, 200, "성공", userInfo));
 
         when(openBankingClient.sendAllAccountsRequest(any(OpenBankingAllAccountsRequestDto.class)))
@@ -64,7 +64,7 @@ class AccountOpenBankingServiceImplTest {
         List<AllAccountsResponseDto> result = service.fetchAllAccountsFromOpenBanking(userId);
 
         assertThat(result).hasSize(2);
-        verify(userServiceClient).sendUserInfoRequest(userId);
+        verify(userServiceClient).sendUserInfoRequest(userId.toString());
         verify(openBankingClient).sendAllAccountsRequest(any());
     }
 
@@ -73,13 +73,13 @@ class AccountOpenBankingServiceImplTest {
     void fetchAllAccountsFromOpenBanking_UserInfoNotFound() {
         Long userId = 1L;
 
-        when(userServiceClient.sendUserInfoRequest(userId))
+        when(userServiceClient.sendUserInfoRequest(userId.toString()))
                 .thenReturn(null);
 
         assertThatThrownBy(() -> service.fetchAllAccountsFromOpenBanking(userId))
                 .isInstanceOf(AccountException.class);
 
-        verify(userServiceClient).sendUserInfoRequest(userId);
+        verify(userServiceClient).sendUserInfoRequest(userId.toString());
         verify(openBankingClient, never()).sendAllAccountsRequest(any());
     }
 
@@ -92,7 +92,7 @@ class AccountOpenBankingServiceImplTest {
                 .phoneNumber("01012345678")
                 .build();
 
-        when(userServiceClient.sendUserInfoRequest(userId))
+        when(userServiceClient.sendUserInfoRequest(userId.toString()))
                 .thenReturn(new BaseResponse<>(true, 200, "성공", userInfo));
 
         when(openBankingClient.sendAllAccountsRequest(any())).thenReturn(null);

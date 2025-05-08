@@ -54,7 +54,7 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
      */
     @Override
     public List<AllAccountsResponseDto> fetchAllAccountsFromOpenBanking(Long userId) {
-        BaseResponse<UserInfoResponseDto> userInfoResponse = this.userServiceClient.sendUserInfoRequest(userId);
+        BaseResponse<UserInfoResponseDto> userInfoResponse = this.userServiceClient.sendUserInfoRequest(userId.toString());
 
         if (userInfoResponse == null || userInfoResponse.getResult() == null) {
             log.warn("[USERSERVICE] 사용자 정보 조회 실패: userId={}", userId);
