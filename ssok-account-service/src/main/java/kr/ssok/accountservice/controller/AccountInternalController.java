@@ -15,7 +15,7 @@ import java.util.List;
  * 내부 서비스 간 연동을 위한 계좌 정보 API를 제공하는 REST 컨트롤러
  */
 @RestController
-@RequestMapping("/api/accounts/internal")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class AccountInternalController {
 
@@ -28,7 +28,7 @@ public class AccountInternalController {
      * @param accountId 조회할 계좌 ID (Query Parameter)
      * @return 사용자 ID, 계좌 ID, 계좌 번호를 포함한 계좌 상세 정보를 담은 {@link BaseResponse}
      */
-    @GetMapping("/lookup")
+    @GetMapping("/account-lookup")
     public ResponseEntity<BaseResponse<AccountInfoResponseDto>> getAccountInfo(
             @RequestHeader("X-User-Id") String userId,
             @RequestParam("accountId") Long accountId) {
@@ -43,7 +43,7 @@ public class AccountInternalController {
      * @param accountNumber 조회할 계좌 번호 (Query Parameter)
      * @return 해당 계좌 번호에 대한 계좌 ID를 담은 {@link BaseResponse}
      */
-    @GetMapping("/id")
+    @GetMapping("/accounts/id")
     public ResponseEntity<BaseResponse<AccountIdResponseDto>> getAccountIdByAccountNumber(
             @RequestParam("accountNumber") String accountNumber) {
         AccountIdResponseDto result = this.accountInternalService.findAccountIdByAccountNumber(accountNumber);
@@ -57,7 +57,7 @@ public class AccountInternalController {
      * @param userId Gateway 또는 내부 요청 헤더로 전달된 사용자 ID (요청 헤더: X-User-Id)
      * @return 해당 사용자의 모든 계좌 ID 목록을 담은 {@link BaseResponse}
      */
-    @GetMapping("/ids")
+    @GetMapping("/accounts/ids")
     public ResponseEntity<BaseResponse<List<AccountIdResponseDto>>> getAllAccountIds(
             @RequestHeader("X-User-Id") String userId) {
         List<AccountIdResponseDto> result = this.accountInternalService.findAllAccountIds(Long.parseLong(userId));
