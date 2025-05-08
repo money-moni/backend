@@ -6,6 +6,7 @@ import kr.ssok.transferservice.client.OpenBankingClient;
 import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
+import kr.ssok.transferservice.client.dto.response.OpenBankingResponse;
 import kr.ssok.transferservice.client.dto.response.PrimaryAccountResponseDto;
 import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
@@ -152,7 +153,7 @@ public class TransferServiceImpl implements TransferService {
                 .amount(dto.getAmount())
                 .build();
 
-        BaseResponse<Object> response = this.openBankingClient.sendTransferRequest(request);
+        OpenBankingResponse response = this.openBankingClient.sendTransferRequest(request);
 
         if (!response.getIsSuccess()) {
             log.error("오픈뱅킹 송금 실패: {}", response.getMessage());

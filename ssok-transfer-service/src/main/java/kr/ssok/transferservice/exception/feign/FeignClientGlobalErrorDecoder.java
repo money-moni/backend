@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
 import feign.codec.ErrorDecoder;
+import kr.ssok.transferservice.client.dto.response.OpenBankingResponse;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -43,9 +45,20 @@ public class FeignClientGlobalErrorDecoder implements ErrorDecoder {
             log.error("Feign Client Error - Method: {}, Status: {}, Response: {}",
                     methodKey, response.status(), responseBody);
 
-            // JSON 파싱하여 code 값 추출
-            JsonNode jsonNode = objectMapper.readTree(responseBody);
-            String errorCode = jsonNode.get("code").asText();
+            // OpenBankingResponse로 파싱
+            OpenBankingResponse openBankingResponse = objectMapper.readValue(responseBody, OpenBankingResponse.class);
+
+            // 상세 오류 메시지 추출
+            if (openBankingResponse.getResult() != null) {
+                Map<String, Object> result = openBankingResponse.getResult();
+                String transactionId = (String) result.get("transactionId");
+                String status = (String) result.get("status");
+                String errorMessage = (String) result.get("message");
+                log.error("상세 오류 - 트랜잭션 ID: {}, 상태: {}, 메시지: {}", transactionId, status, errorMessage);
+            }
+
+            // 에러 코드 처리
+            String errorCode = openBankingResponse.getCode();
 
             // 커스텀 코드 기반으로 예외 처리
             return switch (errorCode) {
