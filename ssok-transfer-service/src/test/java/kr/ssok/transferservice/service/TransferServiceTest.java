@@ -18,6 +18,7 @@ import kr.ssok.transferservice.service.impl.TransferServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -175,7 +176,7 @@ public class TransferServiceTest {
         }
 
         @Override
-        public BaseResponse<AccountIdsResponseDto> getAccountIdsByUserId(String userId) {
+        public BaseResponse<List<AccountIdResponseDto>> getAccountIdsByUserId(String userId) {
             return null;
         }
 

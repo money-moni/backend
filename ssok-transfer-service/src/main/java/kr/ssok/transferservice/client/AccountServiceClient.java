@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 /**
  * 계좌 서비스와 통신하는 Feign 클라이언트 인터페이스
  * feign 통신의 에러 처리는 이후에 고려
@@ -48,7 +50,7 @@ public interface AccountServiceClient {
      * @return BaseResponse 객체에 계좌 ID 리스트를 담아 반환
      */
     @GetMapping("/api/accounts/ids")
-    BaseResponse<AccountIdsResponseDto> getAccountIdsByUserId(
+    BaseResponse<List<AccountIdResponseDto>> getAccountIdsByUserId(
             @RequestHeader("X-User-Id") String userId);
 
     /**
