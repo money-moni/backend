@@ -24,6 +24,6 @@ public interface UserServiceClient {
      */
     @GetMapping("/api/users/info")
     BaseResponse<UserInfoResponseDto> sendUserInfoRequest(
-            @RequestHeader("X-User-Id") Long userId); // RequestHeader로 유저 ID 넘겨주기
+            @RequestHeader("X-User-Id") String userId); // RequestHeader로 유저 ID 넘겨주기
 
 }
