@@ -42,9 +42,9 @@ public class TransferHistoryController {
      */
     @GetMapping("/counterparts")
     public ResponseEntity<BaseResponse<List<TransferCounterpartResponseDto>>> getCounterparts(
-            @RequestHeader("X-User-Id") Long userId
+            @RequestHeader("X-User-Id") String userId
     ) {
-        List<TransferCounterpartResponseDto> result = transferHistoryService.getRecentCounterparts(userId);
+        List<TransferCounterpartResponseDto> result = transferHistoryService.getRecentCounterparts(Long.parseLong(userId));
         return ResponseEntity.ok(new BaseResponse<>(TransferResponseStatus.TRANSFER_COUNTERPART_SUCCESS, result));
     }
 }
