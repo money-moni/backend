@@ -3,11 +3,8 @@ package kr.ssok.transferservice.service;
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
-import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
-import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
-import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
+import kr.ssok.transferservice.client.dto.response.*;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
-import kr.ssok.transferservice.client.dto.response.PrimaryAccountResponseDto;
 import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.BluetoothTransferResponseDto;
@@ -20,6 +17,8 @@ import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import kr.ssok.transferservice.service.impl.TransferServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -201,13 +200,25 @@ public class TransferServiceTest {
      */
     private static class FakeOpenBankingClient implements OpenBankingClient {
         private boolean failTransfer = false;
+        private String errorCode = "TRANSFER002";  // 송금 에러 코드
 
         @Override
-        public BaseResponse<Object> sendTransferRequest(OpenBankingTransferRequestDto requestBody) {
+        public OpenBankingResponse sendTransferRequest(OpenBankingTransferRequestDto requestBody) {
             if (failTransfer) {
-                return new BaseResponse<>(false, 400, "송금 실패", null);
+                Map<String, Object> result = Map.of(
+                        "transactionId", "46f338bd-2090-4e15-9df3-2efb103f6f15",
+                        "status", "FAILED",
+                        "message", "송금 처리 중 오류가 발생했습니다."
+                );
+                return new OpenBankingResponse(false, errorCode, "송금 실패", result);
             }
-            return new BaseResponse<>(true, 200, "송금 성공", null);
+
+            Map<String, Object> result = Map.of(
+                    "transactionId", "abc123",
+                    "status", "COMPLETED",
+                    "message", "송금이 성공적으로 완료되었습니다."
+            );
+            return new OpenBankingResponse(true, "2000", "송금 성공", result);
         }
     }
 
