@@ -20,6 +20,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -247,7 +248,7 @@ public class AccountServiceImpl implements AccountService {
 
         String newAlias = updateAliasRequestDto.getAccountAlias();
         // 형식 제한 가능 (ex. newAlias.length() > 20))
-        if (newAlias == null || newAlias.trim().isEmpty()) {
+        if (!StringUtils.hasText(newAlias)) {
             log.warn("[PATCH] Invalid account alias: {}", newAlias);
             throw new AccountException(AccountResponseStatus.INVALID_ACCOUNT_ALIAS);
         }
