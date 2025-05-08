@@ -5,6 +5,7 @@ import kr.ssok.bluetoothservice.client.UserServiceClient;
 import kr.ssok.bluetoothservice.client.dto.AccountInfoDto;
 import kr.ssok.bluetoothservice.client.dto.UserInfoDto;
 import kr.ssok.bluetoothservice.dto.response.BluetoothMatchResponseDto;
+import kr.ssok.bluetoothservice.dto.response.UserInfoResponseDto;
 import kr.ssok.bluetoothservice.exception.BluetoothException;
 import kr.ssok.bluetoothservice.exception.BluetoothResponseStatus;
 import kr.ssok.bluetoothservice.service.BluetoothService;
@@ -106,7 +107,7 @@ public class BluetoothServiceImpl implements BluetoothService {
 
         try {
             // Bluetooth UUID 목록을 순회하며 Redis에 저장된 사용자 ID를 조회하고, 유저 정보를 수집
-            List<UserInfoDto> matchedUsers = bluetoothUUIDs.stream()
+            List<UserInfoResponseDto> matchedUsers = bluetoothUUIDs.stream()
                     .map(uuid -> {
                         // Redis에서 블루투스 UUID에 매핑된 사용자 ID를 조회
                         String userIdStr = redisTemplate.opsForValue().get("uuid:" + uuid);
@@ -118,8 +119,8 @@ public class BluetoothServiceImpl implements BluetoothService {
                         if(userInfo == null) return null;
 
                         // 유저 이름 마스킹 처리 후 반환
-                        return UserInfoDto.builder()
-                                .userId(userInfo.getUserId())
+                        return UserInfoResponseDto.builder()
+                                .userId(Long.parseLong(userIdStr))
                                 .username(maskUsername(userInfo.getUsername()))
                                 .profileImage(userInfo.getProfileImage())
                                 .build();
