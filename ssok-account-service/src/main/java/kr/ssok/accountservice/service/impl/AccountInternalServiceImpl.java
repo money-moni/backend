@@ -1,12 +1,16 @@
 package kr.ssok.accountservice.service.impl;
 
+import kr.ssok.accountservice.client.UserServiceClient;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDto;
+import kr.ssok.accountservice.dto.response.transferservice.PrimaryAccountInfoResponseDto;
+import kr.ssok.accountservice.dto.response.userservice.UserInfoResponseDto;
 import kr.ssok.accountservice.entity.LinkedAccount;
 import kr.ssok.accountservice.exception.AccountException;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
 import kr.ssok.accountservice.repository.AccountRepository;
 import kr.ssok.accountservice.service.AccountInternalService;
+import kr.ssok.common.exception.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountInternalServiceImpl implements AccountInternalService {
     private final AccountRepository accountRepository;
+    private final UserServiceClient userServiceClient;
 
     /**
      * 사용자 ID와 계좌 ID에 해당하는 연동 계좌 정보를 조회합니다.
@@ -86,5 +91,30 @@ public class AccountInternalServiceImpl implements AccountInternalService {
         return linkedAccounts.stream()
                 .map(AccountIdResponseDto::from)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 사용자 ID에 해당하는 대표 계좌 정보를 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 대표 계좌 정보와 사용자 이름을 포함한 {@link PrimaryAccountInfoResponseDto}
+     * @throws AccountException 대표 계좌가 존재하지 않거나, 사용자 정보 조회에 실패한 경우 발생
+     */
+    @Override
+    public PrimaryAccountInfoResponseDto findPrimaryAccountByUserId(Long userId) {
+        LinkedAccount linkedAccount = this.accountRepository.findByUserIdAndIsPrimaryAccountTrueAndIsDeletedFalse(userId)
+                .orElseThrow(() -> {
+                    log.warn("[GET] Account not found: accountId={}", userId);
+                    return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
+                });
+
+        BaseResponse<UserInfoResponseDto> userInfoResponse = this.userServiceClient.sendUserInfoRequest(userId.toString());
+
+        if (userInfoResponse == null || userInfoResponse.getResult() == null) {
+            log.warn("[USERSERVICE] 사용자 정보 조회 실패: userId={}", userId);
+            throw new AccountException(AccountResponseStatus.USER_INFO_NOT_FOUND);
+        }
+
+        return PrimaryAccountInfoResponseDto.from(linkedAccount, userInfoResponse.getResult().getUsername());
     }
 }
