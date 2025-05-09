@@ -27,7 +27,7 @@ pipeline {
                     echo "Changed files: ${changedFiles}"
 
                     // common 모듈 변경 여부 확인
-                    env.COMMON_CHANGED = changedFiles.contains('ssok-common/') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle') ? 'true' : 'false'
+                    env.COMMON_CHANGED = changedFiles.contains('ssok-common/') || changedFiles.contains('Jenkinsfile') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle') ? 'true' : 'false'
                     
                     // 각 서비스별 변경 여부 확인
                     env.CHANGED_ACCOUNT_SERVICE = changedFiles.contains('ssok-account-service/') ? 'true' : 'false'
