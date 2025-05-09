@@ -137,8 +137,10 @@ pipeline {
     post {
         always {
             echo 'Cleaning up workspace...'
-            node {
-                deleteDir()
+            script {
+                node {
+                    deleteDir()
+                }
             }
             sh 'docker logout'
         }
