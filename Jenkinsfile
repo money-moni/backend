@@ -150,7 +150,7 @@ pipeline {
     post {
         always {
             echo 'Cleaning up workspace...'
-            cleanWs()  // 워크스페이스 정리 (deleteDir 대신 사용)
+//             cleanWs()  // 워크스페이스 정리 (deleteDir 대신 사용)
             sh 'docker logout'
         }
         success {
