@@ -2,6 +2,7 @@ package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.client.UserServiceClient;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
+import kr.ssok.accountservice.dto.response.transferservice.AccountIdsResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.PrimaryAccountInfoResponseDto;
 import kr.ssok.accountservice.dto.response.userservice.UserInfoResponseDto;
@@ -108,7 +109,7 @@ class AccountInternalServiceImplTest {
 
         when(accountRepository.findByUserIdAndIsDeletedFalse(userId)).thenReturn(List.of(acc1, acc2));
 
-        List<AccountIdResponseDto> result = accountInternalService.findAllAccountIds(userId);
+        List<AccountIdsResponseDto> result = accountInternalService.findAllAccountIds(userId);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getAccountId()).isEqualTo(1L);

@@ -2,6 +2,7 @@ package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.client.UserServiceClient;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
+import kr.ssok.accountservice.dto.response.transferservice.AccountIdsResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.PrimaryAccountInfoResponseDto;
 import kr.ssok.accountservice.dto.response.userservice.UserInfoResponseDto;
@@ -53,10 +54,10 @@ public class AccountInternalServiceImpl implements AccountInternalService {
     }
 
     /**
-     * 계좌번호에 해당하는 계좌 ID 정보를 조회합니다.
+     * 계좌번호에 해당하는 계좌 ID, 유저 ID 정보를 조회합니다.
      *
      * @param accountNumber 조회할 계좌번호
-     * @return 계좌 ID를 포함한 응답 DTO {@link AccountIdResponseDto}
+     * @return 계좌 ID, 유저 ID를 포함한 응답 DTO {@link AccountIdsResponseDto}
      * @throws AccountException 해당 계좌가 존재하지 않는 경우 발생
      */
     @Override
@@ -75,12 +76,12 @@ public class AccountInternalServiceImpl implements AccountInternalService {
      * 사용자 ID에 해당하는 모든 계좌의 ID 목록을 조회합니다.
      *
      * @param userId 사용자 ID
-     * @return 사용자의 연동 계좌 ID 목록을 담은 {@link List}<{@link AccountIdResponseDto}>
+     * @return 사용자의 연동 계좌 ID 목록을 담은 {@link List}<{@link AccountIdsResponseDto}>
      * @throws AccountException 등록된 계좌가 하나도 없는 경우 발생
      */
     @Override
     @Transactional(readOnly = true)
-    public List<AccountIdResponseDto> findAllAccountIds(Long userId) {
+    public List<AccountIdsResponseDto> findAllAccountIds(Long userId) {
         List<LinkedAccount> linkedAccounts = this.accountRepository.findByUserIdAndIsDeletedFalse(userId);
 
         if (CollectionUtils.isEmpty(linkedAccounts)) {
@@ -89,7 +90,7 @@ public class AccountInternalServiceImpl implements AccountInternalService {
         }
 
         return linkedAccounts.stream()
-                .map(AccountIdResponseDto::from)
+                .map(AccountIdsResponseDto::from)
                 .collect(Collectors.toList());
     }
 
