@@ -1,6 +1,7 @@
 package kr.ssok.accountservice.controller;
 
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
+import kr.ssok.accountservice.dto.response.transferservice.AccountIdsResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.PrimaryAccountInfoResponseDto;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
@@ -39,10 +40,10 @@ public class AccountInternalController {
     }
 
     /**
-     * 계좌번호를 기반으로 계좌 ID를 조회합니다.
+     * 계좌번호를 기반으로 계좌 ID, 유저 ID를 조회합니다.
      *
      * @param accountNumber 조회할 계좌 번호 (Query Parameter)
-     * @return 해당 계좌 번호에 대한 계좌 ID를 담은 {@link BaseResponse}
+     * @return 해당 계좌 번호에 대한 계좌 ID, 유저 ID를 담은 {@link BaseResponse}
      */
     @GetMapping("/accounts/id")
     public ResponseEntity<BaseResponse<AccountIdResponseDto>> getAccountIdByAccountNumber(
@@ -59,9 +60,9 @@ public class AccountInternalController {
      * @return 해당 사용자의 모든 계좌 ID 목록을 담은 {@link BaseResponse}
      */
     @GetMapping("/accounts/ids")
-    public ResponseEntity<BaseResponse<List<AccountIdResponseDto>>> getAllAccountIds(
+    public ResponseEntity<BaseResponse<List<AccountIdsResponseDto>>> getAllAccountIds(
             @RequestHeader("X-User-Id") String userId) {
-        List<AccountIdResponseDto> result = this.accountInternalService.findAllAccountIds(Long.parseLong(userId));
+        List<AccountIdsResponseDto> result = this.accountInternalService.findAllAccountIds(Long.parseLong(userId));
 
         return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
     }

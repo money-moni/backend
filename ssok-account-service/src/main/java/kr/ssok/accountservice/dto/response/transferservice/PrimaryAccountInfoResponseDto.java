@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 사용자 대표 계좌 정보를 제공하는 응답 DTO
+ * 송금 서비스 등 내부 시스템 간 통신 시 사용자 주계좌 정보를 제공하는 응답 DTO
  *
  * <p>계좌 ID, 계좌 번호, 은행 코드, 계좌명을 포함합니다.</p>
  *
@@ -26,7 +26,7 @@ public class PrimaryAccountInfoResponseDto {
     /**
      * LinkedAccount 엔티티와 사용자 이름을 기반으로 PrimaryAccountInfoResponseDto로 변환합니다.
      *
-     * @param account 대표 계좌로 설정된 LinkedAccount 엔티티
+     * @param account 주계좌로 설정된 LinkedAccount 엔티티
      * @param username 사용자 이름 (계좌명으로 사용됨)
      * @return PrimaryAccountInfoResponseDto 객체
      */
