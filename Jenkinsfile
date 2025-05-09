@@ -15,6 +15,8 @@ pipeline {
             steps {
                 sh 'chmod +x setup.sh'
                 sh './setup.sh'
+
+                cleanWs()
             }
         }
         
