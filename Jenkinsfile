@@ -19,7 +19,10 @@ pipeline {
         }
 
         stage('clean workspace') {
-            cleanWs()
+            steps {
+                cleanWs()
+            }
+
         }
         
         stage('Detect Changes') {
