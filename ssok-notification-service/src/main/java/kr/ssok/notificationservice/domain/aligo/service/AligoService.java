@@ -1,4 +1,4 @@
-package kr.ssok.notificationservice.service;
+package kr.ssok.notificationservice.domain.aligo.service;
 
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
