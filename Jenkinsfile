@@ -2,10 +2,10 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_CREDENTIALS = credentials('docker-hub-credentials')
+        DOCKER_CREDENTIALS = credentials('DOCKER_USER')
         DOCKER_USER = "${DOCKER_CREDENTIALS_USR}"
         DOCKER_PASS = "${DOCKER_CREDENTIALS_PSW}"
-        GIT_CREDENTIALS = credentials('github-credentials')
+        GIT_CREDENTIALS = credentials('GITHUB_USER')
         GIT_USER = "${GIT_CREDENTIALS_USR}"
         GIT_PASS = "${GIT_CREDENTIALS_PSW}"
     }
@@ -66,10 +66,8 @@ pipeline {
             when { expression { return env.CHANGED_ACCOUNT_SERVICE == 'true' } }
             steps {
                 withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
-                    sh 'chmod +x jenkins/ssok-app/ssok-account-service/deploy.sh'
-                    sh './jenkins/ssok-app/ssok-account-service/deploy.sh'
-                    sh 'chmod +x jenkins/ssok-app/ssok-account-service/pipeline.sh'
-                    sh './jenkins/ssok-app/ssok-account-service/pipeline.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-account-service/deploy.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-account-service/pipeline.sh'
                 }
                 echo "Account Service build & deploy completed"
             }
@@ -80,10 +78,8 @@ pipeline {
             when { expression { return env.CHANGED_USER_SERVICE == 'true' } }
             steps {
                 withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
-                    sh 'chmod +x jenkins/ssok-app/ssok-user-service/deploy.sh'
-                    sh './jenkins/ssok-app/ssok-user-service/deploy.sh'
-                    sh 'chmod +x jenkins/ssok-app/ssok-user-service/pipeline.sh'
-                    sh './jenkins/ssok-app/ssok-user-service/pipeline.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-user-service/deploy.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-user-service/pipeline.sh'
                 }
                 echo "User Service build & deploy completed"
             }
@@ -94,10 +90,8 @@ pipeline {
             when { expression { return env.CHANGED_TRANSFER_SERVICE == 'true' } }
             steps {
                 withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
-                    sh 'chmod +x jenkins/ssok-app/ssok-transfer-service/deploy.sh'
-                    sh './jenkins/ssok-app/ssok-transfer-service/deploy.sh'
-                    sh 'chmod +x jenkins/ssok-app/ssok-transfer-service/pipeline.sh'
-                    sh './jenkins/ssok-app/ssok-transfer-service/pipeline.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-transfer-service/deploy.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-transfer-service/pipeline.sh'
                 }
                 echo "Transfer Service build & deploy completed"
             }
@@ -108,10 +102,8 @@ pipeline {
             when { expression { return env.CHANGED_NOTIFICATION_SERVICE == 'true' } }
             steps {
                 withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
-                    sh 'chmod +x jenkins/ssok-app/ssok-notification-service/deploy.sh'
-                    sh './jenkins/ssok-app/ssok-notification-service/deploy.sh'
-                    sh 'chmod +x jenkins/ssok-app/ssok-notification-service/pipeline.sh'
-                    sh './jenkins/ssok-app/ssok-notification-service/pipeline.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-notification-service/deploy.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-notification-service/pipeline.sh'
                 }
                 echo "Notification Service build & deploy completed"
             }
@@ -122,10 +114,8 @@ pipeline {
             when { expression { return env.CHANGED_GATEWAY == 'true' } }
             steps {
                 withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
-                    sh 'chmod +x jenkins/ssok-app/ssok-gateway-service/deploy.sh'
-                    sh './jenkins/ssok-app/ssok-gateway-service/deploy.sh'
-                    sh 'chmod +x jenkins/ssok-app/ssok-gateway-service/pipeline.sh'
-                    sh './jenkins/ssok-app/ssok-gateway-service/pipeline.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-gateway-service/deploy.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-gateway-service/pipeline.sh'
                 }
                 echo "Gateway build & deploy completed"
             }
@@ -136,10 +126,8 @@ pipeline {
             when { expression { return env.CHANGED_BLUETOOTH_SERVICE == 'true' } }
             steps {
                 withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
-                    sh 'chmod +x jenkins/ssok-app/ssok-bluetooth-service/deploy.sh'
-                    sh './jenkins/ssok-app/ssok-bluetooth-service/deploy.sh'
-                    sh 'chmod +x jenkins/ssok-app/ssok-bluetooth-service/pipeline.sh'
-                    sh './jenkins/ssok-app/ssok-bluetooth-service/pipeline.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-bluetooth-service/deploy.sh'
+                    sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-bluetooth-service/pipeline.sh'
                 }
                 echo "Bluetooth Service build & deploy completed"
             }
