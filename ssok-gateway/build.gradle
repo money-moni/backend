@@ -15,9 +15,6 @@ repositories {
 }
 
 dependencies {
-    // Common 모듈 의존성
-    implementation project(':ssok-common')
-
     // Spring Boot WebFlux (Gateway는 WebFlux 기반)
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
