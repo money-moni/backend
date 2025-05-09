@@ -68,7 +68,7 @@ pipeline {
         stage('Build Common Module') {
             when { expression { return env.COMMON_CHANGED == 'true' } }
             steps {
-                sh 'git clone https://github.com/Team-SSOK/ssok-backend.git .'
+                sh 'git clone https://github.com/Team-SSOK/ssok-backend.git'
                 sh 'cd ssok-backend && chmod +x gradlew && ./gradlew :ssok-common:clean :ssok-common:build --refresh-dependencies -x test'
             }
         }
