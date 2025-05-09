@@ -25,6 +25,9 @@ pipeline {
                     def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD || git diff --name-only", returnStdout: true).trim()
                     
                     echo "Changed files: ${changedFiles}"
+
+                    // common 모듈 변경 여부 확인
+                    env.COMMON_CHANGED = changedFiles.contains('ssok-common/') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle') ? 'true' : 'false'
                     
                     // 각 서비스별 변경 여부 확인
                     env.CHANGED_ACCOUNT_SERVICE = changedFiles.contains('ssok-account-service/') ? 'true' : 'false'
@@ -35,7 +38,7 @@ pipeline {
                     env.CHANGED_BLUETOOTH_SERVICE = changedFiles.contains('ssok-bluetooth-service/') ? 'true' : 'false'
                     
                     // common 모듈이 변경되면 모든 서비스 재빌드
-                    if (changedFiles.contains('ssok-common/') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle')) {
+                    if (env.COMMON_CHANGED == 'true') {
                         echo "Common module or build configuration changed. Rebuilding all services."
                         env.CHANGED_ACCOUNT_SERVICE = 'true'
                         env.CHANGED_USER_SERVICE = 'true'
@@ -63,8 +66,10 @@ pipeline {
 
         // Common 모듈 빌드 단계 추가
         stage('Build Common Module') {
-            when { expression { return changedFiles.contains('ssok-common/') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle') } }
+            when { expression { return env.COMMON_CHANGED == 'true' } }
             steps {
+                sh 'mkdir -p ssok-backend || true'
+                sh 'cd ssok-backend && git clone https://github.com/Team-SSOK/ssok-backend.git . || git pull'
                 sh 'cd ssok-backend && chmod +x gradlew && ./gradlew :ssok-common:clean :ssok-common:build --refresh-dependencies -x test'
             }
         }
