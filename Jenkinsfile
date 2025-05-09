@@ -38,7 +38,7 @@ pipeline {
                     env.CHANGED_BLUETOOTH_SERVICE = changedFiles.contains('ssok-bluetooth-service/') ? 'true' : 'false'
                     
                     // common 모듈이 변경되면 모든 서비스 재빌드
-                    if (env.COMMON_CHANGED == 'true') {
+                    if (changedFiles.contains('ssok-common/') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle')) {
                         echo "Common module or build configuration changed. Rebuilding all services."
                         env.CHANGED_ACCOUNT_SERVICE = 'true'
                         env.CHANGED_USER_SERVICE = 'true'
