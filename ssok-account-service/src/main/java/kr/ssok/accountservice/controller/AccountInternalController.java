@@ -2,6 +2,7 @@ package kr.ssok.accountservice.controller;
 
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDto;
+import kr.ssok.accountservice.dto.response.transferservice.PrimaryAccountInfoResponseDto;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
 import kr.ssok.accountservice.service.AccountInternalService;
 import kr.ssok.common.exception.BaseResponse;
@@ -61,6 +62,20 @@ public class AccountInternalController {
     public ResponseEntity<BaseResponse<List<AccountIdResponseDto>>> getAllAccountIds(
             @RequestHeader("X-User-Id") String userId) {
         List<AccountIdResponseDto> result = this.accountInternalService.findAllAccountIds(Long.parseLong(userId));
+
+        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
+    }
+
+    /**
+     * 사용자 ID를 기반으로 주계좌 정보를 조회합니다.
+     *
+     * @param userId Gateway 또는 내부 요청 헤더로 전달된 사용자 ID (요청 헤더: X-User-Id)
+     * @return 사용자 ID에 해당하는 주계좌 정보를 담은 {@link BaseResponse}
+     */
+    @GetMapping("accounts/user-info")
+    public ResponseEntity<BaseResponse<PrimaryAccountInfoResponseDto>> getPrimaryAccountInfo(
+            @RequestHeader("X-User-Id") String userId) {
+        PrimaryAccountInfoResponseDto result = this.accountInternalService.findPrimaryAccountByUserId(Long.parseLong(userId));
 
         return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
     }

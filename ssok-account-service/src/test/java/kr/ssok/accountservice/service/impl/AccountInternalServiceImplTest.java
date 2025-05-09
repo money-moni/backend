@@ -1,12 +1,17 @@
 package kr.ssok.accountservice.service.impl;
 
+import kr.ssok.accountservice.client.UserServiceClient;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDto;
+import kr.ssok.accountservice.dto.response.transferservice.PrimaryAccountInfoResponseDto;
+import kr.ssok.accountservice.dto.response.userservice.UserInfoResponseDto;
 import kr.ssok.accountservice.entity.LinkedAccount;
 import kr.ssok.accountservice.entity.enums.AccountTypeCode;
 import kr.ssok.accountservice.entity.enums.BankCode;
 import kr.ssok.accountservice.exception.AccountException;
+import kr.ssok.accountservice.exception.AccountResponseStatus;
 import kr.ssok.accountservice.repository.AccountRepository;
+import kr.ssok.common.exception.BaseResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +30,9 @@ class AccountInternalServiceImplTest {
 
     @Mock
     private AccountRepository accountRepository;
+
+    @Mock
+    private UserServiceClient userServiceClient;
 
     @InjectMocks
     private AccountInternalServiceImpl accountInternalService;
@@ -113,6 +121,72 @@ class AccountInternalServiceImplTest {
         when(accountRepository.findByUserIdAndIsDeletedFalse(1L)).thenReturn(List.of());
 
         assertThatThrownBy(() -> accountInternalService.findAllAccountIds(1L))
+                .isInstanceOf(AccountException.class);
+    }
+
+    @Test
+    @DisplayName("사용자의 대표 계좌 정보를 정상적으로 조회할 수 있다")
+    void findPrimaryAccountByUserId_Success() {
+        Long userId = 1L;
+
+        // 대표 계좌 mock
+        LinkedAccount account = LinkedAccount.builder()
+                .accountId(300L)
+                .userId(userId)
+                .accountNumber("333-3333")
+                .bankCode(BankCode.SSOK_BANK)
+                .accountTypeCode(AccountTypeCode.DEPOSIT)
+                .build();
+
+        // 사용자 정보 mock
+        UserInfoResponseDto userInfo = UserInfoResponseDto.builder()
+                .username("홍길동")
+                .build();
+
+        BaseResponse<UserInfoResponseDto> userResponse =
+                new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, userInfo);
+
+
+        // mocking
+        when(accountRepository.findByUserIdAndIsPrimaryAccountTrueAndIsDeletedFalse(userId)).thenReturn(Optional.of(account));
+        when(userServiceClient.sendUserInfoRequest(String.valueOf(userId))).thenReturn(userResponse); // ❗ 이 줄이 빠졌었음
+
+        // 실행
+        PrimaryAccountInfoResponseDto result = accountInternalService.findPrimaryAccountByUserId(userId);
+
+        // 검증
+        assertThat(result.getAccountId()).isEqualTo(300L);
+        assertThat(result.getAccountNumber()).isEqualTo("333-3333");
+        assertThat(result.getAccountName()).isEqualTo("홍길동");
+        assertThat(result.getBankCode()).isEqualTo(BankCode.SSOK_BANK.getIdx());
+    }
+
+
+    @Test
+    @DisplayName("대표 계좌가 없으면 예외가 발생한다")
+    void findPrimaryAccountByUserId_AccountNotFound() {
+        when(accountRepository.findByUserIdAndIsPrimaryAccountTrueAndIsDeletedFalse(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> accountInternalService.findPrimaryAccountByUserId(1L))
+                .isInstanceOf(AccountException.class);
+    }
+
+    @Test
+    @DisplayName("사용자 정보 조회에 실패하면 예외가 발생한다")
+    void findPrimaryAccountByUserId_UserInfoNotFound() {
+        Long userId = 1L;
+        LinkedAccount account = LinkedAccount.builder()
+                .accountId(300L)
+                .userId(userId)
+                .accountNumber("333-3333")
+                .bankCode(BankCode.SSOK_BANK)
+                .accountTypeCode(AccountTypeCode.DEPOSIT)
+                .build();
+
+        when(accountRepository.findByUserIdAndIsPrimaryAccountTrueAndIsDeletedFalse(userId)).thenReturn(Optional.of(account));
+        when(userServiceClient.sendUserInfoRequest(String.valueOf(userId))).thenReturn(null);
+
+        assertThatThrownBy(() -> accountInternalService.findPrimaryAccountByUserId(userId))
                 .isInstanceOf(AccountException.class);
     }
 }
