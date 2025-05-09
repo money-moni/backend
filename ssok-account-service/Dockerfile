@@ -2,7 +2,7 @@ FROM openjdk:17-jdk-slim as builder
 WORKDIR /app
 COPY . .
 RUN chmod +x ./gradlew
-RUN ./gradlew :ssok-account-service:clean :ssok-account-service:build -x test
+RUN ./gradlew :ssok-common:build :ssok-account-service:build --refresh-dependencies -x test
 
 FROM openjdk:17-jdk-slim
 WORKDIR /app
