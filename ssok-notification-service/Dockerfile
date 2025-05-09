@@ -2,7 +2,7 @@ FROM openjdk:17-jdk-slim as builder
 WORKDIR /app
 COPY . .
 RUN chmod +x ./gradlew
-RUN ./gradlew :ssok-notification-service:clean :ssok-notification-service:build -x test
+RUN ./gradlew :ssok-common:build :ssok-notification-service:build --refresh-dependencies -x test
 
 FROM openjdk:17-jdk-slim
 WORKDIR /app

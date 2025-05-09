@@ -37,10 +37,10 @@ dependencies {
 //    enabled = false
 //}
 //
-//// jar 활성화
-//jar {
-//    enabled = true
-//}
+// jar 활성화
+jar {
+    enabled = true
+}
 
 test {
     useJUnitPlatform()
