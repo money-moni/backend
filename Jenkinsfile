@@ -60,6 +60,14 @@ pipeline {
                 sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
             }
         }
+
+        // Common 모듈 빌드 단계 추가
+        stage('Build Common Module') {
+            when { expression { return changedFiles.contains('ssok-common/') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle') } }
+            steps {
+                sh 'cd ssok-backend && chmod +x gradlew && ./gradlew :ssok-common:clean :ssok-common:build --refresh-dependencies -x test'
+            }
+        }
         
         // 계정 서비스 빌드 및 배포
         stage('Build & Deploy Account Service') {
