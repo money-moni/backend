@@ -1,6 +1,6 @@
 pipeline {
     agent any
-
+    
     environment {
         DOCKER_CREDENTIALS = credentials('DOCKER_USER')
         DOCKER_USER = "${DOCKER_CREDENTIALS_USR}"
@@ -9,7 +9,7 @@ pipeline {
         GIT_USER = "${GIT_CREDENTIALS_USR}"
         GIT_PASS = "${GIT_CREDENTIALS_PSW}"
     }
-
+    
     stages {
         stage('Prepare Environment') {
             steps {
@@ -17,18 +17,18 @@ pipeline {
                 sh './setup.sh'
             }
         }
-
+        
         stage('Detect Changes') {
             steps {
                 script {
                     // 변경된 파일 감지 (이전 커밋과 현재 커밋 비교)
                     def changedFiles = sh(script: "git diff --name-only HEAD~1 HEAD || git diff --name-only", returnStdout: true).trim()
-
+                    
                     echo "Changed files: ${changedFiles}"
 
                     // common 모듈 변경 여부 확인
                     env.COMMON_CHANGED = changedFiles.contains('ssok-common/') || changedFiles.contains('Jenkinsfile') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle') ? 'true' : 'false'
-
+                    
                     // 각 서비스별 변경 여부 확인
                     env.CHANGED_ACCOUNT_SERVICE = changedFiles.contains('ssok-account-service/') ? 'true' : 'false'
                     env.CHANGED_USER_SERVICE = changedFiles.contains('ssok-user-service/') ? 'true' : 'false'
@@ -36,7 +36,7 @@ pipeline {
                     env.CHANGED_NOTIFICATION_SERVICE = changedFiles.contains('ssok-notification-service/') ? 'true' : 'false'
                     env.CHANGED_GATEWAY = changedFiles.contains('ssok-gateway/') ? 'true' : 'false'
                     env.CHANGED_BLUETOOTH_SERVICE = changedFiles.contains('ssok-bluetooth-service/') ? 'true' : 'false'
-
+                    
                     // common 모듈이 변경되면 모든 서비스 재빌드
                     if (changedFiles.contains('ssok-common/') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle')) {
                         echo "Common module or build configuration changed. Rebuilding all services."
@@ -47,7 +47,7 @@ pipeline {
                         env.CHANGED_GATEWAY = 'true'
                         env.CHANGED_BLUETOOTH_SERVICE = 'true'
                     }
-
+                    
                     echo "Account Service changed: ${env.CHANGED_ACCOUNT_SERVICE}"
                     echo "User Service changed: ${env.CHANGED_USER_SERVICE}"
                     echo "Transfer Service changed: ${env.CHANGED_TRANSFER_SERVICE}"
@@ -57,105 +57,103 @@ pipeline {
                 }
             }
         }
-
-        // 모든 서비스 빌드를 한 번에 수행
-        stage('Build All Services') {
-            when { expression { return env.COMMON_CHANGED == 'true' || env.CHANGED_ACCOUNT_SERVICE == 'true' || env.CHANGED_USER_SERVICE == 'true' || env.CHANGED_TRANSFER_SERVICE == 'true' || env.CHANGED_NOTIFICATION_SERVICE == 'true' || env.CHANGED_GATEWAY == 'true' || env.CHANGED_BLUETOOTH_SERVICE == 'true' } }
-            steps {
-                sh 'chmod +x gradlew'
-                sh './gradlew clean build --refresh-dependencies -x test'
-                sh 'ls -la target/' // 빌드된 JAR 파일 확인
-            }
-        }
-
+        
         stage('Docker Login') {
             steps {
                 sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
             }
         }
 
-        // 계정 서비스 배포
-        stage('Deploy Account Service') {
+        // Common 모듈 빌드 단계 추가
+        stage('Build Common Module') {
+            when { expression { return env.COMMON_CHANGED == 'true' } }
+            steps {
+                sh 'chmod +x gradlew'
+                sh './gradlew :ssok-common:clean :ssok-common:build --refresh-dependencies -x test'
+            }
+        }
+        
+        // 계정 서비스 빌드 및 배포
+        stage('Build & Deploy Account Service') {
             when { expression { return env.CHANGED_ACCOUNT_SERVICE == 'true' } }
             steps {
-                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}", "WORKSPACE=${WORKSPACE}"]) {
+                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-account-service/deploy.sh'
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-account-service/pipeline.sh'
                 }
-                echo "Account Service deploy completed"
+                echo "Account Service build & deploy completed"
             }
         }
-
-        // 사용자 서비스 배포
-        stage('Deploy User Service') {
+        
+        // 사용자 서비스 빌드 및 배포
+        stage('Build & Deploy User Service') {
             when { expression { return env.CHANGED_USER_SERVICE == 'true' } }
             steps {
-                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}", "WORKSPACE=${WORKSPACE}"]) {
+                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-user-service/deploy.sh'
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-user-service/pipeline.sh'
                 }
-                echo "User Service deploy completed"
+                echo "User Service build & deploy completed"
             }
         }
-
-        // 송금 서비스 배포
-        stage('Deploy Transfer Service') {
+        
+        // 송금 서비스 빌드 및 배포
+        stage('Build & Deploy Transfer Service') {
             when { expression { return env.CHANGED_TRANSFER_SERVICE == 'true' } }
             steps {
-                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}", "WORKSPACE=${WORKSPACE}"]) {
+                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-transfer-service/deploy.sh'
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-transfer-service/pipeline.sh'
                 }
-                echo "Transfer Service deploy completed"
+                echo "Transfer Service build & deploy completed"
             }
         }
-
-        // 알림 서비스 배포
-        stage('Deploy Notification Service') {
+        
+        // 알림 서비스 빌드 및 배포
+        stage('Build & Deploy Notification Service') {
             when { expression { return env.CHANGED_NOTIFICATION_SERVICE == 'true' } }
             steps {
-                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}", "WORKSPACE=${WORKSPACE}"]) {
+                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-notification-service/deploy.sh'
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-notification-service/pipeline.sh'
                 }
-                echo "Notification Service deploy completed"
+                echo "Notification Service build & deploy completed"
             }
         }
-
-        // 게이트웨이 배포
-        stage('Deploy Gateway') {
+        
+        // 게이트웨이 빌드 및 배포
+        stage('Build & Deploy Gateway') {
             when { expression { return env.CHANGED_GATEWAY == 'true' } }
             steps {
-                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}", "WORKSPACE=${WORKSPACE}"]) {
+                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-gateway-service/deploy.sh'
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-gateway-service/pipeline.sh'
                 }
-                echo "Gateway deploy completed"
+                echo "Gateway build & deploy completed"
             }
         }
-
-        // 블루투스 서비스 배포
-        stage('Deploy Bluetooth Service') {
+        
+        // 블루투스 서비스 빌드 및 배포
+        stage('Build & Deploy Bluetooth Service') {
             when { expression { return env.CHANGED_BLUETOOTH_SERVICE == 'true' } }
             steps {
-                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}", "WORKSPACE=${WORKSPACE}"]) {
+                withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}"]) {
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-bluetooth-service/deploy.sh'
                     sh 'cd ssok-deploy && ./jenkins/ssok-app/ssok-bluetooth-service/pipeline.sh'
                 }
-                echo "Bluetooth Service deploy completed"
+                echo "Bluetooth Service build & deploy completed"
             }
         }
     }
-
+    
     post {
         always {
             echo 'Cleaning up workspace...'
-            // cleanWs() 주석 처리 - 다른 스테이지에서 빌드 결과물을 사용할 수 있도록
+            cleanWs()  // 워크스페이스 정리 (deleteDir 대신 사용)
             sh 'docker logout'
         }
         success {
             echo 'CI/CD Pipeline completed successfully!'
-            cleanWs() // 성공 시에만 워크스페이스 정리
         }
         failure {
             echo 'CI/CD Pipeline failed!'
