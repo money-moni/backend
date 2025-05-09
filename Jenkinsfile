@@ -15,9 +15,11 @@ pipeline {
             steps {
                 sh 'chmod +x setup.sh'
                 sh './setup.sh'
-
-                cleanWs()
             }
+        }
+
+        stage('clean workspace') {
+            cleanWs()
         }
         
         stage('Detect Changes') {
