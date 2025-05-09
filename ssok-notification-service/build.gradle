@@ -46,8 +46,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // config-service
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    // Kubernetes Config
+    implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-config'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     implementation "org.springframework.cloud:spring-cloud-starter-bootstrap"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
