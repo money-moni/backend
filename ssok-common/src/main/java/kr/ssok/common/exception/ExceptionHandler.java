@@ -42,4 +42,3 @@ public class ExceptionHandler {
                 .body(new BaseResponse<>(CommonResponseStatus.INTERNAL_SERVER_ERROR));
     }
 }
-
