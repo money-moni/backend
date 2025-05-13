@@ -1,6 +1,6 @@
-package kr.ssok.gateway.security.filter;
+package kr.ssok.gatewayservice.security.filter;
 
-import kr.ssok.gateway.security.jwt.JwtVerifier;
+import kr.ssok.gatewayservice.security.jwt.JwtVerifier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;

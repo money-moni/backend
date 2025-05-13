@@ -1,4 +1,4 @@
-package kr.ssok.gateway.config;
+package kr.ssok.gatewayservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

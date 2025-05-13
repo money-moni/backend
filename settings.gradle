@@ -5,7 +5,7 @@ include 'ssok-common'
 include 'ssok-transfer-service'
 include 'ssok-user-service'
 include 'ssok-account-service'
-include 'ssok-gateway'
+include 'ssok-gateway-service'
 include 'ssok-notification-service'
 include 'ssok-bluetooth-service'
 
