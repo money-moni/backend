@@ -176,7 +176,7 @@ public class TransferServiceTest {
         }
 
         @Override
-        public BaseResponse<List<AccountIdResponseDto>> getAccountIdsByUserId(String userId) {
+        public BaseResponse<List<AccountIdsResponseDto>> getAccountIdsByUserId(String userId) {
             return null;
         }
 

@@ -12,5 +12,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountIdsResponseDto {
-    private List<Long> accountIds;
+    private Long accountId;
 }

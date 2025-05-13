@@ -50,7 +50,7 @@ public interface AccountServiceClient {
      * @return BaseResponse 객체에 계좌 ID 리스트를 담아 반환
      */
     @GetMapping("/api/accounts/ids")
-    BaseResponse<List<AccountIdResponseDto>> getAccountIdsByUserId(
+    BaseResponse<List<AccountIdsResponseDto>> getAccountIdsByUserId(
             @RequestHeader("X-User-Id") String userId);
 
     /**

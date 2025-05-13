@@ -106,7 +106,7 @@ public class TransferHistoryServiceTest {
         // 1. 계좌 서비스 모킹
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
                 .thenReturn(new BaseResponse<>(true, 2000, "성공",
-                        List.of(new AccountIdResponseDto(10L, 1L), new AccountIdResponseDto(20L, 2L))));
+                        List.of(new AccountIdsResponseDto(10L), new AccountIdsResponseDto(20L))));
 
         // 2. 송금 상대 조회 모킹
         List<TransferCounterpartResponseDto> dummyResult = List.of(
@@ -136,7 +136,7 @@ public class TransferHistoryServiceTest {
         // 1. 계좌 서비스 모킹
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
                 .thenReturn(new BaseResponse<>(true, 2000, "성공",
-                        List.of(new AccountIdResponseDto(10L, 1L), new AccountIdResponseDto(20L, 2L))));
+                        List.of(new AccountIdsResponseDto(10L), new AccountIdsResponseDto(20L))));
 
         // 2. 송금 이력 더미 데이터
         List<TransferHistory> dummyHistories = List.of(
