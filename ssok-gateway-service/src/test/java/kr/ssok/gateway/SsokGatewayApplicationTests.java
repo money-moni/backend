@@ -1,4 +1,4 @@
-package kr.ssok.gatewayservice;
+package kr.ssok.gateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
