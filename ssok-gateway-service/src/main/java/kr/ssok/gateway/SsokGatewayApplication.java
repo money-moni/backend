@@ -1,4 +1,4 @@
-package kr.ssok.gatewayservice;
+package kr.ssok.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

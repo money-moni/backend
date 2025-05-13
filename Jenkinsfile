@@ -34,7 +34,7 @@ pipeline {
                     env.CHANGED_USER_SERVICE = changedFiles.contains('ssok-user-service/') ? 'true' : 'false'
                     env.CHANGED_TRANSFER_SERVICE = changedFiles.contains('ssok-transfer-service/') ? 'true' : 'false'
                     env.CHANGED_NOTIFICATION_SERVICE = changedFiles.contains('ssok-notification-service/') ? 'true' : 'false'
-                    env.CHANGED_GATEWAY = changedFiles.contains('ssok-gateway/') ? 'true' : 'false'
+                    env.CHANGED_GATEWAY = changedFiles.contains('ssok-gateway-service/') ? 'true' : 'false'
                     env.CHANGED_BLUETOOTH_SERVICE = changedFiles.contains('ssok-bluetooth-service/') ? 'true' : 'false'
 
                     // common 모듈이 변경되면 모든 서비스 재빌드
@@ -140,7 +140,7 @@ pipeline {
         }
 
         // 게이트웨이 배포
-        stage('Deploy Gateway') {
+        stage('Deploy Gateway-service') {
             when { expression { return env.CHANGED_GATEWAY == 'true' } }
             steps {
                 withEnv(["DOCKER_USER=${DOCKER_USER}", "GIT_PASS=${GIT_PASS}", "WORKSPACE=${WORKSPACE}"]) {

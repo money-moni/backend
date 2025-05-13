@@ -1,4 +1,4 @@
-package kr.ssok.gatewayservice.security.handler;
+package kr.ssok.gateway.security.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

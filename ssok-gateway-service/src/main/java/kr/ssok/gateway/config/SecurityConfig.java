@@ -1,7 +1,7 @@
-package kr.ssok.gatewayservice.config;
+package kr.ssok.gateway.config;
 
-import kr.ssok.gatewayservice.security.filter.JwtAuthenticationFilter;
-import kr.ssok.gatewayservice.security.handler.JwtAuthenticationEntryPoint;
+import kr.ssok.gateway.security.filter.JwtAuthenticationFilter;
+import kr.ssok.gateway.security.handler.JwtAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
