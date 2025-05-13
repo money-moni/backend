@@ -1,4 +1,4 @@
-package kr.ssok.gateway.security.jwt;
+package kr.ssok.gatewayservice.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
