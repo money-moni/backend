@@ -25,12 +25,17 @@ import java.util.List;
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    @Value("${auth.whitelist}")
-    private List<String> whiteList;
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+    private static final List<String> WHITELIST = List.of(
+            "/api/auth/login",
+            "/api/auth/refresh",
+            "/api/users/signup",
+            "/api/users/phone",
+            "/api/users/phone/verify"
+    );
 
     /**
      * Spring Security 웹 필터 체인 구성
@@ -50,7 +55,7 @@ public class SecurityConfig {
                     exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers(whiteList.toArray(new String[0])).permitAll()
+                        .pathMatchers(WHITELIST.toArray(new String[0])).permitAll()
                         .anyExchange().authenticated()
                 )
                 .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
@@ -75,16 +80,5 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    /**
-     * 인증 화이트리스트 제공
-     * 인증이 필요 없는 URL 패턴 목록
-     * 
-     * @return 화이트리스트 URL 패턴 목록
-     */
-    @Bean
-    public List<String> whiteList() {
-        return whiteList;
     }
 }

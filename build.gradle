@@ -43,7 +43,7 @@ subprojects {
         annotationProcessor libs.lombok
         
         // Jackson 공통 의존성 추가 (gateway, config 모듈 제외)
-        if (project.name != 'ssok-gateway') {
+        if (project.name != 'ssok-gateway-service') {
             implementation libs.jacksonDatabind
             implementation libs.jacksonAnnotations
             implementation libs.jacksonJsr310

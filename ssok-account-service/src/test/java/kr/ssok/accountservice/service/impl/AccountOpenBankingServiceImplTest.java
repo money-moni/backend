@@ -2,6 +2,7 @@ package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.client.OpenBankingClient;
 import kr.ssok.accountservice.client.UserServiceClient;
+import kr.ssok.accountservice.client.dto.response.OpenBankingResponse;
 import kr.ssok.accountservice.dto.request.AccountOwnerRequestDto;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountBalanceRequestDto;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountOwnerRequestDto;
@@ -20,6 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
 
 import java.util.List;
 
@@ -33,6 +36,12 @@ class AccountOpenBankingServiceImplTest {
 
     @Mock
     private UserServiceClient userServiceClient;
+
+    @Mock
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Mock
+    private SetOperations<String, String> setOperations;
 
     @InjectMocks
     private AccountOpenBankingServiceImpl service;
@@ -59,7 +68,9 @@ class AccountOpenBankingServiceImplTest {
                 .thenReturn(new BaseResponse<>(true, 200, "성공", userInfo));
 
         when(openBankingClient.sendAllAccountsRequest(any(OpenBankingAllAccountsRequestDto.class)))
-                .thenReturn(new BaseResponse<>(true, 200, "성공", List.of(account1, account2)));
+                .thenReturn(new OpenBankingResponse<>(true, "200", "성공", List.of(account1, account2)));
+
+        when(redisTemplate.opsForSet()).thenReturn(setOperations);
 
         List<AllAccountsResponseDto> result = service.fetchAllAccountsFromOpenBanking(userId);
 
@@ -108,7 +119,7 @@ class AccountOpenBankingServiceImplTest {
         OpenBankingAccountOwnerResponseDto responseDto = new OpenBankingAccountOwnerResponseDto("홍길동");
 
         when(openBankingClient.sendAccountOwnerRequest(any(OpenBankingAccountOwnerRequestDto.class)))
-                .thenReturn(new BaseResponse<>(true, 200, "성공", responseDto));
+                .thenReturn(new OpenBankingResponse<>(true, "200", "성공", responseDto));
 
         AccountOwnerResponseDto result = service.fetchAccountOwnerFromOpenBanking(requestDto);
 
@@ -134,7 +145,7 @@ class AccountOpenBankingServiceImplTest {
         OpenBankingAccountBalanceResponseDto responseDto = new OpenBankingAccountBalanceResponseDto(50000L);
 
         when(openBankingClient.sendAccountBalanceRequest(requestDto))
-                .thenReturn(new BaseResponse<>(true, 200, "성공", responseDto));
+                .thenReturn(new OpenBankingResponse<>(true, "200", "성공", responseDto));
 
         OpenBankingAccountBalanceResponseDto result = service.fetchAccountBalanceFromOpenBanking(requestDto);
 

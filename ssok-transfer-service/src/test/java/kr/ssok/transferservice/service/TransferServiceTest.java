@@ -172,7 +172,7 @@ public class TransferServiceTest {
                 return new BaseResponse<>(true, 2001, "계좌 ID 없음", null); // accountId 없으면 code=2001
             }
             return new BaseResponse<>(true, 2000, "계좌 ID 조회 성공",
-                    new AccountIdResponseDto(10L));
+                    new AccountIdResponseDto(10L, 1L));
         }
 
         @Override

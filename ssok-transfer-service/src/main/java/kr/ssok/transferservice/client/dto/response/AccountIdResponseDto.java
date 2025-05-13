@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AccountIdResponseDto {
     private Long accountId;
+    private Long userId;
 }
