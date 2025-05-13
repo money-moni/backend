@@ -37,3 +37,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+## FCM 비공개키
+src/main/resources/firebase/firebase-adminsdk.json

@@ -1,4 +1,4 @@
-package kr.ssok.notificationservice.dto;
+package kr.ssok.notificationservice.domain.aligo.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

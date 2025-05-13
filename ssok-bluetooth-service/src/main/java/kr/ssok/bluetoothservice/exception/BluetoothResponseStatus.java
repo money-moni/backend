@@ -18,15 +18,15 @@ public enum BluetoothResponseStatus implements ResponseStatus {
     /**
      * 2. 클라이언트 에러(4000~4999)
      */
-    UUID_REQUIRED(false, 4401, "UUID는 필수입니다."),
-    USER_ID_REQUIRED(false, 4402, "유저 ID가 없습니다."),
-    NO_MATCH_FOUND(false, 4403, "UUID와 매칭된 유저가 없습니다."),
-    NO_SCAN_UUID(false, 4404, "스캔된 UUID가 없습니다."),
+    UUID_REQUIRED(false, 4401, "UUID는 필수입니다.", HttpStatus.BAD_REQUEST),
+    USER_ID_REQUIRED(false, 4402, "유저 ID가 없습니다.", HttpStatus.BAD_REQUEST),
+    NO_MATCH_FOUND(false, 4403, "UUID와 매칭된 유저가 없습니다.", HttpStatus.NOT_FOUND),
+    NO_SCAN_UUID(false, 4404, "스캔된 UUID가 없습니다.", HttpStatus.BAD_REQUEST),
 
     /**
      * 3. 서버 에러 (5000~5999)
      */
-    REDIS_ACCESS_FAILED(false, 5400, "Redis 처리 중 서버 오류가 발생했습니다.");
+    REDIS_ACCESS_FAILED(false, 5400, "Redis 처리 중 서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final boolean success;
     private final int code;

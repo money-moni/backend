@@ -20,20 +20,20 @@ public enum TransferResponseStatus implements ResponseStatus {
     /**
      * 2. 클라이언트 에러(4000~4999)
      */
-    TRANSFER_FAILED(false, 4300, "송금에 실패했습니다."),
-    ACCOUNT_LOOKUP_FAILED(false, 4301, "계좌 조회에 실패했습니다."),
-    COUNTERPART_ACCOUNT_LOOKUP_FAILED(false, 4302, "상대방 계좌 조회에 실패했습니다."),
-    REMITTANCE_FAILED(false, 4303, "송금 요청에 실패했습니다."),
-    INVALID_TRANSFER_AMOUNT(false, 4304, "송금 금액은 0보다 커야 합니다."),
-    INVALID_ACCOUNT_ID(false, 4305, "계좌 ID는 필수입니다."),
-    INVALID_USER_ID(false, 4306, "USER ID는 필수입니다."),
+    TRANSFER_FAILED(false, 4300, "송금에 실패했습니다.", HttpStatus.BAD_REQUEST),
+    ACCOUNT_LOOKUP_FAILED(false, 4301, "계좌 조회에 실패했습니다.", HttpStatus.BAD_REQUEST),
+    COUNTERPART_ACCOUNT_LOOKUP_FAILED(false, 4302, "상대방 계좌 조회에 실패했습니다.", HttpStatus.BAD_REQUEST),
+    REMITTANCE_FAILED(false, 4303, "송금 요청에 실패했습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_TRANSFER_AMOUNT(false, 4304, "송금 금액은 0보다 커야 합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_ACCOUNT_ID(false, 4305, "계좌 ID는 필수입니다.", HttpStatus.BAD_REQUEST),
+    INVALID_USER_ID(false, 4306, "USER ID는 필수입니다.", HttpStatus.BAD_REQUEST),
 
     // openbanking-feign 에러 처리
-    ACCOUNT_NOT_FOUND(false, 4307, "계좌를 찾을 수 없습니다."),
-    DORMANT_ACCOUNT(false, 4308, "휴면 계좌입니다."),
-    INSUFFICIENT_BALANCE(false, 4309, "잔액이 부족합니다."),
-    WITHDRAWAL_ERROR(false, 4310, "송금 처리 중 오류가 발생했습니다."),
-    DEPOSIT_ERROR(false, 4311, "입금 처리 중 오류가 발생했습니다.");
+    ACCOUNT_NOT_FOUND(false, 4307, "계좌를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    DORMANT_ACCOUNT(false, 4308, "휴면 계좌입니다.", HttpStatus.BAD_REQUEST),
+    INSUFFICIENT_BALANCE(false, 4309, "잔액이 부족합니다.", HttpStatus.BAD_REQUEST),
+    WITHDRAWAL_ERROR(false, 4310, "송금 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    DEPOSIT_ERROR(false, 4311, "입금 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final boolean success;
     private final int code;

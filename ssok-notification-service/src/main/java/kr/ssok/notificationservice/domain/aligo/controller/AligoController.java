@@ -1,9 +1,9 @@
-package kr.ssok.notificationservice.controller;
+package kr.ssok.notificationservice.domain.aligo.controller;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.common.exception.CommonResponseStatus;
-import kr.ssok.notificationservice.dto.AligoVerificationRequestDto;
-import kr.ssok.notificationservice.service.AligoService;
+import kr.ssok.notificationservice.domain.aligo.dto.AligoVerificationRequestDto;
+import kr.ssok.notificationservice.domain.aligo.service.AligoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
