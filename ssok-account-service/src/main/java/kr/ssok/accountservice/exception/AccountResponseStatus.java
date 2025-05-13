@@ -35,6 +35,9 @@ public enum AccountResponseStatus implements ResponseStatus {
     OPENBANKING_BALANCE_LOOKUP_FAILED(false, 9002, "오픈뱅킹 계좌 잔액 조회에 실패했습니다."),
     OPENBANKING_OWNER_LOOKUP_FAILED(false, 9003, "오픈뱅킹 실명 조회에 실패했습니다."),
 
+    INVALID_OPENBANKING_CODE(false, 9004, "오픈뱅킹 예외처리 코드가 유효하지 않습니다."),
+    OPENBANKING_REQUEST_FAILED(false, 9005, "오픈뱅킹 API 요청에 실패했습니다."),
+
     USER_INFO_NOT_FOUND(false, 9001, "사용자 정보를 찾을 수 없습니다.");
 
     private final boolean success;
