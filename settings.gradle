@@ -5,8 +5,7 @@ include 'ssok-common'
 include 'ssok-transfer-service'
 include 'ssok-user-service'
 include 'ssok-account-service'
-include 'ssok-gateway'
-include 'ssok-config'
+include 'ssok-gateway-service'
 include 'ssok-notification-service'
 include 'ssok-bluetooth-service'
 
@@ -19,7 +18,7 @@ dependencyResolutionManagement {
             version('gson', '2.7')
             version('jwt', '0.11.5')
             version('springCloud', '2024.0.0')
-            version('swagger', '2.3.0')
+            version('swagger', '2.8.4')
             version('lombok', '1.18.24')
             version('jackson', '2.18.3')  // Jackson 버전 추가
             version('openfeign', '4.2.1')

@@ -7,9 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 송금 서비스 등 내부 시스템 간 통신 시 계좌 ID만 전달할 때 사용하는 응답 DTO
+ * 송금 서비스 등 내부 시스템 간 통신 시 계좌 ID, 유저 ID를 전달할 때 사용하는 응답 DTO
  *
- * <p>계좌 ID를 포함합니다.</p>
+ * <p>계좌 ID, 유저 ID를 포함합니다.</p>
  *
  * <p>이 객체는 읽기 전용이며, 빌더 패턴을 통해 생성됩니다.</p>
  */
@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AccountIdResponseDto {
     private Long accountId;
+    private Long userId;
 
     /**
      * LinkedAccount 엔티티를 AccountIdResponseDto로 변환합니다.
@@ -29,6 +30,7 @@ public class AccountIdResponseDto {
     public static AccountIdResponseDto from(LinkedAccount account) {
         return AccountIdResponseDto.builder()
                 .accountId(account.getAccountId())
+                .userId(account.getUserId())
                 .build();
     }
 }

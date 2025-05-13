@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name = "ssok-user-service", url = "${external.user-service.url}") // url 임시 지정
 public interface UserServiceClient {
-    @GetMapping("/api/user/info")
+    @GetMapping("/api/users/info")
     BaseResponse<UserInfoDto> getUserInfo(@RequestHeader("X-User-Id") String userId);
 }

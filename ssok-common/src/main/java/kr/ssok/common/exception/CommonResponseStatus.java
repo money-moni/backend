@@ -51,4 +51,20 @@ public enum CommonResponseStatus implements ResponseStatus {
     public boolean isSuccess() {
         return success;
     }
+
+    @Override
+    public HttpStatus getHttpStatus() {
+        if (this.httpStatus != null) {
+            return this.httpStatus;
+        }
+
+        // 기본 HttpStatus 반환
+        if (this.isSuccess()) {
+            return HttpStatus.OK;
+        } else if (this.code >= 4000 && this.code < 5000) {
+            return HttpStatus.BAD_REQUEST;
+        } else {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+    }
 }

@@ -139,14 +139,16 @@ class BluetoothServiceTest {
         when(redisTemplate.opsForValue().get("uuid:" + uuid)).thenReturn(userId);
 
         UserInfoDto matchedUser = UserInfoDto.builder()
-                .userId(101L)
                 .username("최지훈")
+                .phoneNumber("01012345678")
                 .profileImage("https://example.com/img/cjh.jpg")
                 .build();
         when(userServiceClient.getUserInfo("101")).thenReturn(new BaseResponse<>(true, 200, "success", matchedUser));
 
         AccountInfoDto primaryAccount = AccountInfoDto.builder()
+                .accountId(1L)
                 .accountNumber("110-1234-567890")
+                .bankCode(1)
                 .balance(1000000L)
                 .build();
         when(accountServiceClient.getPrimaryAccount("101")).thenReturn(new BaseResponse<>(true, 200, "success", primaryAccount));

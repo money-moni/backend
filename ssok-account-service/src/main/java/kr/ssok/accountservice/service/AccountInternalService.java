@@ -1,7 +1,9 @@
 package kr.ssok.accountservice.service;
 
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
+import kr.ssok.accountservice.dto.response.transferservice.AccountIdsResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDto;
+import kr.ssok.accountservice.dto.response.transferservice.PrimaryAccountInfoResponseDto;
 
 import java.util.List;
 
@@ -13,6 +15,7 @@ import java.util.List;
  *     <li>사용자 ID와 계좌 ID로 계좌 상세 조회</li>
  *     <li>계좌번호로 계좌 ID 조회</li>
  *     <li>사용자 ID로 보유한 모든 계좌 ID 조회</li>
+ *     <li>사용자 ID로  주계좌 정보 조회</li>
  * </ul>
  * </p>
  */
@@ -28,10 +31,10 @@ public interface AccountInternalService {
     AccountInfoResponseDto findAccountByUserIdAndAccountId(Long userId, Long accountId);
 
     /**
-     * 계좌번호에 해당하는 계좌 ID를 조회합니다.
+     * 계좌번호에 해당하는 계좌 ID, 유저 ID를 조회합니다.
      *
      * @param accountNumber 조회할 계좌번호
-     * @return 계좌 ID 정보를 담은 AccountIdResponseDto
+     * @return 계좌 ID, 유저 ID 정보를 담은 AccountIdResponseDto
      */
     AccountIdResponseDto findAccountIdByAccountNumber(String accountNumber);
 
@@ -39,7 +42,15 @@ public interface AccountInternalService {
      * 사용자 ID에 해당하는 모든 연동 계좌 ID 목록을 조회합니다.
      *
      * @param userId 사용자 ID
-     * @return 계좌 ID 목록을 담은 List<AccountIdResponseDto>
+     * @return 계좌 ID 목록을 담은 List<AccountIdsResponseDto>
      */
-    List<AccountIdResponseDto> findAllAccountIds(Long userId);
+    List<AccountIdsResponseDto> findAllAccountIds(Long userId);
+
+    /**
+     * 사용자 ID에 해당하는 대표 계좌 정보를 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 대표 계좌 정보를 담은 PrimaryAccountInfoResponseDto
+     */
+    PrimaryAccountInfoResponseDto findPrimaryAccountByUserId(Long userId);
 }

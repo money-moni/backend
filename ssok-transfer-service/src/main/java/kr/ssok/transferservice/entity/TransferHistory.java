@@ -23,21 +23,31 @@ public class TransferHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;                        // PK, 자동 증가
 
+    @Column(nullable = false)
     private Long accountId;                 // 본인 계좌 ID
+
+    @Column(nullable = false)
     private String counterpartAccount;      // 상대방 계좌 번호
+
+    @Column(nullable = false)
     private String counterpartName;         // 상대방 이름
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TransferType transferType;      // 입금 / 출금
 
+    @Column(nullable = false)
     private Long transferMoney;             // 송금 금액
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private CurrencyCode currencyCode;      // 통화 코드 (원화 / 달러)
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TransferMethod transferMethod;  // 송금 방식 (일반 / 클루투스)
 
+    @Column(nullable = false)
     private LocalDateTime createdAt;        // 생성 시각
 
     @PrePersist

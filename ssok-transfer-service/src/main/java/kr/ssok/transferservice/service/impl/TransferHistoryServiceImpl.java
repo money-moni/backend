@@ -2,7 +2,8 @@ package kr.ssok.transferservice.service.impl;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
-import kr.ssok.transferservice.client.dto.AccountIdsResponse;
+import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
+import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
@@ -76,19 +77,21 @@ public class TransferHistoryServiceImpl implements TransferHistoryService {
         }
 
         // 1. 계좌 서비스에서 사용자 ID로 모든 계좌 ID 조회
-        BaseResponse<AccountIdsResponse> accountListResponse =
-                this.accountServiceClient.getAccountIdsByUserId(userId);
+        BaseResponse<List<AccountIdResponseDto>> accountListResponse =
+                this.accountServiceClient.getAccountIdsByUserId(userId.toString());
 
         // NPE 방지
         if (!accountListResponse.getIsSuccess() ||
                 accountListResponse.getResult() == null ||
-                accountListResponse.getResult().getAccountIds() == null ||
-                accountListResponse.getResult().getAccountIds().isEmpty()) {
+                accountListResponse.getResult().isEmpty()) {
             return List.of(); // 비어 있는 리스트 반환
         }
 
         // 2. 계좌 ID 목록으로 송금 상대 조회 (QueryDSL)
-        List<Long> accountIds = accountListResponse.getResult().getAccountIds();
+        List<Long> accountIds = accountListResponse.getResult().stream()
+                .map(AccountIdResponseDto::getAccountId)
+                .collect(Collectors.toList());
+
         return this.transferHistoryRepository.findRecentCounterparts(accountIds);
     }
 }

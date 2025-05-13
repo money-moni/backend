@@ -8,9 +8,11 @@ import kr.ssok.userservice.dto.request.SignupRequestDto;
 import kr.ssok.userservice.dto.response.BankAccountResponseDto;
 import kr.ssok.userservice.dto.response.SignupResponseDto;
 import kr.ssok.userservice.dto.response.UserInfoResponseDto;
+import kr.ssok.userservice.entity.ProfileImage;
 import kr.ssok.userservice.entity.User;
 import kr.ssok.userservice.exception.UserException;
 import kr.ssok.userservice.exception.UserResponseStatus;
+import kr.ssok.userservice.repository.ProfileImageRepository;
 import kr.ssok.userservice.repository.UserRepository;
 import kr.ssok.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final ProfileImageRepository profileImageRepository;
     private final BankClient bankClient;
     private final AligoClient aligoClient;
     private final PasswordEncoder passwordEncoder;
@@ -76,9 +79,21 @@ public class UserServiceImpl implements UserService {
                 .build();
         
         User savedUser = userRepository.save(user);
-        
+
+        // noImage(기본 이미지) 객체 생성
+        ProfileImage profileImage = ProfileImage.builder()
+                .user(savedUser)
+                .storedFilename("noImage")
+                .url("noUrl")
+                .contentType("noType")
+                .build();
+
+        profileImageRepository.save(profileImage);
+
+        savedUser.updateProfileImage(profileImage);
+
         try {
-            createAccountByBank(requestDto);
+//            createAccountByBank(requestDto);
 
             return SignupResponseDto.builder()
                     .userId(savedUser.getId())

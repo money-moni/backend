@@ -24,34 +24,27 @@ dependencies {
     // Spring Cloud Dependencies
     implementation libs.springCloud
 
-    // OpenFeign
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-
-
     // lombook
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // PostgreSQL Driver
-    runtimeOnly 'org.postgresql:postgresql'
-
-    // Redis
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
-    // JWT
-    implementation libs.jwtApi
-    runtimeOnly libs.jwtImpl
-    runtimeOnly libs.jwtJackson
-
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // config-service
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    // Kubernetes Config
+    implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-config'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     implementation "org.springframework.cloud:spring-cloud-starter-bootstrap"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
 
+    // Firebase Cloud Message
+    implementation 'com.google.firebase:firebase-admin:9.4.3'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // H2(common 모듈에 jpa 임시 처리)
+    runtimeOnly 'com.h2database:h2'
 }
 
 dependencyManagement {
