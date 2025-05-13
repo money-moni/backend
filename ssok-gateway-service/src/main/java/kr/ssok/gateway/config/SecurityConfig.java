@@ -25,9 +25,6 @@ import java.util.List;
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-//    @Value("${auth.whitelist}")
-//    private List<String> whiteList;
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -84,15 +81,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-//    /**
-//     * 인증 화이트리스트 제공
-//     * 인증이 필요 없는 URL 패턴 목록
-//     *
-//     * @return 화이트리스트 URL 패턴 목록
-//     */
-//    @Bean
-//    public List<String> whiteList() {
-//        return whiteList;
-//    }
 }
