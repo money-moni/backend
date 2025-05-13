@@ -2,6 +2,7 @@ package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.client.OpenBankingClient;
 import kr.ssok.accountservice.client.UserServiceClient;
+import kr.ssok.accountservice.client.dto.response.OpenBankingResponse;
 import kr.ssok.accountservice.dto.request.AccountOwnerRequestDto;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountBalanceRequestDto;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountOwnerRequestDto;
@@ -64,7 +65,7 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
         OpenBankingAllAccountsRequestDto requestDto =
                 OpenBankingAllAccountsRequestDto.from(userInfoResponse.getResult());
 
-        BaseResponse<List<OpenBankingAllAccountsResponseDto>> response =
+        OpenBankingResponse<List<OpenBankingAllAccountsResponseDto>> response =
                 this.openBankingClient.sendAllAccountsRequest(requestDto);
 
         if (response == null || response.getResult() == null) {
@@ -103,7 +104,7 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
     public AccountOwnerResponseDto fetchAccountOwnerFromOpenBanking(AccountOwnerRequestDto accountOwnerRequestDto) {
         OpenBankingAccountOwnerRequestDto requestDto = OpenBankingAccountOwnerRequestDto.from(accountOwnerRequestDto);
 
-        BaseResponse<OpenBankingAccountOwnerResponseDto> response =
+        OpenBankingResponse<OpenBankingAccountOwnerResponseDto> response =
                 this.openBankingClient.sendAccountOwnerRequest(requestDto);
 
         if (response == null || response.getResult() == null) {
@@ -124,7 +125,7 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
      */
     @Override
     public OpenBankingAccountBalanceResponseDto fetchAccountBalanceFromOpenBanking(OpenBankingAccountBalanceRequestDto requestDto) {
-        BaseResponse<OpenBankingAccountBalanceResponseDto> response =
+        OpenBankingResponse<OpenBankingAccountBalanceResponseDto> response =
                 this.openBankingClient.sendAccountBalanceRequest(requestDto);
 
         if (response == null || response.getResult() == null) {
