@@ -34,11 +34,11 @@ pipeline {
                     env.CHANGED_USER_SERVICE = changedFiles.contains('ssok-user-service/') ? 'true' : 'false'
                     env.CHANGED_TRANSFER_SERVICE = changedFiles.contains('ssok-transfer-service/') ? 'true' : 'false'
                     env.CHANGED_NOTIFICATION_SERVICE = changedFiles.contains('ssok-notification-service/') ? 'true' : 'false'
-                    env.CHANGED_GATEWAY = changedFiles.contains('ssok-gateway/') ? 'true' : 'false'
+                    env.CHANGED_GATEWAY = changedFiles.contains('ssok-gateway-service/') ? 'true' : 'false'
                     env.CHANGED_BLUETOOTH_SERVICE = changedFiles.contains('ssok-bluetooth-service/') ? 'true' : 'false'
 
                     // common 모듈이 변경되면 모든 서비스 재빌드
-                    if (changedFiles.contains('ssok-common/') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle')) {
+                    if (changedFiles.contains('ssok-common/') || changedFiles.contains('Jenkinsfile') || changedFiles.contains('build.gradle') || changedFiles.contains('settings.gradle')) {
                         echo "Common module or build configuration changed. Rebuilding all services."
                         env.CHANGED_ACCOUNT_SERVICE = 'true'
                         env.CHANGED_USER_SERVICE = 'true'
