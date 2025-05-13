@@ -59,17 +59,10 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public AccountResponseDto createLinkedAccount(Long userId, CreateAccountRequestDto createAccountRequestDto) {
         // 계좌 유효성 검사를 위한 로직 - 캐싱된 redis와의 계좌 정보 비교
-        String redisKey = AccountIdentifierUtil.buildLookupKey(userId);
-        String lookupKey = AccountIdentifierUtil.buildLookupValue(
-                createAccountRequestDto.getBankCode(),
-                createAccountRequestDto.getAccountNumber(),
-                createAccountRequestDto.getAccountTypeCode()
-        );
-
-        Boolean exists = redisTemplate.opsForSet().isMember(redisKey, lookupKey);
+        Boolean isValidAccount = validateAccountOwnership(userId, createAccountRequestDto);
 
         // 계좌 정보가 존재하지 않을 시, 예외발생
-        if (Boolean.FALSE.equals(exists)) {
+        if (Boolean.FALSE.equals(isValidAccount)) {
             throw new AccountException(AccountResponseStatus.ACCOUNT_CREATION_FORBIDDEN);
         }
         // 기존 계좌가 존재하는 지 확인
@@ -297,5 +290,14 @@ public class AccountServiceImpl implements AccountService {
         return AccountResponseDto.from(linkedAccount);
     }
 
+    private Boolean validateAccountOwnership(Long userId, CreateAccountRequestDto dto) {
+        String redisKey = AccountIdentifierUtil.buildLookupKey(userId);
+        String lookupKey = AccountIdentifierUtil.buildLookupValue(
+                dto.getBankCode(),
+                dto.getAccountNumber(),
+                dto.getAccountTypeCode()
+        );
 
+        return redisTemplate.opsForSet().isMember(redisKey, lookupKey); // 해당 계좌의 존재 여부를 boolean으로 리턴
+    }
 }

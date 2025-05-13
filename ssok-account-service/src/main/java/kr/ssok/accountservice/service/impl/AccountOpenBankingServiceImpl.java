@@ -73,18 +73,7 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
         }
 
         // 계좌 유효성 검사를 위한 로직 - redis에 오픈뱅킹으로 받은 정보 캐싱
-        String redisKey = AccountIdentifierUtil.buildLookupKey(userId);
-
-        redisTemplate.opsForSet().add(redisKey, response.getResult().stream()
-                .map(dto -> AccountIdentifierUtil.buildLookupValue(
-                        dto.getBankCode(),
-                        dto.getAccountNumber(),
-                        dto.getAccountTypeCode()))
-                .distinct()
-                .toArray(String[]::new));
-
-        redisTemplate.expire(redisKey, Duration.ofMinutes(5)); // TTL 5분
-
+        cacheAvailableAccountSet(userId, response.getResult());
 
         return response.getResult()
                 .stream()
@@ -134,5 +123,20 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
         }
 
         return response.getResult();
+    }
+
+    private void cacheAvailableAccountSet(Long userId, List<OpenBankingAllAccountsResponseDto> accounts) {
+        String redisKey = AccountIdentifierUtil.buildLookupKey(userId);
+
+        redisTemplate.opsForSet().add(redisKey,
+                accounts.stream()
+                        .map(dto -> AccountIdentifierUtil.buildLookupValue(
+                                dto.getBankCode(),
+                                dto.getAccountNumber(),
+                                dto.getAccountTypeCode()))
+                        .distinct()
+                        .toArray(String[]::new));
+
+        redisTemplate.expire(redisKey, Duration.ofMinutes(5)); // TTL 5분
     }
 }
