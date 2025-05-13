@@ -47,6 +47,9 @@ dependencies {
 
     // H2(테스트용)
     runtimeOnly 'com.h2database:h2'
+
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka:3.3.4'
 }
 
 dependencyManagement {

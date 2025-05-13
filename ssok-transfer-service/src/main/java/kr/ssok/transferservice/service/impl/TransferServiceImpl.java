@@ -20,6 +20,8 @@ import kr.ssok.transferservice.entity.enums.TransferMethod;
 import kr.ssok.transferservice.entity.enums.TransferType;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
+import kr.ssok.transferservice.kafka.message.KafkaNotificationMessageDto;
+import kr.ssok.transferservice.kafka.producer.NotificationProducer;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import kr.ssok.transferservice.service.TransferService;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +44,7 @@ public class TransferServiceImpl implements TransferService {
     // 삭제 예정
     private final NotificationServiceClient notificationServiceClient;
 
-    // 삭제 예정
+    // 삭제 예정(openfeign)
     private void sendNotification(Long receiverUserId, String senderName, Long amount) {
         String formattedAmount = String.format("%,d원 입금", amount);
         String body = senderName + " → 내 OO뱅크 통장";
@@ -59,6 +61,21 @@ public class TransferServiceImpl implements TransferService {
         } catch (Exception e) {
             log.error("알림 전송 요청 실패: {}", e.getMessage());
         }
+    }
+
+    // Kafka 알림 프로듀서
+    private final NotificationProducer notificationProducer;
+
+    private void sendKafkaNotification(Long userId, String senderName, Integer bankCode, Long amount, TransferType type) {
+        KafkaNotificationMessageDto kafkaMessage = KafkaNotificationMessageDto.builder()
+                .userId(userId)
+                .senderName(senderName)
+                .bankCode(bankCode)
+                .amount(amount)
+                .transferType(type)
+                .build();
+
+        notificationProducer.send(kafkaMessage);
     }
 
     /**
@@ -257,13 +274,22 @@ public class TransferServiceImpl implements TransferService {
             // 푸시 알림 - openfegin 요청
             start = System.currentTimeMillis();
             //sendNotification(response.getResult().getUserId(), dto.getSendName(), dto.getAmount()); // 삭제 예정
-            try {
-                Thread.sleep(200); // 평균 지연 시간만큼 대기
-                log.info("푸시 알림 요청 시간: 200ms (시뮬레이션)");
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); // 인터럽트 신호 유지
-                log.warn("알림 sleep 중 인터럽트 발생");
-            }
+//            try {
+//                Thread.sleep(200); // 평균 지연 시간만큼 대기
+//                log.info("푸시 알림 요청 시간: 200ms (시뮬레이션)");
+//            } catch (InterruptedException e) {
+//                Thread.currentThread().interrupt(); // 인터럽트 신호 유지
+//                log.warn("알림 sleep 중 인터럽트 발생");
+//            }
+
+            // 변경된 Kafka 방식
+            sendKafkaNotification(
+                    response.getResult().getUserId(),               // 수신자 userId
+                    dto.getSendName(),                              // 송신자 이름
+                    dto.getRecvBankCode(),                          // 수신자 은행 코드
+                    dto.getAmount(),                                // 금액
+                    TransferType.DEPOSIT                            // 송금 유형 (입금)
+            );
             end = System.currentTimeMillis();
             log.info("[SSOK-NOTIFICATION] 푸시 알림 요청 시간: {}ms", end - start);
         }
