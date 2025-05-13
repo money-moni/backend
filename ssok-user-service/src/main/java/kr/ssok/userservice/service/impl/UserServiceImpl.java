@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
         savedUser.updateProfileImage(profileImage);
 
         try {
-//            createAccountByBank(requestDto);
+            createAccountByBank(requestDto);
 
             return SignupResponseDto.builder()
                     .userId(savedUser.getId())
