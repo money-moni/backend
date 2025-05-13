@@ -2,7 +2,9 @@ package kr.ssok.transferservice.service.impl;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
+import kr.ssok.transferservice.client.NotificationServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
+import kr.ssok.transferservice.client.dto.request.FcmNotificationRequestDto;
 import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
@@ -37,6 +39,28 @@ public class TransferServiceImpl implements TransferService {
     private final OpenBankingClient openBankingClient;
     private final TransferHistoryRepository transferHistoryRepository;
 
+    // 삭제 예정
+    private final NotificationServiceClient notificationServiceClient;
+
+    // 삭제 예정
+    private void sendNotification(Long receiverUserId, String senderName, Long amount) {
+        String formattedAmount = String.format("%,d원 입금", amount);
+        String body = senderName + " → 내 OO뱅크 통장";
+
+        FcmNotificationRequestDto request = FcmNotificationRequestDto.builder()
+                .userId(receiverUserId)
+                .title(formattedAmount)
+                .body(body)
+                .build();
+
+        try {
+            notificationServiceClient.sendFcmNotification(request);
+            log.info("알림 전송 요청 성공: {}", request);
+        } catch (Exception e) {
+            log.error("알림 전송 요청 실패: {}", e.getMessage());
+        }
+    }
+
     /**
      * 일반 송금을 처리하는 메서드
      *
@@ -51,14 +75,24 @@ public class TransferServiceImpl implements TransferService {
         // 0. 송금 금액이 0보다 큰지 검증
         validateTransferAmount(dto.getAmount());
 
+        long start = System.currentTimeMillis();
         // 1. 계좌 서비스에서 출금 계좌번호 조회
         String sendAccountNumber = findSendAccountNumber(dto.getSendAccountId(), userId);
+        long end = System.currentTimeMillis();
+        log.info("[SSOK-ACCOUNT] 출금 계좌번호 조회 요청 시간: {}ms", end - start);
+
+        start = System.currentTimeMillis();
         // 2. 오픈뱅킹 송금 요청
         requestOpenBankingTransfer(sendAccountNumber, dto);
+        end = System.currentTimeMillis();
+        log.info("[OPEN-BANKING] 오픈뱅킹 송금 요청 시간: {}ms", end - start);
 
+        start = System.currentTimeMillis();
         // 3. 출금 내역 저장
         saveTransferHistory(dto.getSendAccountId(), dto.getRecvAccountNumber(), dto.getRecvName(),
                 TransferType.WITHDRAWAL, dto.getAmount(), CurrencyCode.KRW, transferMethod);
+        end = System.currentTimeMillis();
+        log.info("[DB] 출금 내역 저장 시간: {}ms", end - start);
 
         // 4. 상대방 계좌번호로 계좌 ID 조회 후, 입금 이력 추가 저장 (SSOK 유저인 경우만)
         saveDepositHistoryIfReceiverExists(sendAccountNumber, dto, transferMethod);
@@ -102,6 +136,8 @@ public class TransferServiceImpl implements TransferService {
                 maskUsername(transferRequestDto.getSendName()),               // 상대방 이름 마스킹
                 TransferType.DEPOSIT, transferRequestDto.getAmount(),
                 CurrencyCode.KRW, transferMethod);
+
+        sendNotification(requestDto.getRecvUserId(), transferRequestDto.getSendName(), transferRequestDto.getAmount()); // 삭제 예정
 
         return buildBluetoothResponse(transferRequestDto);
     }
@@ -194,14 +230,18 @@ public class TransferServiceImpl implements TransferService {
      * @param dto 송금 요청 DTO
      */
     private void saveDepositHistoryIfReceiverExists(String sendAccountNumber, TransferRequestDto dto, TransferMethod transferMethod) {
+        long start = System.currentTimeMillis();
         BaseResponse<AccountIdResponseDto> response =
                 this.accountServiceClient.getAccountId(dto.getRecvAccountNumber());
+        long end = System.currentTimeMillis();
+        log.info("[SSOK-ACCOUNT] 송금 수신자 유저 조회 시간: {}ms", end - start);
 
         if (response.getIsSuccess()
-                && response.getCode() == 2000
+                && response.getCode() == 2200
                 && response.getResult() != null
                 && response.getResult().getAccountId() != null) {
 
+            start = System.currentTimeMillis();
             saveTransferHistory(
                     response.getResult().getAccountId(), // 상대방 계좌 ID
                     sendAccountNumber, // 출금자 계좌번호
@@ -211,6 +251,21 @@ public class TransferServiceImpl implements TransferService {
                     CurrencyCode.KRW,
                     transferMethod
             );
+            end = System.currentTimeMillis();
+            log.info("[DB] 송금 수신자 송금 내역 저장 시간: {}ms", end - start);
+
+            // 푸시 알림 - openfegin 요청
+            start = System.currentTimeMillis();
+            //sendNotification(response.getResult().getUserId(), dto.getSendName(), dto.getAmount()); // 삭제 예정
+            try {
+                Thread.sleep(200); // 평균 지연 시간만큼 대기
+                log.info("푸시 알림 요청 시간: 200ms (시뮬레이션)");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // 인터럽트 신호 유지
+                log.warn("알림 sleep 중 인터럽트 발생");
+            }
+            end = System.currentTimeMillis();
+            log.info("[SSOK-NOTIFICATION] 푸시 알림 요청 시간: {}ms", end - start);
         }
     }
 
