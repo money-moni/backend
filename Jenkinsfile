@@ -58,6 +58,23 @@ pipeline {
             }
         }
 
+        // Notification Service를 위한 Firebase SDK 파일 준비
+        stage('Prepare Firebase SDK') {
+            when { expression { return env.CHANGED_NOTIFICATION_SERVICE == 'true' } }
+            steps {
+                script {
+                    // Firebase 디렉토리 생성
+                    sh 'mkdir -p ssok-notification-service/src/main/resources/firebase'
+                    
+                    // Jenkins에 저장된 Firebase SDK 파일 복사
+                    sh 'cp /var/jenkins_home/env/firebase-adminsdk.json ssok-notification-service/src/main/resources/firebase/'
+                    
+                    // 파일이 제대로 복사되었는지 확인
+                    sh 'ls -la ssok-notification-service/src/main/resources/firebase/'
+                }
+            }
+        }
+
         // 모든 서비스 빌드를 한 번에 수행
         stage('Build All Services') {
             when { expression { return env.COMMON_CHANGED == 'true' || env.CHANGED_ACCOUNT_SERVICE == 'true' || env.CHANGED_USER_SERVICE == 'true' || env.CHANGED_TRANSFER_SERVICE == 'true' || env.CHANGED_NOTIFICATION_SERVICE == 'true' || env.CHANGED_GATEWAY == 'true' || env.CHANGED_BLUETOOTH_SERVICE == 'true' } }
