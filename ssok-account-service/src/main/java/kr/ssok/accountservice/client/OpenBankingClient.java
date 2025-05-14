@@ -12,6 +12,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
@@ -30,7 +31,9 @@ public interface OpenBankingClient {
      * @return 오픈뱅킹 서버로부터 전달받은 전체 계좌 목록 응답 {@link OpenBankingResponse}
      */
     @PostMapping("/api/openbank/accounts/request")
-    OpenBankingResponse<List<OpenBankingAllAccountsResponseDto>> sendAllAccountsRequest(@RequestBody OpenBankingAllAccountsRequestDto requestBody);
+    OpenBankingResponse<List<OpenBankingAllAccountsResponseDto>> sendAllAccountsRequest(
+            @RequestHeader("X-API-KEY") String openBankingApiKey,
+            @RequestBody OpenBankingAllAccountsRequestDto requestBody);
 
     /**
      * 특정 계좌의 잔액을 조회합니다.
@@ -39,7 +42,9 @@ public interface OpenBankingClient {
      * @return 계좌 잔액 정보가 포함된 {@link OpenBankingResponse}
      */
     @GetMapping("/api/openbank/account/balance")
-    OpenBankingResponse<OpenBankingAccountBalanceResponseDto> sendAccountBalanceRequest(@RequestBody OpenBankingAccountBalanceRequestDto requestBody);
+    OpenBankingResponse<OpenBankingAccountBalanceResponseDto> sendAccountBalanceRequest(
+            @RequestHeader("X-API-KEY") String openBankingApiKey,
+            @RequestBody OpenBankingAccountBalanceRequestDto requestBody);
 
     /**
      * 특정 계좌에 대한 실명 정보를 조회합니다.
@@ -48,5 +53,7 @@ public interface OpenBankingClient {
      * @return 예금주 실명 정보가 포함된 {@link OpenBankingResponse}
      */
     @PostMapping("/api/openbank/account/verify-name")
-    OpenBankingResponse<OpenBankingAccountOwnerResponseDto> sendAccountOwnerRequest(@RequestBody OpenBankingAccountOwnerRequestDto requestBody);
+    OpenBankingResponse<OpenBankingAccountOwnerResponseDto> sendAccountOwnerRequest(
+            @RequestHeader("X-API-KEY") String openBankingApiKey,
+            @RequestBody OpenBankingAccountOwnerRequestDto requestBody);
 }
