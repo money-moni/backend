@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
         savedUser.updateProfileImage(profileImage);
 
         try {
-            createAccountByBank(requestDto, "1");
+            createAccountByBank(requestDto, "0");
 
             return SignupResponseDto.builder()
                     .userId(savedUser.getId())
@@ -275,7 +275,7 @@ public class UserServiceImpl implements UserService {
         BankAccountRequestDto bankRequest = BankAccountRequestDto.builder()
                 .username(requestDto.getUsername())
                 .phoneNumber(requestDto.getPhoneNumber())
-                .accountTypeCode(1) // 1 예금 고정. 확장 필요 시 수정
+                .accountTypeCode(0) // 1 예금 고정. 확장 필요 시 수정
                 .userTypeCode(userTypeCode)
                 .build();
 
