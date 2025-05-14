@@ -17,6 +17,7 @@ public interface OpenBankingClient {
     /**
      * 오픈뱅킹 송금 요청 API 호출
      *
+     * @param openBankingApiKey 오픈뱅킹 API 인증 키
      * @param requestBody 요청 바디 (송금 정보)
      * @return OpenBankingResponse 형식의 송금 응답 객체
      */

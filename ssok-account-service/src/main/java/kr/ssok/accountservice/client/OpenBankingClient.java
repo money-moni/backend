@@ -27,6 +27,7 @@ public interface OpenBankingClient {
     /**
      * 사용자의 전체 계좌 목록을 조회합니다.
      *
+     * @param openBankingApiKey 오픈뱅킹 API 호출에 필요한 인증 키 (X-API-KEY 헤더)
      * @param requestBody 오픈뱅킹 전체 계좌 조회 요청에 필요한 사용자 정보
      * @return 오픈뱅킹 서버로부터 전달받은 전체 계좌 목록 응답 {@link OpenBankingResponse}
      */
@@ -38,6 +39,7 @@ public interface OpenBankingClient {
     /**
      * 특정 계좌의 잔액을 조회합니다.
      *
+     * @param openBankingApiKey 오픈뱅킹 API 호출에 필요한 인증 키 (X-API-KEY 헤더)
      * @param requestBody 계좌 번호 및 은행 코드가 포함된 요청 DTO
      * @return 계좌 잔액 정보가 포함된 {@link OpenBankingResponse}
      */
@@ -49,6 +51,7 @@ public interface OpenBankingClient {
     /**
      * 특정 계좌에 대한 실명 정보를 조회합니다.
      *
+     * @param openBankingApiKey 오픈뱅킹 API 호출에 필요한 인증 키 (X-API-KEY 헤더)
      * @param requestBody 계좌 번호 및 은행 코드가 포함된 요청 DTO
      * @return 예금주 실명 정보가 포함된 {@link OpenBankingResponse}
      */
