@@ -204,7 +204,7 @@ public class TransferServiceTest {
         private String errorCode = "TRANSFER002";  // 송금 에러 코드
 
         @Override
-        public OpenBankingResponse sendTransferRequest(OpenBankingTransferRequestDto requestBody) {
+        public OpenBankingResponse sendTransferRequest(String apiKey, OpenBankingTransferRequestDto requestBody) {
             if (failTransfer) {
                 Map<String, Object> result = Map.of(
                         "transactionId", "46f338bd-2090-4e15-9df3-2efb103f6f15",
