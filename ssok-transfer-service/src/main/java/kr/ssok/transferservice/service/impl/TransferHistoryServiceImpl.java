@@ -77,7 +77,7 @@ public class TransferHistoryServiceImpl implements TransferHistoryService {
         }
 
         // 1. 계좌 서비스에서 사용자 ID로 모든 계좌 ID 조회
-        BaseResponse<List<AccountIdsResponseDto>> accountListResponse =
+        BaseResponse<List<AccountIdResponseDto>> accountListResponse =
                 this.accountServiceClient.getAccountIdsByUserId(userId.toString());
 
         // NPE 방지
@@ -89,7 +89,7 @@ public class TransferHistoryServiceImpl implements TransferHistoryService {
 
         // 2. 계좌 ID 목록으로 송금 상대 조회 (QueryDSL)
         List<Long> accountIds = accountListResponse.getResult().stream()
-                .map(AccountIdsResponseDto::getAccountId)
+                .map(AccountIdResponseDto::getAccountId)
                 .collect(Collectors.toList());
 
         return this.transferHistoryRepository.findRecentCounterparts(accountIds);
