@@ -2,6 +2,7 @@ package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.client.OpenBankingClient;
 import kr.ssok.accountservice.client.UserServiceClient;
+import kr.ssok.accountservice.client.dto.response.OpenBankingResponse;
 import kr.ssok.accountservice.dto.request.AccountOwnerRequestDto;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountBalanceRequestDto;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountOwnerRequestDto;
@@ -20,7 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,12 +38,23 @@ class AccountOpenBankingServiceImplTest {
     @Mock
     private UserServiceClient userServiceClient;
 
+    @Mock
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Mock
+    private SetOperations<String, String> setOperations;
+
     @InjectMocks
     private AccountOpenBankingServiceImpl service;
 
     @BeforeEach
-    void setup() {
+    void setup() throws Exception {
+
         MockitoAnnotations.openMocks(this);
+
+        Field apiKeyField = AccountOpenBankingServiceImpl.class.getDeclaredField("OPENBANKING_API_KEY");
+        apiKeyField.setAccessible(true);
+        apiKeyField.set(service, "test-api-key"); // 원하는 테스트용 키 설정
     }
 
     @Test
@@ -58,14 +73,16 @@ class AccountOpenBankingServiceImplTest {
         when(userServiceClient.sendUserInfoRequest(userId.toString()))
                 .thenReturn(new BaseResponse<>(true, 200, "성공", userInfo));
 
-        when(openBankingClient.sendAllAccountsRequest(any(OpenBankingAllAccountsRequestDto.class)))
-                .thenReturn(new BaseResponse<>(true, 200, "성공", List.of(account1, account2)));
+        when(openBankingClient.sendAllAccountsRequest(anyString(), any(OpenBankingAllAccountsRequestDto.class)))
+                .thenReturn(new OpenBankingResponse<>(true, "200", "성공", List.of(account1, account2)));
+
+        when(redisTemplate.opsForSet()).thenReturn(setOperations);
 
         List<AllAccountsResponseDto> result = service.fetchAllAccountsFromOpenBanking(userId);
 
         assertThat(result).hasSize(2);
         verify(userServiceClient).sendUserInfoRequest(userId.toString());
-        verify(openBankingClient).sendAllAccountsRequest(any());
+        verify(openBankingClient).sendAllAccountsRequest(anyString(), any(OpenBankingAllAccountsRequestDto.class));
     }
 
     @Test
@@ -80,7 +97,7 @@ class AccountOpenBankingServiceImplTest {
                 .isInstanceOf(AccountException.class);
 
         verify(userServiceClient).sendUserInfoRequest(userId.toString());
-        verify(openBankingClient, never()).sendAllAccountsRequest(any());
+        verify(openBankingClient, never()).sendAllAccountsRequest(anyString(), any());
     }
 
     @Test
@@ -95,7 +112,7 @@ class AccountOpenBankingServiceImplTest {
         when(userServiceClient.sendUserInfoRequest(userId.toString()))
                 .thenReturn(new BaseResponse<>(true, 200, "성공", userInfo));
 
-        when(openBankingClient.sendAllAccountsRequest(any())).thenReturn(null);
+        when(openBankingClient.sendAllAccountsRequest(anyString(), any(OpenBankingAllAccountsRequestDto.class))).thenReturn(null);
 
         assertThatThrownBy(() -> service.fetchAllAccountsFromOpenBanking(userId))
                 .isInstanceOf(AccountException.class);
@@ -107,8 +124,8 @@ class AccountOpenBankingServiceImplTest {
         AccountOwnerRequestDto requestDto = new AccountOwnerRequestDto("1234567890", 1);
         OpenBankingAccountOwnerResponseDto responseDto = new OpenBankingAccountOwnerResponseDto("홍길동");
 
-        when(openBankingClient.sendAccountOwnerRequest(any(OpenBankingAccountOwnerRequestDto.class)))
-                .thenReturn(new BaseResponse<>(true, 200, "성공", responseDto));
+        when(openBankingClient.sendAccountOwnerRequest(eq("test-api-key"), any(OpenBankingAccountOwnerRequestDto.class)))
+                .thenReturn(new OpenBankingResponse<>(true, "200", "성공", responseDto));
 
         AccountOwnerResponseDto result = service.fetchAccountOwnerFromOpenBanking(requestDto);
 
@@ -121,7 +138,7 @@ class AccountOpenBankingServiceImplTest {
     void fetchAccountOwnerFromOpenBanking_Fail() {
         AccountOwnerRequestDto requestDto = new AccountOwnerRequestDto("1234567890", 1);
 
-        when(openBankingClient.sendAccountOwnerRequest(any())).thenReturn(null);
+        when(openBankingClient.sendAccountOwnerRequest(anyString(), any(OpenBankingAccountOwnerRequestDto.class))).thenReturn(null);
 
         assertThatThrownBy(() -> service.fetchAccountOwnerFromOpenBanking(requestDto))
                 .isInstanceOf(AccountException.class);
@@ -133,8 +150,8 @@ class AccountOpenBankingServiceImplTest {
         OpenBankingAccountBalanceRequestDto requestDto = new OpenBankingAccountBalanceRequestDto("1234567890", 1);
         OpenBankingAccountBalanceResponseDto responseDto = new OpenBankingAccountBalanceResponseDto(50000L);
 
-        when(openBankingClient.sendAccountBalanceRequest(requestDto))
-                .thenReturn(new BaseResponse<>(true, 200, "성공", responseDto));
+        when(openBankingClient.sendAccountBalanceRequest(anyString(), eq(requestDto)))
+                .thenReturn(new OpenBankingResponse<>(true, "200", "성공", responseDto));
 
         OpenBankingAccountBalanceResponseDto result = service.fetchAccountBalanceFromOpenBanking(requestDto);
 
@@ -146,7 +163,7 @@ class AccountOpenBankingServiceImplTest {
     void fetchAccountBalanceFromOpenBanking_Fail() {
         OpenBankingAccountBalanceRequestDto requestDto = new OpenBankingAccountBalanceRequestDto("1234567890", 1);
 
-        when(openBankingClient.sendAccountBalanceRequest(requestDto)).thenReturn(null);
+        when(openBankingClient.sendAccountBalanceRequest(anyString(), eq(requestDto))).thenReturn(null);
 
         assertThatThrownBy(() -> service.fetchAccountBalanceFromOpenBanking(requestDto))
                 .isInstanceOf(AccountException.class);

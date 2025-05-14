@@ -5,6 +5,9 @@ import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Swagger(OpenAPI) 문서 생성을 위한 설정 클래스.
+ */
 @Configuration
 public class SwaggerConfig {
     @Bean

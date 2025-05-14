@@ -34,11 +34,16 @@ public class JwtAuthenticationFilter implements WebFilter {
 
     public JwtAuthenticationFilter(
             JwtVerifier jwtVerifier,
-            RedisTemplate<String, String> redisTemplate,
-            @Value("${auth.whitelist}") List<String> whiteList) {
+            RedisTemplate<String, String> redisTemplate) {
         this.jwtVerifier = jwtVerifier;
         this.redisTemplate = redisTemplate;
-        this.whiteList = whiteList;
+        this.whiteList = List.of(
+                "/api/auth/login",
+                "/api/auth/refresh",
+                "/api/users/signup",
+                "/api/users/phone",
+                "/api/users/phone/verify"
+        );
     }
 
     /**

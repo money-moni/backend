@@ -13,4 +13,5 @@ public class BankAccountRequestDto {
     private String username;
     private String phoneNumber;
     private int accountTypeCode;
+    private String userTypeCode;
 }

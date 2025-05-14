@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.springBoot)
     alias(libs.plugins.dependencyManagement)
+    // protobuf 플러그인
+    alias(libs.plugins.protobufPlugin)
 }
 
 configurations {
@@ -37,7 +39,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
 
     // Redis
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation libs.redis
 
     // JWT
     implementation libs.jwtApi
@@ -56,6 +58,17 @@ dependencies {
 
     // H2(테스트용)
     runtimeOnly 'com.h2database:h2'
+
+    // gRPC 라이브러리
+    implementation(libs.grpcStub)
+    implementation(libs.grpcProtobuf)
+    runtimeOnly(libs.grpcNetty)
+
+    // 컴파일 에러 방지용 어노테이션 라이브러리
+    compileOnly(libs.jakartaAnnotation)
+
+    // protobuf 유틸(protobuf -> Json 변환 등)이 필요할 경우 (디버깅 용도)
+    // implementation(libs.protobufJavaUtil)
 }
 
 dependencyManagement {
@@ -70,3 +83,25 @@ test {
 }
 
 tasks.register("prepareKotlinBuildScriptModel"){}
+
+// protobuf 설정
+protobuf {
+    protoc {
+        // Protocol Buffers 컴파일러
+        artifact = libs.protobufCompiler.get().toString()
+    }
+    plugins {
+        grpc {
+            // gRPC Java 코드 생성용 플러그인 (Stub, Service 등)
+            artifact = libs.grpcCodegen.get().toString()
+        }
+    }
+    generateProtoTasks {
+        all().configureEach {
+            plugins {
+                grpc {}
+            }
+        }
+    }
+}
+

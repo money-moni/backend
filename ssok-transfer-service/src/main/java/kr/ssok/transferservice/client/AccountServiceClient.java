@@ -2,7 +2,6 @@ package kr.ssok.transferservice.client;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
-import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
 import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
 import kr.ssok.transferservice.client.dto.response.PrimaryAccountResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -26,7 +25,7 @@ public interface AccountServiceClient {
      * @param userId 사용자 ID
      * @return BaseResponse 형식의 계좌 응답 객체 (계좌번호)
      */
-    @GetMapping("/api/account-lookup")
+    @GetMapping("/api/accounts/internal/account-info")
     BaseResponse<AccountResponseDto> getAccountInfo(
             @RequestParam("accountId") Long accountId,
             @RequestHeader("X-User-Id") String userId
@@ -38,7 +37,7 @@ public interface AccountServiceClient {
      * @param accountNumber 조회할 계좌번호
      * @return BaseResponse 형식의 계좌 응답 객체 (계좌 ID)
      * */
-    @GetMapping("/api/accounts/id")
+    @GetMapping("/api/accounts/internal/id")
     BaseResponse<AccountIdResponseDto> getAccountId(
             @RequestParam("accountNumber") String accountNumber
     );
@@ -49,8 +48,8 @@ public interface AccountServiceClient {
      * @param userId 사용자 ID
      * @return BaseResponse 객체에 계좌 ID 리스트를 담아 반환
      */
-    @GetMapping("/api/accounts/ids")
-    BaseResponse<List<AccountIdsResponseDto>> getAccountIdsByUserId(
+    @GetMapping("/api/accounts/internal/account-ids")
+    BaseResponse<List<AccountIdResponseDto>> getAccountIdsByUserId(
             @RequestHeader("X-User-Id") String userId);
 
     /**
@@ -59,7 +58,7 @@ public interface AccountServiceClient {
      * @param userId 사용자 ID를 담고 있는 헤더 값 (X-User-Id)
      * @return BaseResponse<AccountResponseDto> 사용자 계좌 정보가 포함된 응답
      */
-    @GetMapping("/api/accounts/user-info")
+    @GetMapping("/api/accounts/internal/user-info")
     BaseResponse<PrimaryAccountResponseDto> getAccountInfo(
             @RequestHeader("X-User-Id") String userId);
 }

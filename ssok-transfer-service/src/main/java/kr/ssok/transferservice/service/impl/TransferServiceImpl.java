@@ -26,6 +26,7 @@ import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import kr.ssok.transferservice.service.TransferService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,9 @@ public class TransferServiceImpl implements TransferService {
     private final AccountServiceClient accountServiceClient;
     private final OpenBankingClient openBankingClient;
     private final TransferHistoryRepository transferHistoryRepository;
+  
+    @Value("${external.openbanking-service.api-key}")
+    private String OPENBANKING_API_KEY;
 
     // 삭제 예정
     private final NotificationServiceClient notificationServiceClient;
@@ -206,7 +210,7 @@ public class TransferServiceImpl implements TransferService {
                 .amount(dto.getAmount())
                 .build();
 
-        OpenBankingResponse response = this.openBankingClient.sendTransferRequest(request);
+        OpenBankingResponse response = this.openBankingClient.sendTransferRequest(OPENBANKING_API_KEY, request);
 
         if (!response.getIsSuccess()) {
             log.error("오픈뱅킹 송금 실패: {}", response.getMessage());
