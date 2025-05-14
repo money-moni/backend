@@ -41,7 +41,7 @@ public class TransferServiceImpl implements TransferService {
     private final AccountServiceClient accountServiceClient;
     private final OpenBankingClient openBankingClient;
     private final TransferHistoryRepository transferHistoryRepository;
-  
+
     @Value("${external.openbanking-service.api-key}")
     private String OPENBANKING_API_KEY;
 
@@ -135,30 +135,59 @@ public class TransferServiceImpl implements TransferService {
         // 0. 송금 금액이 0보다 큰지 검증
         validateTransferAmount(requestDto.getAmount());
 
+        long start = System.currentTimeMillis();
         // 1. 상대방 계좌 정보 조회 및 송금 요청 DTO 생성
         TransferRequestDto transferRequestDto = createTransferRequest(requestDto);
+        long end = System.currentTimeMillis();
+        log.info("[SSOK-ACCOUNT-BLUETOOTH] 출금 계좌 정보 조회 요청 시간: {}ms", end - start);
 
+        start = System.currentTimeMillis();
         // 2. 계좌 서비스에서 출금 계좌번호 조회
         String sendAccountNumber = findSendAccountNumber(transferRequestDto.getSendAccountId(), userId);
+        end = System.currentTimeMillis();
+        log.info("[SSOK-ACCOUNT-BLUETOOTH] 출금 계좌번호 조회 요청 시간: {}ms", end - start);
 
+        start = System.currentTimeMillis();
         // 3. 오픈뱅킹 송금 요청
         requestOpenBankingTransfer(sendAccountNumber, transferRequestDto);
+        end = System.currentTimeMillis();
+        log.info("[OPEN-BANKING-BLUETOOTH] 오픈뱅킹 송금 요청 시간: {}ms", end - start);
 
+        start = System.currentTimeMillis();
         // 4. 출금 내역 저장 (마스킹 처리)
         saveTransferHistory(transferRequestDto.getSendAccountId(),
                 maskAccountNumber(transferRequestDto.getRecvAccountNumber()), // 계좌 번호 마스킹
                 maskUsername(transferRequestDto.getRecvName()),               // 상대방 이름 마스킹
                 TransferType.WITHDRAWAL, transferRequestDto.getAmount(),
                 CurrencyCode.KRW, transferMethod);
+        end = System.currentTimeMillis();
+        log.info("[DB-BLUETOOTH] 출금 내역 저장 시간: {}ms", end - start);
 
+        start = System.currentTimeMillis();
         // 5. 입금 내역 저장 (블루투스 송금은 상대방도 SSOK 유저)
         saveTransferHistory(requestDto.getRecvUserId(),
                 maskAccountNumber(sendAccountNumber),                         // 상대방 계좌 번호 마스킹
                 maskUsername(transferRequestDto.getSendName()),               // 상대방 이름 마스킹
                 TransferType.DEPOSIT, transferRequestDto.getAmount(),
                 CurrencyCode.KRW, transferMethod);
+        end = System.currentTimeMillis();
+        log.info("[DB-BLUETOOTH] 입금 내역 저장 시간: {}ms", end - start);
 
-        sendNotification(requestDto.getRecvUserId(), transferRequestDto.getSendName(), transferRequestDto.getAmount()); // 삭제 예정
+        // openfeign
+        //sendNotification(requestDto.getRecvUserId(), transferRequestDto.getSendName(), transferRequestDto.getAmount()); // 삭제 예정
+
+        start = System.currentTimeMillis();
+        // 변경된 Kafka 방식
+        sendKafkaNotification(
+                requestDto.getRecvUserId(),               // 수신자 userId
+                transferRequestDto.getSendName(),         // 송신자 이름
+                transferRequestDto.getRecvBankCode(),     // 수신자 은행 코드
+                requestDto.getAmount(),                   // 금액
+                TransferType.DEPOSIT                      // 송금 유형 (입금)
+        );
+        end = System.currentTimeMillis();
+        log.info("[SSOK-NOTIFICATION-BLUETOOTH] 카프카 푸시 알림 요청 시간: {}ms", end - start);
+
 
         return buildBluetoothResponse(transferRequestDto);
     }
@@ -295,7 +324,7 @@ public class TransferServiceImpl implements TransferService {
                     TransferType.DEPOSIT                            // 송금 유형 (입금)
             );
             end = System.currentTimeMillis();
-            log.info("[SSOK-NOTIFICATION] 푸시 알림 요청 시간: {}ms", end - start);
+            log.info("[SSOK-NOTIFICATION] 카프카 푸시 알림 요청 시간: {}ms", end - start);
         }
     }
 
