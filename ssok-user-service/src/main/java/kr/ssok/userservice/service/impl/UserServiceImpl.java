@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
             FieldError error = bindingResult.getFieldError();
             String errorMessage = error != null ? error.getDefaultMessage() : "유효성 검증 오류";
             log.error("Validation 에러: {}", errorMessage);
-            throw new UserException(UserResponseStatus.INVALID_PIN_CODE);
+            throw new UserException(UserResponseStatus.INVALID_SIGNUP_REQUEST_VALUE);
         }
         
         // 중복 가입 확인

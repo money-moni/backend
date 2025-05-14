@@ -16,7 +16,7 @@ public class SignupRequestDto {
     private String username; // 회원명
 
     @NotBlank(message = "전화번호를 입력해 주세요.")
-    @Pattern(regexp = "^[0-9]{10,11}$", message = "전화번호는 10~11자리 숫자여야 합니다.")
+    @Pattern(regexp = "^[0-9]{12,13}$", message = "전화번호는 하이픈을 포함한 10~11자리 숫자여야 합니다.")
     private String phoneNumber; // 회원 전화번호
 
     @NotNull(message = "생년월일을 입력해 주세요.")
