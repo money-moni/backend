@@ -21,7 +21,7 @@ public interface OpenBankingClient {
      * @param requestBody 요청 바디 (송금 정보)
      * @return OpenBankingResponse 형식의 송금 응답 객체
      */
-    @PostMapping("/api/openbank/transfer")
+    @PostMapping("/api/openbank/transfers")
     OpenBankingResponse sendTransferRequest(
             @RequestHeader("X-API-KEY") String openBankingApiKey,
             @RequestBody OpenBankingTransferRequestDto requestBody);
