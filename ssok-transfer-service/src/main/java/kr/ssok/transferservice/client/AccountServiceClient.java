@@ -58,7 +58,7 @@ public interface AccountServiceClient {
      * @param userId 사용자 ID를 담고 있는 헤더 값 (X-User-Id)
      * @return BaseResponse<AccountResponseDto> 사용자 계좌 정보가 포함된 응답
      */
-    @GetMapping("/api/accounts/internal/user-info")
+    @GetMapping("/api/accounts/internal/primary-account-info")
     BaseResponse<PrimaryAccountResponseDto> getAccountInfo(
             @RequestHeader("X-User-Id") String userId);
 }
