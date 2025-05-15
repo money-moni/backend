@@ -36,7 +36,7 @@ public class AccountInternalController {
             @RequestParam("accountId") Long accountId) {
         AccountInfoResponseDto result = this.accountInternalService.findAccountByUserIdAndAccountId(Long.parseLong(userId), accountId);
 
-        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
+        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_INFO_GET_SUCCESS, result));
     }
 
     /**
@@ -50,7 +50,7 @@ public class AccountInternalController {
             @RequestParam("accountNumber") String accountNumber) {
         AccountIdResponseDto result = this.accountInternalService.findAccountIdByAccountNumber(accountNumber);
 
-        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
+        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_INFO_GET_SUCCESS, result));
     }
 
     /**
@@ -64,7 +64,7 @@ public class AccountInternalController {
             @RequestHeader("X-User-Id") String userId) {
         List<AccountIdsResponseDto> result = this.accountInternalService.findAllAccountIds(Long.parseLong(userId));
 
-        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
+        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_INFO_GET_SUCCESS, result));
     }
 
     /**
@@ -73,12 +73,12 @@ public class AccountInternalController {
      * @param userId Gateway 또는 내부 요청 헤더로 전달된 사용자 ID (요청 헤더: X-User-Id)
      * @return 사용자 ID에 해당하는 주계좌 정보를 담은 {@link BaseResponse}
      */
-    @GetMapping("/user-info")
+    @GetMapping("/primary-account-info")
     public ResponseEntity<BaseResponse<PrimaryAccountInfoResponseDto>> getPrimaryAccountInfo(
             @RequestHeader("X-User-Id") String userId) {
         PrimaryAccountInfoResponseDto result = this.accountInternalService.findPrimaryAccountByUserId(Long.parseLong(userId));
 
-        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
+        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_INFO_GET_SUCCESS, result));
     }
 
 }

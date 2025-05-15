@@ -17,6 +17,7 @@ public enum AccountResponseStatus implements ResponseStatus {
     ACCOUNT_DELETE_SUCCESS(true, 2200, "연동 계좌 삭제를 완료했습니다."),
     ACCOUNT_ALIAS_UPDATE_SUCCESS(true, 2200, "연동 계좌 별명 수정을 완료했습니다."),
     ACCOUNT_PRIMARY_UPDATE_SUCCESS(true, 2200, "주계좌 변경을 완료했습니다."),
+    ACCOUNT_INFO_GET_SUCCESS(true, 2200, "계좌 정보 조회를 완료했습니다."),
 
 
     /**
