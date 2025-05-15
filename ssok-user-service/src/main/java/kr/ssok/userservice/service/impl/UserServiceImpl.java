@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
             FieldError error = bindingResult.getFieldError();
             String errorMessage = error != null ? error.getDefaultMessage() : "유효성 검증 오류";
             log.error("Validation 에러: {}", errorMessage);
-            throw new UserException(UserResponseStatus.INVALID_PIN_CODE);
+            throw new UserException(UserResponseStatus.INVALID_SIGNUP_REQUEST_VALUE);
         }
         
         // 중복 가입 확인
@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
         savedUser.updateProfileImage(profileImage);
 
         try {
-//            createAccountByBank(requestDto);
+            createAccountByBank(requestDto, "0");
 
             return SignupResponseDto.builder()
                     .userId(savedUser.getId())
@@ -270,12 +270,13 @@ public class UserServiceImpl implements UserService {
      *
      * @param requestDto 회원가입 요청 정보 (계좌 생성에 필요한 이름, 전화번호 포함)
      */
-    private void createAccountByBank(SignupRequestDto requestDto) {
+    private void createAccountByBank(SignupRequestDto requestDto, String userTypeCode) {
         // 뱅크 서버에 계좌 개설 요청
         BankAccountRequestDto bankRequest = BankAccountRequestDto.builder()
                 .username(requestDto.getUsername())
                 .phoneNumber(requestDto.getPhoneNumber())
-                .accountTypeCode(1) // 1 예금 고정. 확장 필요 시 수정
+                .accountTypeCode(0) // 1 예금 고정. 확장 필요 시 수정
+                .userTypeCode(userTypeCode)
                 .build();
 
         // Feign Client를 통한 계좌 개설 요청

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * 송금 요청을 처리하는 REST 컨트롤러
  */
 @RestController
-@RequestMapping("/api/openbank/transfers")
+@RequestMapping("/api/transfers/openbank")
 @RequiredArgsConstructor
 public class TransferController {
 

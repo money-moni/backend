@@ -20,6 +20,7 @@ import kr.ssok.accountservice.util.AccountIdentifierUtil;
 import kr.ssok.common.exception.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +39,9 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
     private final OpenBankingClient openBankingClient;
     private final UserServiceClient userServiceClient;
     private final RedisTemplate<String, String> redisTemplate;
+
+    @Value("${external.openbanking-service.api-key}")
+    private String OPENBANKING_API_KEY;
 
     /**
      * 오픈뱅킹 서버와 사용자 서비스로부터 사용자 정보를 기반으로 전체 연동 계좌 목록을 조회합니다.
@@ -66,7 +70,7 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
                 OpenBankingAllAccountsRequestDto.from(userInfoResponse.getResult());
 
         OpenBankingResponse<List<OpenBankingAllAccountsResponseDto>> response =
-                this.openBankingClient.sendAllAccountsRequest(requestDto);
+                this.openBankingClient.sendAllAccountsRequest(OPENBANKING_API_KEY, requestDto);
 
         if (response == null || response.getResult() == null) {
             log.warn("[OPENBANKING] 전체 계좌 조회 실패: userId={}, username={}", userId, requestDto.getUsername());
@@ -94,7 +98,7 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
         OpenBankingAccountOwnerRequestDto requestDto = OpenBankingAccountOwnerRequestDto.from(accountOwnerRequestDto);
 
         OpenBankingResponse<OpenBankingAccountOwnerResponseDto> response =
-                this.openBankingClient.sendAccountOwnerRequest(requestDto);
+                this.openBankingClient.sendAccountOwnerRequest(OPENBANKING_API_KEY, requestDto);
 
         if (response == null || response.getResult() == null) {
             log.warn("[OPENBANKING] 실명 조회 실패: accountNumber={}, bankCode={}",
@@ -115,7 +119,7 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
     @Override
     public OpenBankingAccountBalanceResponseDto fetchAccountBalanceFromOpenBanking(OpenBankingAccountBalanceRequestDto requestDto) {
         OpenBankingResponse<OpenBankingAccountBalanceResponseDto> response =
-                this.openBankingClient.sendAccountBalanceRequest(requestDto);
+                this.openBankingClient.sendAccountBalanceRequest(OPENBANKING_API_KEY, requestDto);
 
         if (response == null || response.getResult() == null) {
             log.warn("[OPENBANKING] 잔액 조회 실패: accountNumber={}, bankCode={}",

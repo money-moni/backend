@@ -2,7 +2,9 @@ package kr.ssok.transferservice.service;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
+import kr.ssok.transferservice.client.NotificationServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
+import kr.ssok.transferservice.client.dto.request.FcmNotificationRequestDto;
 import kr.ssok.transferservice.client.dto.response.*;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
 import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
@@ -13,10 +15,12 @@ import kr.ssok.transferservice.entity.TransferHistory;
 import kr.ssok.transferservice.entity.enums.TransferMethod;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
+import kr.ssok.transferservice.kafka.producer.NotificationProducer;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import kr.ssok.transferservice.service.impl.TransferServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +40,9 @@ public class TransferServiceTest {
     private TransferHistoryRepository transferHistoryRepository;
     private FakeAccountServiceClient fakeAccountServiceClient;
     private FakeOpenBankingClient fakeOpenBankingClient;
+    private FakeNotificationServiceClient fakeNotificationServiceClient;
+
+    private NotificationProducer notificationProducer;
 
     @BeforeEach
     void setUp() {
@@ -47,7 +54,9 @@ public class TransferServiceTest {
         this.transferService = new TransferServiceImpl(
                 fakeAccountServiceClient,
                 fakeOpenBankingClient,
-                transferHistoryRepository
+                transferHistoryRepository,
+                fakeNotificationServiceClient,
+                notificationProducer
         );
     }
 
@@ -204,7 +213,7 @@ public class TransferServiceTest {
         private String errorCode = "TRANSFER002";  // 송금 에러 코드
 
         @Override
-        public OpenBankingResponse sendTransferRequest(OpenBankingTransferRequestDto requestBody) {
+        public OpenBankingResponse sendTransferRequest(String apiKey, OpenBankingTransferRequestDto requestBody) {
             if (failTransfer) {
                 Map<String, Object> result = Map.of(
                         "transactionId", "46f338bd-2090-4e15-9df3-2efb103f6f15",
@@ -220,6 +229,16 @@ public class TransferServiceTest {
                     "message", "송금이 성공적으로 완료되었습니다."
             );
             return new OpenBankingResponse(true, "2000", "송금 성공", result);
+        }
+    }
+
+    /**
+     * Fake: 알림 서버 송금 알림을 흉내내는 객체
+     */
+    private static class FakeNotificationServiceClient implements NotificationServiceClient {
+        @Override
+        public ResponseEntity<BaseResponse<Void>> sendFcmNotification(FcmNotificationRequestDto requestDto) {
+            return null;
         }
     }
 

@@ -16,7 +16,7 @@ import java.util.List;
  * 오픈뱅킹 관련 API 요청을 처리하는 REST 컨트롤러
  */
 @RestController
-@RequestMapping("/api/openbank")
+@RequestMapping("/api/accounts/openbank")
 @RequiredArgsConstructor
 public class AccountOpenBankingController {
     private final AccountOpenBankingService accountOpenBankingService;
@@ -27,7 +27,7 @@ public class AccountOpenBankingController {
      * @param userId Gateway에서 전달된 사용자 ID (요청 헤더 "X-User-Id")
      * @return 조회된 전체 계좌 목록을 담은 {@link BaseResponse}
      */
-    @PostMapping("/accounts")
+    @PostMapping
     public ResponseEntity<BaseResponse<List<AllAccountsResponseDto>>> getOpenBankingAccounts(
             @RequestHeader("X-User-Id") String userId) {
         List<AllAccountsResponseDto> result = this.accountOpenBankingService.fetchAllAccountsFromOpenBanking(Long.parseLong(userId));
