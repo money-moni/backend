@@ -29,7 +29,7 @@ public class TransferHistoryController {
      */
     @GetMapping("/histories")
     public ResponseEntity<BaseResponse<List<TransferHistoryResponseDto>>> getTransferHistories(
-            @RequestParam Long accountId) {
+            @RequestParam("accountId") Long accountId) {
         List<TransferHistoryResponseDto> result = transferHistoryService.getTransferHistories(accountId);
         return ResponseEntity.ok(new BaseResponse<>(TransferResponseStatus.TRANSFER_HISTORY_SUCCESS, result));
     }
