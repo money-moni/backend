@@ -2,6 +2,7 @@ package kr.ssok.transferservice.service;
 
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
+import kr.ssok.transferservice.dto.response.TransferRecentHistoryResponseDto;
 
 import java.util.List;
 
@@ -25,4 +26,12 @@ public interface TransferHistoryService {
      * @return 송금 상대 계좌 목록
      */
     List<TransferCounterpartResponseDto> getRecentCounterparts(Long userId);
+
+    /**
+     * 사용자 ID 기준 최근 송금 이력 3건 조회
+     *
+     * @param userId 사용자 ID
+     * @return 송금 이력 DTO 리스트
+     */
+    List<TransferRecentHistoryResponseDto> getRecentHistories(Long userId);
 }

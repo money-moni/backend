@@ -3,6 +3,7 @@ package kr.ssok.transferservice.controller;
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
+import kr.ssok.transferservice.dto.response.TransferRecentHistoryResponseDto;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
 import kr.ssok.transferservice.service.TransferHistoryService;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +47,19 @@ public class TransferHistoryController {
     ) {
         List<TransferCounterpartResponseDto> result = transferHistoryService.getRecentCounterparts(Long.parseLong(userId));
         return ResponseEntity.ok(new BaseResponse<>(TransferResponseStatus.TRANSFER_COUNTERPART_SUCCESS, result));
+    }
+
+    /**
+     * 최근 송금 이력 3건 조회 API
+     *
+     * @param userId Gateway에서 전달된 사용자 ID
+     * @return 최근 송금 이력 리스트
+     */
+    @GetMapping("/history")
+    public ResponseEntity<BaseResponse<List<TransferRecentHistoryResponseDto>>> getRecentHistories(
+            @RequestHeader("X-User-Id") String userId) {
+        List<TransferRecentHistoryResponseDto> result =
+                transferHistoryService.getRecentHistories(Long.parseLong(userId));
+        return ResponseEntity.ok(new BaseResponse<>(TransferResponseStatus.TRANSFER_RECENT_HISTORY_SUCCESS, result));
     }
 }

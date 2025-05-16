@@ -20,4 +20,12 @@ public interface TransferHistoryRepository extends JpaRepository<TransferHistory
      * @return 송금 이력 리스트
      */
     List<TransferHistory> findByAccountIdAndCreatedAtAfterOrderByCreatedAtDesc(Long accountId, LocalDateTime createdAt);
+
+    /**
+     * 계좌 ID 리스트로 최근 송금 내역을 3건까지 조회
+     *
+     * @param accountIds 계좌 ID 리스트
+     * @return 최근 송금 이력
+     */
+    List<TransferHistory> findTop3ByAccountIdInOrderByCreatedAtDesc(List<Long> accountIds);
 }
