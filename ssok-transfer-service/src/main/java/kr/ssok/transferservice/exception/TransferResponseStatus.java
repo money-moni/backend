@@ -15,7 +15,8 @@ public enum TransferResponseStatus implements ResponseStatus {
     TRANSFER_SUCCESS(true, 2300, "송금이 성공적으로 완료되었습니다."),
     BLUETOOTH_TRANSFER_SUCCESS(true, 2300, "블루투스 송금이 성공적으로 완료되었습니다."),
     TRANSFER_HISTORY_SUCCESS(true, 2300, "송금 내역 조회를 완료했습니다."),
-    TRANSFER_COUNTERPART_SUCCESS(true, 2300, "최근 송금 내역 조회가 완료되었습니다."),
+    TRANSFER_COUNTERPART_SUCCESS(true, 2300, "최근 송금한 상대 계좌 목록 조회가 완료되었습니다."),
+    TRANSFER_RECENT_HISTORY_SUCCESS(true, 2300, "최근 송금 내역 조회가 완료되었습니다."),
 
     /**
      * 2. 클라이언트 에러(4000~4999)
