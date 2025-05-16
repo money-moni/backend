@@ -1,5 +1,6 @@
 package kr.ssok.accountservice.controller;
 
+import kr.ssok.accountservice.dto.response.bluetoothservice.PrimaryAccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdsResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDto;
@@ -77,6 +78,20 @@ public class AccountInternalController {
     public ResponseEntity<BaseResponse<PrimaryAccountInfoResponseDto>> getPrimaryAccountInfo(
             @RequestHeader("X-User-Id") String userId) {
         PrimaryAccountInfoResponseDto result = this.accountInternalService.findPrimaryAccountByUserId(Long.parseLong(userId));
+
+        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_INFO_GET_SUCCESS, result));
+    }
+
+    /**
+     * 사용자 ID를 기반으로 주계좌 잔액 정보를 조회합니다.
+     *
+     * @param userId Gateway 또는 내부 요청 헤더로 전달된 사용자 ID (요청 헤더: X-User-Id)
+     * @return 사용자 ID에 해당하는 주계좌 정보를 담은 {@link BaseResponse}
+     */
+    @GetMapping("/primary-account-balance")
+    public ResponseEntity<BaseResponse<PrimaryAccountBalanceResponseDto>> getPrimaryAccountBalance(
+            @RequestHeader("X-User-Id") String userId) {
+        PrimaryAccountBalanceResponseDto result = this.accountInternalService.findPrimaryAccountBalanceByUserId(Long.parseLong(userId));
 
         return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_INFO_GET_SUCCESS, result));
     }

@@ -1,5 +1,6 @@
 package kr.ssok.accountservice.service;
 
+import kr.ssok.accountservice.dto.response.bluetoothservice.PrimaryAccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdsResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDto;
@@ -53,4 +54,12 @@ public interface AccountInternalService {
      * @return 대표 계좌 정보를 담은 PrimaryAccountInfoResponseDto
      */
     PrimaryAccountInfoResponseDto findPrimaryAccountByUserId(Long userId);
+
+    /**
+     * 사용자 ID에 해당하는 대표 계좌 잔액 정보를 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 대표 계좌 정보를 담은 PrimaryAccountBalanceResponseDto
+     */
+    PrimaryAccountBalanceResponseDto findPrimaryAccountBalanceByUserId(Long userId);
 }

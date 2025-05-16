@@ -1,6 +1,8 @@
 package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.client.UserServiceClient;
+import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountBalanceRequestDto;
+import kr.ssok.accountservice.dto.response.bluetoothservice.PrimaryAccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdsResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDto;
@@ -11,6 +13,7 @@ import kr.ssok.accountservice.exception.AccountException;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
 import kr.ssok.accountservice.repository.AccountRepository;
 import kr.ssok.accountservice.service.AccountInternalService;
+import kr.ssok.accountservice.service.AccountOpenBankingService;
 import kr.ssok.common.exception.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +35,8 @@ import java.util.stream.Collectors;
 public class AccountInternalServiceImpl implements AccountInternalService {
     private final AccountRepository accountRepository;
     private final UserServiceClient userServiceClient;
+    private final AccountOpenBankingService accountOpenBankingService;
+
 
     /**
      * 사용자 ID와 계좌 ID에 해당하는 연동 계좌 정보를 조회합니다.
@@ -105,7 +110,7 @@ public class AccountInternalServiceImpl implements AccountInternalService {
     public PrimaryAccountInfoResponseDto findPrimaryAccountByUserId(Long userId) {
         LinkedAccount linkedAccount = this.accountRepository.findByUserIdAndIsPrimaryAccountTrueAndIsDeletedFalse(userId)
                 .orElseThrow(() -> {
-                    log.warn("[GET] Account not found: accountId={}", userId);
+                    log.warn("[GET] Account not found: userId={}", userId);
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
                 });
 
@@ -117,5 +122,30 @@ public class AccountInternalServiceImpl implements AccountInternalService {
         }
 
         return PrimaryAccountInfoResponseDto.from(linkedAccount, userInfoResponse.getResult().getUsername());
+    }
+
+    @Override
+    public PrimaryAccountBalanceResponseDto findPrimaryAccountBalanceByUserId(Long userId) {
+        LinkedAccount linkedAccount = this.accountRepository.findByUserIdAndIsPrimaryAccountTrueAndIsDeletedFalse(userId)
+                .orElseThrow(() -> {
+                    log.warn("[GET] Account not found: userId={}", userId);
+                    return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
+                });
+
+        OpenBankingAccountBalanceRequestDto requestDto =
+                OpenBankingAccountBalanceRequestDto.from(linkedAccount);
+
+        Long balance;
+        try {
+            balance = this.accountOpenBankingService
+                    .fetchAccountBalanceFromOpenBanking(requestDto)
+                    .getBalance();
+        } catch (Exception e) {
+            // 예외 발생 시에도 잔액을 제외한 나머지 계좌 정보 조회는 가능하도록
+            log.error("[OPENBANKING] 잔액 조회 실패: userId={}", userId, e);
+            balance = -1L;
+        }
+
+        return PrimaryAccountBalanceResponseDto.from(linkedAccount, balance);
     }
 }
