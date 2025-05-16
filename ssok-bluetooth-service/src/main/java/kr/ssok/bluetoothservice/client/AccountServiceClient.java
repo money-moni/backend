@@ -12,6 +12,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
  */
 @FeignClient(name = "account-service", url = "${external.account-service.url}") // url 임시 지정
 public interface AccountServiceClient {
-    @GetMapping("/api/accounts/internal/primary-account-info")
+    @GetMapping("/api/accounts/internal/primary-account-balance")
     BaseResponse<AccountInfoDto> getPrimaryAccount(@RequestHeader("X-User-Id") String userId);
 }

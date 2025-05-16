@@ -198,7 +198,7 @@ public class TransferServiceTest {
             PrimaryAccountResponseDto primaryAccountResponseDto = PrimaryAccountResponseDto.builder()
                     .accountNumber("1111-111-1112")
                     .bankCode(1)
-                    .accountName("테스트수신자")
+                    .username("테스트수신자")
                     .accountId(10L)
                     .build();
             return new BaseResponse<>(true, 2000, "계좌 조회 성공", primaryAccountResponseDto);
