@@ -29,11 +29,14 @@ public enum TransferResponseStatus implements ResponseStatus {
     INVALID_USER_ID(false, 4306, "USER ID는 필수입니다.", HttpStatus.BAD_REQUEST),
 
     // openbanking-feign 에러 처리
-    ACCOUNT_NOT_FOUND(false, 4307, "계좌를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    ACCOUNT_NOT_FOUND(false, 4307, "유효하지 않은 계좌입니다.", HttpStatus.NOT_FOUND),
     DORMANT_ACCOUNT(false, 4308, "휴면 계좌입니다.", HttpStatus.BAD_REQUEST),
-    INSUFFICIENT_BALANCE(false, 4309, "잔액이 부족합니다.", HttpStatus.BAD_REQUEST),
-    WITHDRAWAL_ERROR(false, 4310, "송금 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-    DEPOSIT_ERROR(false, 4311, "입금 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    INSUFFICIENT_BALANCE(false, 4309, "해당 계좌는 잔액이 부족합니다.", HttpStatus.BAD_REQUEST),
+    WITHDRAWAL_ERROR(false, 4310, "출금 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    DEPOSIT_ERROR(false, 4311, "입금 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    TRANSFER_LIMIT_EXCEEDED(false, 4312, "해당 계좌의 출금 한도에 도달하였습니다.", HttpStatus.BAD_REQUEST),
+    TRANSFER_UNKNOWN_ERROR(false, 4313, "송금 처리 중 알 수 없는 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    BANK_API_COMMUNICATION_FAILED(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY);
 
     private final boolean success;
     private final int code;

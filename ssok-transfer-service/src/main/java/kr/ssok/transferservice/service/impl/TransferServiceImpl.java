@@ -349,7 +349,7 @@ public class TransferServiceImpl implements TransferService {
                 .sendName(requestDto.getSendName())
                 .recvAccountNumber(accountInfo.getAccountNumber())  // 상대방 계좌번호
                 .recvBankCode(accountInfo.getBankCode())            // 상대방 은행 코드
-                .recvName(accountInfo.getAccountName())             // 상대방 이름
+                .recvName(accountInfo.getUsername())             // 상대방 이름
                 .amount(requestDto.getAmount())
                 .build();
     }
