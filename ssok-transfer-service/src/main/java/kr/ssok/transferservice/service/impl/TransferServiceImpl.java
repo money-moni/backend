@@ -11,6 +11,7 @@ import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
 import kr.ssok.transferservice.client.dto.response.OpenBankingResponse;
 import kr.ssok.transferservice.client.dto.response.PrimaryAccountResponseDto;
 import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
+import kr.ssok.transferservice.dto.request.TransferBluetoothRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.BluetoothTransferResponseDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
@@ -137,7 +138,7 @@ public class TransferServiceImpl implements TransferService {
 
         long start = System.currentTimeMillis();
         // 1. 상대방 계좌 정보 조회 및 송금 요청 DTO 생성
-        TransferRequestDto transferRequestDto = createTransferRequest(requestDto);
+        TransferBluetoothRequestDto transferRequestDto = createTransferRequest(requestDto);
         long end = System.currentTimeMillis();
         log.info("[SSOK-ACCOUNT-BLUETOOTH] 출금 계좌 정보 조회 요청 시간: {}ms", end - start);
 
@@ -149,7 +150,7 @@ public class TransferServiceImpl implements TransferService {
 
         start = System.currentTimeMillis();
         // 3. 오픈뱅킹 송금 요청
-        requestOpenBankingTransfer(sendAccountNumber, transferRequestDto);
+        requestOpenBankingTransfer(sendAccountNumber, createTransferRequest(transferRequestDto));
         end = System.currentTimeMillis();
         log.info("[OPEN-BANKING-BLUETOOTH] 오픈뱅킹 송금 요청 시간: {}ms", end - start);
 
@@ -165,7 +166,7 @@ public class TransferServiceImpl implements TransferService {
 
         start = System.currentTimeMillis();
         // 5. 입금 내역 저장 (블루투스 송금은 상대방도 SSOK 유저)
-        saveTransferHistory(requestDto.getRecvUserId(),
+        saveTransferHistory(transferRequestDto.getRecvAccountId(),
                 maskAccountNumber(sendAccountNumber),                         // 상대방 계좌 번호 마스킹
                 maskUsername(transferRequestDto.getSendName()),               // 상대방 이름 마스킹
                 TransferType.DEPOSIT, transferRequestDto.getAmount(),
@@ -329,12 +330,30 @@ public class TransferServiceImpl implements TransferService {
     }
 
     /**
+     * 오픈뱅킹 송금 요청 DTO 생성
+     *
+     * @param dto 블루투스 송금 요청 DTO
+     * @return 오픈 뱅킹 송금 요청 DTO
+     */
+    private TransferRequestDto createTransferRequest(TransferBluetoothRequestDto dto) {
+        return TransferRequestDto.builder()
+                .sendAccountId(dto.getSendAccountId())
+                .sendBankCode(dto.getSendBankCode())
+                .sendName(dto.getSendName())
+                .recvAccountNumber(dto.getRecvAccountNumber())
+                .recvBankCode(dto.getRecvBankCode())
+                .recvName(dto.getRecvName())
+                .amount(dto.getAmount())
+                .build();
+    }
+
+    /**
      * 블루투스 송금 요청 DTO 생성
      *
      * @param requestDto 블루투스 송금 요청 DTO
      * @return 송금 요청 DTO
      */
-    private TransferRequestDto createTransferRequest(BluetoothTransferRequestDto requestDto) {
+    private TransferBluetoothRequestDto createTransferRequest(BluetoothTransferRequestDto requestDto) {
         // 상대방 계좌 정보 조회
         BaseResponse<PrimaryAccountResponseDto> response = accountServiceClient.getAccountInfo(requestDto.getRecvUserId().toString());
         if (!response.getIsSuccess()) {
@@ -343,10 +362,11 @@ public class TransferServiceImpl implements TransferService {
         PrimaryAccountResponseDto accountInfo = response.getResult();
 
         // 송금 요청 DTO 생성
-        return TransferRequestDto.builder()
+        return TransferBluetoothRequestDto.builder()
                 .sendAccountId(requestDto.getSendAccountId())
                 .sendBankCode(requestDto.getSendBankCode())
                 .sendName(requestDto.getSendName())
+                .recvAccountId(accountInfo.getAccountId())
                 .recvAccountNumber(accountInfo.getAccountNumber())  // 상대방 계좌번호
                 .recvBankCode(accountInfo.getBankCode())            // 상대방 은행 코드
                 .recvName(accountInfo.getUsername())             // 상대방 이름
@@ -374,7 +394,7 @@ public class TransferServiceImpl implements TransferService {
      * @param dto 송금 요청 DTO
      * @return 블루투스 송금 응답 DTO
      */
-    private BluetoothTransferResponseDto buildBluetoothResponse(TransferRequestDto dto) {
+    private BluetoothTransferResponseDto buildBluetoothResponse(TransferBluetoothRequestDto dto) {
         return BluetoothTransferResponseDto.builder()
                 .sendAccountId(dto.getSendAccountId())
                 .recvName(maskUsername(dto.getRecvName()))
