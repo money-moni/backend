@@ -156,6 +156,7 @@ public class AccountServiceImpl implements AccountService {
                                 .getBalance();
                         return AccountBalanceResponseDto.from(balance, account);
                     } catch (Exception e) {
+                        // 예외 발생 시에도 잔액을 제외한 나머지 계좌 정보 조회는 가능하도록
                         log.error("[OPENBANKING][병렬] 잔액 조회 실패: {}", account.getAccountNumber());
                         return AccountBalanceResponseDto.from(-1L, account);
                     }
@@ -192,6 +193,7 @@ public class AccountServiceImpl implements AccountService {
                     .fetchAccountBalanceFromOpenBanking(requestDto)
                     .getBalance();
         } catch (Exception e) {
+            // 예외 발생 시에도 잔액을 제외한 나머지 계좌 정보 조회는 가능하도록
             log.error("[OPENBANKING] 잔액 조회 실패: accountId={}, userId={}", accountId, userId, e);
             balance = -1L;
         }
