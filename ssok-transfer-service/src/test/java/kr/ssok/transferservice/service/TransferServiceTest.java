@@ -50,6 +50,8 @@ public class TransferServiceTest {
         this.fakeAccountServiceClient = new FakeAccountServiceClient();
         this.fakeOpenBankingClient = new FakeOpenBankingClient();
         this.transferHistoryRepository = mock(TransferHistoryRepository.class);
+        this.fakeNotificationServiceClient = new FakeNotificationServiceClient();
+        this.notificationProducer = mock(NotificationProducer.class);
 
         this.transferService = new TransferServiceImpl(
                 fakeAccountServiceClient,
@@ -169,18 +171,18 @@ public class TransferServiceTest {
         @Override
         public BaseResponse<AccountResponseDto> getAccountInfo(Long accountId, String userId) {
             if (failRecvAccountInfo) {
-                return new BaseResponse<>(false, 4001, "계좌 조회 실패", null);
+                return new BaseResponse<>(false, 4201, "계좌 조회 실패", null);
             }
-            return new BaseResponse<>(true, 2000, "계좌 조회 성공",
+            return new BaseResponse<>(true, 2200, "계좌 조회 성공",
                     new AccountResponseDto("1111-111-1111"));
         }
 
         @Override
         public BaseResponse<AccountIdResponseDto> getAccountId(String accountNumber) {
             if (failRecvAccountId) {
-                return new BaseResponse<>(true, 2001, "계좌 ID 없음", null); // accountId 없으면 code=2001
+                return new BaseResponse<>(true, 2201, "계좌 ID 없음", null); // accountId 없으면 code=2001
             }
-            return new BaseResponse<>(true, 2000, "계좌 ID 조회 성공",
+            return new BaseResponse<>(true, 2200, "계좌 ID 조회 성공",
                     new AccountIdResponseDto(10L, 1L));
         }
 
@@ -192,7 +194,7 @@ public class TransferServiceTest {
         @Override
         public BaseResponse<PrimaryAccountResponseDto> getAccountInfo(String userId) {
             if (failRecvAccountInfo) {
-                return new BaseResponse<>(false, 4001, "계좌 조회 실패", null);
+                return new BaseResponse<>(false, 4201, "계좌 조회 실패", null);
             }
             // 블루투스 송금용 기본 응답 설정
             PrimaryAccountResponseDto primaryAccountResponseDto = PrimaryAccountResponseDto.builder()
@@ -201,7 +203,7 @@ public class TransferServiceTest {
                     .username("테스트수신자")
                     .accountId(10L)
                     .build();
-            return new BaseResponse<>(true, 2000, "계좌 조회 성공", primaryAccountResponseDto);
+            return new BaseResponse<>(true, 2200, "계좌 조회 성공", primaryAccountResponseDto);
         }
     }
 
