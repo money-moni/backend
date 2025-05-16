@@ -43,6 +43,9 @@ dependencies {
     // Redis
     implementation libs.redis
 
+    // WebFlux (WebClient 사용 목적)
+    implementation "org.springframework.boot:spring-boot-starter-webflux:3.4.5"
+
     // gRPC 라이브러리
     implementation(libs.grpcStub)
     implementation(libs.grpcProtobuf)

@@ -13,16 +13,16 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
-public class AsyncAccountOpenBankingService {
+public class FeignAsyncAccountOpenBankingService {
     private final AccountOpenBankingService accountOpenBankingService;
 
-    @Async("customExecutor")
+    @Async("customExecutorFeign")
     public CompletableFuture<List<AllAccountsResponseDto>> fetchAllAccountsAsync(Long userId) {
         List<AllAccountsResponseDto> result = accountOpenBankingService.fetchAllAccountsFromOpenBanking(userId);
         return CompletableFuture.completedFuture(result);
     }
 
-    @Async("customExecutor")
+    @Async("customExecutorFeign")
     public CompletableFuture<AccountOwnerResponseDto> fetchAccountOwnerAsync(AccountOwnerRequestDto dto) {
         AccountOwnerResponseDto result = accountOpenBankingService.fetchAccountOwnerFromOpenBanking(dto);
         return CompletableFuture.completedFuture(result);
