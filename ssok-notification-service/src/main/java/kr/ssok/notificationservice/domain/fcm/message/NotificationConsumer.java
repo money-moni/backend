@@ -1,6 +1,7 @@
 package kr.ssok.notificationservice.domain.fcm.message;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.ssok.notificationservice.domain.fcm.enums.BankCode;
 import kr.ssok.notificationservice.domain.fcm.service.NotificationService;
 import kr.ssok.notificationservice.domain.fcm.dto.message.KafkaNotificationMessageDto;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,9 @@ public class NotificationConsumer {
         try {
             KafkaNotificationMessageDto message = objectMapper.readValue(messageJson, KafkaNotificationMessageDto.class);
             String title = String.format("%,d원 입금", message.getAmount());
-            String body = String.format("%s -> 내 %d번 뱅크 통장", message.getSenderName(), message.getBankCode());
+
+            String bankName = BankCode.fromIdx(message.getBankCode()).getValue();
+            String body = String.format("%s → 내 %s 통장", message.getSenderName(), bankName);
 
             notificationService.sendFcmNotification(message.getUserId(), title, body);
         } catch (Exception e) {
