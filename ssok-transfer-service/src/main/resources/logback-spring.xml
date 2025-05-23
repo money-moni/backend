@@ -39,7 +39,7 @@
         </encoder>
     </appender>
 
-    <!-- 루트 로거: 모든 로그를 3곳에 동시에 출력 -->
+    <!-- 루트 로거: 모든 로그를 2곳에 동시에 출력 -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE_JSON"/>
