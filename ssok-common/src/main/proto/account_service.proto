@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package account;
+
+option java_package = "kr.ssok.common.grpc.account";
+option java_multiple_files = true;
+option java_outer_classname = "AccountServiceProto";
+
+// 서비스 정의
+service AccountService {
+  // 계좌 ID 및 유저 ID로 계좌번호 조회
+  rpc GetAccountInfo(AccountInfoRequest) returns (AccountInfoResponse);
+
+  // 계좌번호로 계좌 ID 조회
+  rpc GetAccountIdByAccountNumber(AccountNumberRequest) returns (AccountIdResponse);
+
+  // 유저 ID로 계좌 ID 리스트 조회
+  rpc GetAccountIdsByUserId(UserIdRequest) returns (AccountIdsResponse);
+
+  // 주계좌 정보 조회
+  rpc GetPrimaryAccountInfo(UserIdRequest) returns (PrimaryAccountInfoResponse);
+
+  // 주계좌 잔액 조회
+  rpc GetPrimaryAccountBalance(UserIdRequest) returns (PrimaryAccountBalanceResponse);
+}
+
+// 요청 메시지
+message AccountInfoRequest {
+  int64 account_id = 1;
+  string user_id = 2;
+}
+
+message AccountNumberRequest {
+  string account_number = 1;
+}
+
+message UserIdRequest {
+  string user_id = 1;
+}
+
+
+// 응답 메시지
+message AccountInfoResponse {
+  int64 account_id = 1;
+  int64 user_id = 2;
+  string account_number = 3;
+}
+
+message AccountIdResponse {
+  int64 account_id = 1;
+  int64 user_id = 2;
+}
+
+message AccountIdsResponse {
+  repeated int64 account_id = 1;
+}
+
+message PrimaryAccountInfoResponse {
+  int64 account_id = 1;
+  string account_number = 2;
+  int32 bank_code = 3;
+  string username = 4;
+}
+
+message PrimaryAccountBalanceResponse {
+  int64 account_id = 1;
+  string account_number = 2;
+  int32 bank_code = 3;
+  int64 balance = 4;
+}
