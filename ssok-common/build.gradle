@@ -45,3 +45,4 @@ jar {
 test {
     useJUnitPlatform()
 }
+
