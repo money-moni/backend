@@ -53,6 +53,9 @@ dependencies {
     // Kafka
     implementation 'org.springframework.kafka:spring-kafka:3.3.4'
 
+    // Logback
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
+
     // gRPC 라이브러리
     implementation(libs.grpcStub)
     implementation(libs.grpcProtobuf)
@@ -60,9 +63,6 @@ dependencies {
 
     // 컴파일 에러 방지용 어노테이션 라이브러리
     compileOnly(libs.jakartaAnnotation)
-
-    // protobuf 유틸(protobuf -> Json 변환 등)이 필요할 경우 (디버깅 용도)
-    // implementation(libs.protobufJavaUtil)
 }
 
 dependencyManagement {

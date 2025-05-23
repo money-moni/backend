@@ -38,6 +38,9 @@ dependencies {
     // PostgreSQL Driver
     runtimeOnly 'org.postgresql:postgresql'
 
+    // Logback
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
+
     // Redis
     implementation libs.redis
 
