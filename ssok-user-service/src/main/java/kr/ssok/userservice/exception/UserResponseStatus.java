@@ -29,11 +29,20 @@ public enum UserResponseStatus implements ResponseStatus {
     PHONE_NUMBER_MISMATCH(false, 4018, "요청된 전화번호가 사용자 정보와 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
 
     // 뱅크 서버 관련 오류
-    USER_ALREADY_EXISTS(false, 5000, "이미 존재하는 사용자입니다."),
-    USER_NOT_FOUND(false, 5000, "사용자를 찾을 수 없습니다."),
-    BANK_SERVER_ERROR(false, 5000, "뱅크 서버와 통신 중 오류가 발생했습니다."),
-    ACCOUNT_CREATION_FAILED(false, 5000, "계좌 생성에 실패했습니다."),
-    TERMS_NOT_FOUND(false, 5001, "약관 정보를 찾을 수 없습니다.");
+    USER_ALREADY_EXISTS(false, 5010, "이미 존재하는 사용자입니다."),
+    USER_NOT_FOUND(false, 5011, "사용자를 찾을 수 없습니다."),
+    BANK_SERVER_ERROR(false, 5012, "뱅크 서버와 통신 중 오류가 발생했습니다."),
+    ACCOUNT_CREATION_FAILED(false, 5013, "계좌 생성에 실패했습니다."),
+    TERMS_NOT_FOUND(false, 5014, "약관 정보를 찾을 수 없습니다."),
+    
+    // 프로필 이미지 관련 오류
+    PROFILE_IMAGE_NOT_FOUND(false, 5020, "프로필 이미지를 찾을 수 없습니다."),
+    FILE_UPLOAD_ERROR(false, 5021, "파일 업로드 중 오류가 발생했습니다."),
+    FILE_DELETE_ERROR(false, 5022, "파일 삭제 중 오류가 발생했습니다."),
+    FILE_EMPTY(false, 4020, "파일이 비어있습니다."),
+    INVALID_FILE_TYPE(false, 4021, "지원하지 않는 파일 형식입니다. 이미지 파일만 업로드 가능합니다."),
+    FILE_SIZE_EXCEEDED(false, 4022, "파일 크기가 5MB를 초과합니다.");
+
 
     private final boolean success;
     private final int code;
