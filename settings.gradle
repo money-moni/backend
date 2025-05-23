@@ -27,6 +27,8 @@ dependencyResolutionManagement {
             version("protobuf", "3.25.5")   //protobuf 버전 추가
             version("protobufPlugin", "0.9.5")
             version("jakartaAnnotation", "3.0.0")
+            version("logback", "8.1")
+
             
             // 플러그인 정의
             plugin('springBoot', 'org.springframework.boot').versionRef('springBoot')
@@ -63,6 +65,7 @@ dependencyResolutionManagement {
             library("protobufCompiler", "com.google.protobuf", "protoc").versionRef("protobuf")
             library("grpcCodegen", "io.grpc", "protoc-gen-grpc-java").versionRef("grpc")
             library("jakartaAnnotation", "jakarta.annotation", "jakarta.annotation-api").versionRef("jakartaAnnotation")
+            library("logback", "net.logstash.logback", "logstash-logback-encoder").versionRef("logback")
 
             // 버전이 따로 표기되어 있지 않을때 사용
             library('springBootWeb', 'org.springframework.boot', 'spring-boot-starter-web').withoutVersion()

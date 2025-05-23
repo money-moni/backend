@@ -37,6 +37,9 @@ dependencies {
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // Logback
+    implementation libs.logback
+
     // Lombok
     compileOnly libs.lombok
     annotationProcessor libs.lombok
