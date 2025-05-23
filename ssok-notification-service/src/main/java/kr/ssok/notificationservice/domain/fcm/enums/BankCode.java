@@ -1,4 +1,4 @@
-package kr.ssok.accountservice.entity.enums;
+package kr.ssok.notificationservice.domain.fcm.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,9 +9,8 @@ import java.util.Map;
 /**
  * 지원하는 은행 목록을 나타내는 Enum
  *
- * <p>각 은행은 고유한 idx(식별자)와 value(은행 코드 문자열)를 가집니다.</p>
- *
- * <p>주로 계좌 등록 및 조회 시 은행을 식별하는 데 사용됩니다.</p>
+ * 각 은행은 고유한 idx(식별자)와 value(은행 코드 문자열)
+ * 푸시 알림의 은행명 시별에 사용
  */
 @Getter
 @AllArgsConstructor

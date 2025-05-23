@@ -290,4 +290,108 @@ public class TransferHistoryServiceTest {
                 .createdAt(createdAt)
                 .build();
     }
+
+    @Test
+    void 유저ID로_최근송금이력_3건을_정상조회한다() {
+        // Given
+        Long userId = 1L;
+        List<AccountIdResponseDto> accountIdDtos = List.of(
+                new AccountIdResponseDto(100L, userId),
+                new AccountIdResponseDto(200L, userId)
+        );
+
+        List<Long> accountIds = accountIdDtos.stream().map(AccountIdResponseDto::getAccountId).toList();
+
+        when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
+                .thenReturn(new BaseResponse<>(true, 2000, "성공", accountIdDtos));
+
+        List<TransferHistory> dummyHistories = List.of(
+                dummyTransferHistory(1L, 100L, TransferType.WITHDRAWAL, TransferMethod.GENERAL, "A", "111", LocalDateTime.now().minusDays(1)),
+                dummyTransferHistory(2L, 100L, TransferType.DEPOSIT, TransferMethod.GENERAL, "B", "222", LocalDateTime.now().minusDays(2)),
+                dummyTransferHistory(3L, 200L, TransferType.WITHDRAWAL, TransferMethod.BLUETOOTH, "C", "333", LocalDateTime.now().minusDays(3))
+        );
+
+        when(transferHistoryRepository.findTop3ByAccountIdInOrderByCreatedAtDesc(accountIds)).thenReturn(dummyHistories);
+
+        // When
+        var result = transferHistoryService.getRecentHistories(userId);
+
+        // Then
+        assertThat(result).hasSize(3);
+        assertThat(result.get(0).getTransferId()).isEqualTo(1L);
+        assertThat(result.get(0).getTransferType()).isEqualTo(TransferType.WITHDRAWAL);
+        assertThat(result.get(0).getCounterpartName()).isEqualTo("A");
+
+        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId.toString());
+        verify(transferHistoryRepository, times(1)).findTop3ByAccountIdInOrderByCreatedAtDesc(accountIds);
+    }
+
+    @Test
+    void 유저ID가_null이면_최근송금조회시_INVALID_USER_ID_예외를_던진다() {
+        // Given
+        Long userId = null;
+
+        // When & Then
+        assertThatThrownBy(() -> transferHistoryService.getRecentHistories(userId))
+                .isInstanceOf(TransferException.class)
+                .satisfies(ex -> {
+                    TransferException exception = (TransferException) ex;
+                    assertThat(exception.getStatus().getCode()).isEqualTo(TransferResponseStatus.INVALID_USER_ID.getCode());
+                    assertThat(exception.getStatus().getMessage()).isEqualTo(TransferResponseStatus.INVALID_USER_ID.getMessage());
+                });
+
+        verifyNoInteractions(accountServiceClient);
+        verifyNoInteractions(transferHistoryRepository);
+    }
+
+    @Test
+    void 계좌ID조회응답이_실패일경우_최근송금조회는_빈리스트를_반환한다() {
+        // Given
+        Long userId = 1L;
+
+        when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
+                .thenReturn(new BaseResponse<>(false, 4001, "계좌 조회 실패", null));
+
+        // When
+        var result = transferHistoryService.getRecentHistories(userId);
+
+        // Then
+        assertThat(result).isEmpty();
+        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId.toString());
+        verifyNoInteractions(transferHistoryRepository);
+    }
+
+    @Test
+    void 계좌ID조회결과가_null이면_최근송금조회는_빈리스트를_반환한다() {
+        // Given
+        Long userId = 1L;
+
+        when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
+                .thenReturn(new BaseResponse<>(true, 2000, "성공", null));
+
+        // When
+        var result = transferHistoryService.getRecentHistories(userId);
+
+        // Then
+        assertThat(result).isEmpty();
+        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId.toString());
+        verifyNoInteractions(transferHistoryRepository);
+    }
+
+    @Test
+    void 계좌ID조회결과가_빈리스트이면_최근송금조회는_빈리스트를_반환한다() {
+        // Given
+        Long userId = 1L;
+
+        when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
+                .thenReturn(new BaseResponse<>(true, 2000, "성공", List.of()));
+
+        // When
+        var result = transferHistoryService.getRecentHistories(userId);
+
+        // Then
+        assertThat(result).isEmpty();
+        verify(accountServiceClient, times(1)).getAccountIdsByUserId(userId.toString());
+        verifyNoInteractions(transferHistoryRepository);
+    }
 }

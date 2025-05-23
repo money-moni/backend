@@ -45,6 +45,9 @@ dependencies {
 
     // H2(common 모듈에 jpa 임시 처리)
     runtimeOnly 'com.h2database:h2'
+
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka:3.3.4'
 }
 
 dependencyManagement {

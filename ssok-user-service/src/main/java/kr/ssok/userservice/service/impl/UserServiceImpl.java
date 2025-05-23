@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
             FieldError error = bindingResult.getFieldError();
             String errorMessage = error != null ? error.getDefaultMessage() : "유효성 검증 오류";
             log.error("Validation 에러: {}", errorMessage);
-            throw new UserException(UserResponseStatus.INVALID_PIN_CODE);
+            throw new UserException(UserResponseStatus.INVALID_SIGNUP_REQUEST_VALUE);
         }
         
         // 중복 가입 확인
@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
         savedUser.updateProfileImage(profileImage);
 
         try {
-            createAccountByBank(requestDto, "1");
+            createAccountByBank(requestDto, "0");
 
             return SignupResponseDto.builder()
                     .userId(savedUser.getId())
@@ -275,7 +275,7 @@ public class UserServiceImpl implements UserService {
         BankAccountRequestDto bankRequest = BankAccountRequestDto.builder()
                 .username(requestDto.getUsername())
                 .phoneNumber(requestDto.getPhoneNumber())
-                .accountTypeCode(1) // 1 예금 고정. 확장 필요 시 수정
+                .accountTypeCode(0) // 1 예금 고정. 확장 필요 시 수정
                 .userTypeCode(userTypeCode)
                 .build();
 

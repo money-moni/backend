@@ -62,15 +62,23 @@ public class FeignClientGlobalErrorDecoder implements ErrorDecoder {
 
             // 커스텀 코드 기반으로 예외 처리
             return switch (errorCode) {
+                case "ACCOUNT001" -> new TransferException(TransferResponseStatus.ACCOUNT_NOT_FOUND);
+                case "ACCOUNT002" -> new TransferException(TransferResponseStatus.DORMANT_ACCOUNT);
+                case "READ001"     -> new TransferException(TransferResponseStatus.ACCOUNT_LOOKUP_FAILED);
+                case "TRANSFER004" -> new TransferException(TransferResponseStatus.INSUFFICIENT_BALANCE);
+                case "TRANSFER005" -> new TransferException(TransferResponseStatus.TRANSFER_LIMIT_EXCEEDED);
+                case "TRANSFER006" -> new TransferException(TransferResponseStatus.TRANSFER_FAILED);
                 case "TRANSFER002" -> new TransferException(TransferResponseStatus.WITHDRAWAL_ERROR);
                 case "TRANSFER003" -> new TransferException(TransferResponseStatus.DEPOSIT_ERROR);
-                case "COMMON0400" -> new TransferException(TransferResponseStatus.DORMANT_ACCOUNT);
-                case "ACCOUNT001" -> new TransferException(TransferResponseStatus.ACCOUNT_NOT_FOUND);
-                case "ACCOUNT003" -> new TransferException(TransferResponseStatus.INSUFFICIENT_BALANCE);
+                case "BAD_GATEWAY" -> new TransferException(TransferResponseStatus.BANK_API_COMMUNICATION_FAILED);
+                case "COMMON500"   -> new TransferException(TransferResponseStatus.TRANSFER_UNKNOWN_ERROR);
                 default -> new TransferException(TransferResponseStatus.TRANSFER_FAILED);
             };
         } catch (IOException e) {
-            log.error("Error while decoding Feign response: ", e);
+            log.error("Feign 응답 디코딩 중 예외 발생", e);
+            return new TransferException(TransferResponseStatus.TRANSFER_FAILED);
+        } catch (Exception e) {
+            log.error("Feign 응답 중 예외 발생", e);
             return new TransferException(TransferResponseStatus.TRANSFER_FAILED);
         }
     }
