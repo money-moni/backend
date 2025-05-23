@@ -39,7 +39,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
 
     // Logback
-    implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
+    implementation libs.logback
 
     // Redis
     implementation libs.redis

@@ -38,7 +38,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // Logback
-    implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
+    implementation libs.logback
 
     // Lombok
     compileOnly libs.lombok
