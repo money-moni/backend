@@ -49,6 +49,12 @@ subprojects {
             implementation libs.jacksonJsr310
             implementation libs.openfeign
         }
+
+        // Actuator, Micrometer 공통 의존성 추가 (common 모듈 제외)
+        if (project.name != 'ssok-common') {
+            implementation libs.springBootActuator
+            implementation libs.micrometer
+        }
     }
 
     // 각 하위 모듈의 JAR 파일을 루트 프로젝트의 target 디렉토리에 복사
