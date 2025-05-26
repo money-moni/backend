@@ -15,13 +15,13 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 public class S3Config {
 
-    @Value("${aws.s3.region}")
+    @Value("${aws.s3.region:ap-northeast-2}")
     private String region;
 
-    @Value("${aws.s3.credentials.access-key}")
+    @Value("${aws.s3.credentials.access-key:}")
     private String accessKey;
 
-    @Value("${aws.s3.credentials.secret-key}")
+    @Value("${aws.s3.credentials.secret-key:}")
     private String secretKey;
 
     @Bean
