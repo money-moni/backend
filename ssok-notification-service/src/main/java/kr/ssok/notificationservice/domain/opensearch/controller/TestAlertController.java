@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/alerts")
+@Slf4j
 public class TestAlertController {
+
     @PostMapping
-    public ResponseEntity<Void> receiveAlert(@RequestBody Map<String, String> body) {
-        String message = body.get("message");
-        log.warn("[ALERT] {}", message);
+    public ResponseEntity<Void> receiveAlert(@RequestBody Map<String, Object> body) {
+        log.warn("전체 JSON: {}", body);
         return ResponseEntity.ok().build();
     }
 }
