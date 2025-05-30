@@ -3,6 +3,7 @@ package kr.ssok.userservice.service.impl;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import kr.ssok.userservice.constants.ProfileConstants;
 import kr.ssok.userservice.exception.UserException;
 import kr.ssok.userservice.exception.UserResponseStatus;
 import kr.ssok.userservice.service.S3FileService;
@@ -56,6 +57,12 @@ public class S3FileServiceImpl implements S3FileService {
 
     @Override
     public void deleteFile(String fileName) {
+        // 기본 이미지는 절대 삭제하지 않음
+        if (ProfileConstants.DEFAULT_IMAGE_FILENAME.equals(fileName)) {
+            log.warn("기본 이미지는 삭제할 수 없습니다: {}", fileName);
+            return;
+        }
+        
         try {
             String key = profileImagePath + "/" + fileName;
             amazonS3.deleteObject(bucketName, key);
