@@ -157,7 +157,7 @@ class BluetoothServiceTest {
         BluetoothMatchResponseDto response = bluetoothService.matchBluetoothUsers(userId, List.of(uuid));
 
         // then
-        assertThat(response.getUsers().get(0).getUserId()).isEqualTo(101L);
+        assertThat(response.getUsers().get(0).getUuid()).isEqualTo("abc-def-ghi");
         assertThat(response.getUsers().get(0).getUsername()).isEqualTo("최*훈");
         assertThat(response.getPrimaryAccount().getAccountNumber()).isEqualTo("110-1234-567890");
     }
