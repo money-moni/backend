@@ -43,7 +43,8 @@ public class JwtAuthenticationFilter implements WebFilter {
                 "/api/users/signup",
                 "/api/users/phone",
                 "/api/users/phone/verify",
-                "/actuator/prometheus"
+                "/actuator",
+                "/actuator/**"
         );
     }
 
