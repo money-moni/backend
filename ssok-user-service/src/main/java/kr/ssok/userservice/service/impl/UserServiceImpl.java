@@ -2,6 +2,7 @@ package kr.ssok.userservice.service.impl;
 
 import kr.ssok.userservice.client.AligoClient;
 import kr.ssok.userservice.client.BankClient;
+import kr.ssok.userservice.constants.ProfileConstants;
 import kr.ssok.userservice.dto.request.AligoVerificationRequestDto;
 import kr.ssok.userservice.dto.request.BankAccountRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
@@ -82,14 +83,14 @@ public class UserServiceImpl implements UserService {
         
         User savedUser = userRepository.save(user);
 
-        String fileUrl = s3FileService.getFileUrl("noImage");
+        String fileUrl = s3FileService.getFileUrl(ProfileConstants.DEFAULT_IMAGE_FILENAME);
 
         // noImage(기본 이미지) 객체 생성
         ProfileImage profileImage = ProfileImage.builder()
                 .user(savedUser)
-                .storedFilename("noImage")
+                .storedFilename(ProfileConstants.DEFAULT_IMAGE_FILENAME)
                 .url(fileUrl)
-                .contentType("webp")
+                .contentType(ProfileConstants.DEFAULT_IMAGE_CONTENT_TYPE)
                 .build();
 
         profileImageRepository.save(profileImage);
