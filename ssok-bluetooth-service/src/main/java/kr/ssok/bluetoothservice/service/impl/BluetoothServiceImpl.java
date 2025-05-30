@@ -120,8 +120,9 @@ public class BluetoothServiceImpl implements BluetoothService {
 
                         // 유저 이름 마스킹 처리 후 반환
                         return UserInfoResponseDto.builder()
-                                .userId(Long.parseLong(userIdStr))
+                                .uuid(uuid)
                                 .username(maskUsername(userInfo.getUsername()))
+                                .phoneSuffix(getPhoneSuffix(userInfo.getPhoneNumber()))
                                 .profileImage(userInfo.getProfileImage())
                                 .build();
                     })
@@ -154,5 +155,15 @@ public class BluetoothServiceImpl implements BluetoothService {
         StringBuilder maskedName = new StringBuilder(username);
         maskedName.setCharAt(1, '*');
         return maskedName.toString();
+    }
+
+    /**
+     * 전화번호에서 뒷 4자리만 추출
+     * @param phoneNumber 전체 전화번호
+     * @return 뒷 4자리
+     */
+    private String getPhoneSuffix(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.length() < 4) return "";
+        return phoneNumber.substring(phoneNumber.length() - 4);
     }
 }
