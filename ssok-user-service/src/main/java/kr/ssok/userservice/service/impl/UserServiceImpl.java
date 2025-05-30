@@ -14,6 +14,7 @@ import kr.ssok.userservice.exception.UserException;
 import kr.ssok.userservice.exception.UserResponseStatus;
 import kr.ssok.userservice.repository.ProfileImageRepository;
 import kr.ssok.userservice.repository.UserRepository;
+import kr.ssok.userservice.service.S3FileService;
 import kr.ssok.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final S3FileService s3FileService;
     private final ProfileImageRepository profileImageRepository;
     private final BankClient bankClient;
     private final AligoClient aligoClient;
@@ -80,12 +82,14 @@ public class UserServiceImpl implements UserService {
         
         User savedUser = userRepository.save(user);
 
+        String fileUrl = s3FileService.getFileUrl("noImage");
+
         // noImage(기본 이미지) 객체 생성
         ProfileImage profileImage = ProfileImage.builder()
                 .user(savedUser)
                 .storedFilename("noImage")
-                .url("noUrl")
-                .contentType("noType")
+                .url(fileUrl)
+                .contentType("webp")
                 .build();
 
         profileImageRepository.save(profileImage);

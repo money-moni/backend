@@ -35,7 +35,9 @@ public class ProfileServiceImpl implements ProfileService {
         Optional<ProfileImage> existingProfile = profileImageRepository.findByUser(user);
         if (existingProfile.isPresent()) {
             ProfileImage existing = existingProfile.get();
-            s3FileService.deleteFile(existing.getStoredFilename());
+            if (!existing.getStoredFilename().equals("noImage")) {
+                s3FileService.deleteFile(existing.getStoredFilename());
+            }
             profileImageRepository.delete(existing);
         }
         
@@ -92,9 +94,13 @@ public class ProfileServiceImpl implements ProfileService {
         
         // S3에서 파일 삭제
         s3FileService.deleteFile(profileImage.getStoredFilename());
-        
-        // DB에서 레코드 삭제
-        profileImageRepository.delete(profileImage);
+
+        // 기본 이미지로 변경
+        String fileUrl = s3FileService.getFileUrl("noImage");
+
+        profileImage.updateImage("noImage", fileUrl, "webp");
+        profileImageRepository.save(profileImage);
+
         
         log.info("유저의 프로필 이미지 삭제: {}", userId);
     }
