@@ -9,7 +9,6 @@ import kr.ssok.accountservice.dto.response.openbanking.OpenBankingAccountBalance
 import kr.ssok.accountservice.dto.response.openbanking.OpenBankingAccountOwnerResponseDto;
 import kr.ssok.accountservice.dto.response.openbanking.OpenBankingAllAccountsResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -43,7 +42,7 @@ public interface OpenBankingClient {
      * @param requestBody 계좌 번호 및 은행 코드가 포함된 요청 DTO
      * @return 계좌 잔액 정보가 포함된 {@link OpenBankingResponse}
      */
-    @GetMapping("/api/openbank/account/balance")
+    @PostMapping("/api/openbank/account/balance")
     OpenBankingResponse<OpenBankingAccountBalanceResponseDto> sendAccountBalanceRequest(
             @RequestHeader("X-API-KEY") String openBankingApiKey,
             @RequestBody OpenBankingAccountBalanceRequestDto requestBody);
