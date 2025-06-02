@@ -2,9 +2,7 @@ package kr.ssok.transferservice.service;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
-import kr.ssok.transferservice.client.NotificationServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
-import kr.ssok.transferservice.client.dto.request.FcmNotificationRequestDto;
 import kr.ssok.transferservice.client.dto.response.*;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
 import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
@@ -20,7 +18,6 @@ import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import kr.ssok.transferservice.service.impl.TransferServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -40,7 +37,6 @@ public class TransferServiceTest {
     private TransferHistoryRepository transferHistoryRepository;
     private FakeAccountServiceClient fakeAccountServiceClient;
     private FakeOpenBankingClient fakeOpenBankingClient;
-    private FakeNotificationServiceClient fakeNotificationServiceClient;
 
     private NotificationProducer notificationProducer;
 
@@ -50,14 +46,12 @@ public class TransferServiceTest {
         this.fakeAccountServiceClient = new FakeAccountServiceClient();
         this.fakeOpenBankingClient = new FakeOpenBankingClient();
         this.transferHistoryRepository = mock(TransferHistoryRepository.class);
-        this.fakeNotificationServiceClient = new FakeNotificationServiceClient();
         this.notificationProducer = mock(NotificationProducer.class);
 
         this.transferService = new TransferServiceImpl(
                 fakeAccountServiceClient,
                 fakeOpenBankingClient,
                 transferHistoryRepository,
-                fakeNotificationServiceClient,
                 notificationProducer
         );
     }
@@ -231,16 +225,6 @@ public class TransferServiceTest {
                     "message", "송금이 성공적으로 완료되었습니다."
             );
             return new OpenBankingResponse(true, "2000", "송금 성공", result);
-        }
-    }
-
-    /**
-     * Fake: 알림 서버 송금 알림을 흉내내는 객체
-     */
-    private static class FakeNotificationServiceClient implements NotificationServiceClient {
-        @Override
-        public ResponseEntity<BaseResponse<Void>> sendFcmNotification(FcmNotificationRequestDto requestDto) {
-            return null;
         }
     }
 

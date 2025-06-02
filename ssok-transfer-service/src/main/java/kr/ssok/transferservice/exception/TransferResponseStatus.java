@@ -28,6 +28,7 @@ public enum TransferResponseStatus implements ResponseStatus {
     INVALID_TRANSFER_AMOUNT(false, 4304, "송금 금액은 0보다 커야 합니다.", HttpStatus.BAD_REQUEST),
     INVALID_ACCOUNT_ID(false, 4305, "계좌 ID는 필수입니다.", HttpStatus.BAD_REQUEST),
     INVALID_USER_ID(false, 4306, "USER ID는 필수입니다.", HttpStatus.BAD_REQUEST),
+    SAME_ACCOUNT_TRANSFER_NOT_ALLOWED(false, 4315, "출금 계좌와 입금 계좌가 동일합니다.", HttpStatus.BAD_REQUEST),
 
     // openbanking-feign 에러 처리
     ACCOUNT_NOT_FOUND(false, 4307, "유효하지 않은 계좌입니다.", HttpStatus.NOT_FOUND),

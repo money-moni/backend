@@ -2,9 +2,7 @@ package kr.ssok.transferservice.service.impl;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
-import kr.ssok.transferservice.client.NotificationServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
-import kr.ssok.transferservice.client.dto.request.FcmNotificationRequestDto;
 import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
@@ -46,28 +44,6 @@ public class TransferServiceImpl implements TransferService {
     @Value("${external.openbanking-service.api-key}")
     private String OPENBANKING_API_KEY;
 
-    // 삭제 예정
-    private final NotificationServiceClient notificationServiceClient;
-
-    // 삭제 예정(openfeign)
-    private void sendNotification(Long receiverUserId, String senderName, Long amount) {
-        String formattedAmount = String.format("%,d원 입금", amount);
-        String body = senderName + " → 내 OO뱅크 통장";
-
-        FcmNotificationRequestDto request = FcmNotificationRequestDto.builder()
-                .userId(receiverUserId)
-                .title(formattedAmount)
-                .body(body)
-                .build();
-
-        try {
-            notificationServiceClient.sendFcmNotification(request);
-            log.info("알림 전송 요청 성공: {}", request);
-        } catch (Exception e) {
-            log.error("알림 전송 요청 실패: {}", e.getMessage());
-        }
-    }
-
     // Kafka 알림 프로듀서
     private final NotificationProducer notificationProducer;
 
@@ -103,20 +79,23 @@ public class TransferServiceImpl implements TransferService {
         long end = System.currentTimeMillis();
         log.info("[SSOK-ACCOUNT] 출금 계좌번호 조회 요청 시간: {}ms", end - start);
 
+        // 2. 츨금/입금 계좌 동일 여부 검증
+        validateSameAccount(sendAccountNumber, dto.getRecvAccountNumber());
+
         start = System.currentTimeMillis();
-        // 2. 오픈뱅킹 송금 요청
+        // 3. 오픈뱅킹 송금 요청
         requestOpenBankingTransfer(sendAccountNumber, dto);
         end = System.currentTimeMillis();
         log.info("[OPEN-BANKING] 오픈뱅킹 송금 요청 시간: {}ms", end - start);
 
         start = System.currentTimeMillis();
-        // 3. 출금 내역 저장
+        // 4. 출금 내역 저장
         saveTransferHistory(dto.getSendAccountId(), dto.getRecvAccountNumber(), dto.getRecvName(),
                 TransferType.WITHDRAWAL, dto.getAmount(), CurrencyCode.KRW, transferMethod);
         end = System.currentTimeMillis();
         log.info("[DB] 출금 내역 저장 시간: {}ms", end - start);
 
-        // 4. 상대방 계좌번호로 계좌 ID 조회 후, 입금 이력 추가 저장 (SSOK 유저인 경우만)
+        // 5. 상대방 계좌번호로 계좌 ID 조회 후, 입금 이력 추가 저장 (SSOK 유저인 경우만)
         saveDepositHistoryIfReceiverExists(sendAccountNumber, dto, transferMethod);
 
         return buildTransferResponse(dto);
@@ -148,14 +127,17 @@ public class TransferServiceImpl implements TransferService {
         end = System.currentTimeMillis();
         log.info("[SSOK-ACCOUNT-BLUETOOTH] 출금 계좌번호 조회 요청 시간: {}ms", end - start);
 
+        // 3. 츨금/입금 계좌 동일 여부 검증
+        validateSameAccount(sendAccountNumber, transferRequestDto.getRecvAccountNumber());
+
         start = System.currentTimeMillis();
-        // 3. 오픈뱅킹 송금 요청
+        // 4. 오픈뱅킹 송금 요청
         requestOpenBankingTransfer(sendAccountNumber, createTransferRequest(transferRequestDto));
         end = System.currentTimeMillis();
         log.info("[OPEN-BANKING-BLUETOOTH] 오픈뱅킹 송금 요청 시간: {}ms", end - start);
 
         start = System.currentTimeMillis();
-        // 4. 출금 내역 저장 (마스킹 처리)
+        // 5. 출금 내역 저장 (마스킹 처리)
         saveTransferHistory(transferRequestDto.getSendAccountId(),
                 maskAccountNumber(transferRequestDto.getRecvAccountNumber()), // 계좌 번호 마스킹
                 maskUsername(transferRequestDto.getRecvName()),               // 상대방 이름 마스킹
@@ -165,7 +147,7 @@ public class TransferServiceImpl implements TransferService {
         log.info("[DB-BLUETOOTH] 출금 내역 저장 시간: {}ms", end - start);
 
         start = System.currentTimeMillis();
-        // 5. 입금 내역 저장 (블루투스 송금은 상대방도 SSOK 유저)
+        // 6. 입금 내역 저장 (블루투스 송금은 상대방도 SSOK 유저)
         saveTransferHistory(transferRequestDto.getRecvAccountId(),
                 maskAccountNumber(sendAccountNumber),                         // 상대방 계좌 번호 마스킹
                 maskUsername(transferRequestDto.getSendName()),               // 상대방 이름 마스킹
@@ -174,11 +156,7 @@ public class TransferServiceImpl implements TransferService {
         end = System.currentTimeMillis();
         log.info("[DB-BLUETOOTH] 입금 내역 저장 시간: {}ms", end - start);
 
-        // openfeign
-        //sendNotification(requestDto.getRecvUserId(), transferRequestDto.getSendName(), transferRequestDto.getAmount()); // 삭제 예정
-
         start = System.currentTimeMillis();
-        // 변경된 Kafka 방식
         sendKafkaNotification(
                 requestDto.getRecvUserId(),               // 수신자 userId
                 transferRequestDto.getSendName(),         // 송신자 이름
@@ -295,8 +273,8 @@ public class TransferServiceImpl implements TransferService {
             start = System.currentTimeMillis();
             saveTransferHistory(
                     response.getResult().getAccountId(), // 상대방 계좌 ID
-                    sendAccountNumber, // 출금자 계좌번호
-                    dto.getSendName(), // 송금자 이름 정보
+                    sendAccountNumber,                   // 출금자 계좌번호
+                    dto.getSendName(),                   // 송금자 이름 정보
                     TransferType.DEPOSIT,
                     dto.getAmount(),
                     CurrencyCode.KRW,
@@ -305,18 +283,9 @@ public class TransferServiceImpl implements TransferService {
             end = System.currentTimeMillis();
             log.info("[DB] 송금 수신자 송금 내역 저장 시간: {}ms", end - start);
 
-            // 푸시 알림 - openfegin 요청
+            // 푸시 알림(kafka)
             start = System.currentTimeMillis();
-            //sendNotification(response.getResult().getUserId(), dto.getSendName(), dto.getAmount()); // 삭제 예정
-//            try {
-//                Thread.sleep(200); // 평균 지연 시간만큼 대기
-//                log.info("푸시 알림 요청 시간: 200ms (시뮬레이션)");
-//            } catch (InterruptedException e) {
-//                Thread.currentThread().interrupt(); // 인터럽트 신호 유지
-//                log.warn("알림 sleep 중 인터럽트 발생");
-//            }
 
-            // 변경된 Kafka 방식
             sendKafkaNotification(
                     response.getResult().getUserId(),               // 수신자 userId
                     dto.getSendName(),                              // 송신자 이름
@@ -369,7 +338,7 @@ public class TransferServiceImpl implements TransferService {
                 .recvAccountId(accountInfo.getAccountId())
                 .recvAccountNumber(accountInfo.getAccountNumber())  // 상대방 계좌번호
                 .recvBankCode(accountInfo.getBankCode())            // 상대방 은행 코드
-                .recvName(accountInfo.getUsername())             // 상대방 이름
+                .recvName(accountInfo.getUsername())                // 상대방 이름
                 .amount(requestDto.getAmount())
                 .build();
     }
@@ -424,5 +393,19 @@ public class TransferServiceImpl implements TransferService {
             return username;
         }
         return username.charAt(0) + "*" + username.substring(2);
+    }
+
+    /**
+     * 출금 계좌와 입금 계좌가 동일한지 검증하는 메서드
+     *
+     * @param sendAccountNumber 출금 계좌 번호
+     * @param recvAccountNumber 입금 계좌 번호
+     * @throws TransferException 계좌가 동일한 경우 예외 발생
+     */
+    private void validateSameAccount(String sendAccountNumber, String recvAccountNumber) {
+        if (sendAccountNumber != null && sendAccountNumber.equals(recvAccountNumber)) {
+            log.warn("출금 계좌와 입금 계좌가 동일합니다: {}", sendAccountNumber);
+            throw new TransferException(TransferResponseStatus.SAME_ACCOUNT_TRANSFER_NOT_ALLOWED);
+        }
     }
 }
