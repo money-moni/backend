@@ -16,6 +16,10 @@ import kr.ssok.transferservice.exception.TransferResponseStatus;
 import kr.ssok.transferservice.kafka.producer.NotificationProducer;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import kr.ssok.transferservice.service.impl.TransferServiceImpl;
+import kr.ssok.transferservice.service.impl.helper.AccountInfoResolver;
+import kr.ssok.transferservice.service.impl.helper.TransferHistoryRecorder;
+import kr.ssok.transferservice.service.impl.helper.TransferNotificationSender;
+import kr.ssok.transferservice.service.impl.validator.TransferValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,22 +41,29 @@ public class TransferServiceTest {
     private TransferHistoryRepository transferHistoryRepository;
     private FakeAccountServiceClient fakeAccountServiceClient;
     private FakeOpenBankingClient fakeOpenBankingClient;
-
-    private NotificationProducer notificationProducer;
+    private TransferNotificationSender notificationSender;
+    private AccountInfoResolver accountInfoResolver;
+    private TransferHistoryRecorder transferHistoryRecorder;
+    private TransferValidator transferValidator;
 
     @BeforeEach
     void setUp() {
-        // Given: 모든 테스트 시작 전에 깨끗한 Fake 및 Mock 객체를 준비
         this.fakeAccountServiceClient = new FakeAccountServiceClient();
         this.fakeOpenBankingClient = new FakeOpenBankingClient();
         this.transferHistoryRepository = mock(TransferHistoryRepository.class);
-        this.notificationProducer = mock(NotificationProducer.class);
+
+        this.notificationSender = new TransferNotificationSender(mock(NotificationProducer.class));
+        this.accountInfoResolver = new AccountInfoResolver(fakeAccountServiceClient);
+        this.transferHistoryRecorder = new TransferHistoryRecorder(transferHistoryRepository);
+        this.transferValidator = new TransferValidator();
 
         this.transferService = new TransferServiceImpl(
+                transferValidator,
+                accountInfoResolver,
+                transferHistoryRecorder,
+                notificationSender,
                 fakeAccountServiceClient,
-                fakeOpenBankingClient,
-                transferHistoryRepository,
-                notificationProducer
+                fakeOpenBankingClient
         );
     }
 
@@ -356,11 +367,16 @@ public class TransferServiceTest {
                         new AccountResponseDto("1111-111-1112")); // 입금 계좌와 동일하게 설정
             }
         };
+
+        accountInfoResolver = new AccountInfoResolver(fakeAccountServiceClient);
+
         this.transferService = new TransferServiceImpl(
+                transferValidator,
+                accountInfoResolver,
+                transferHistoryRecorder,
+                notificationSender,
                 fakeAccountServiceClient,
-                fakeOpenBankingClient,
-                transferHistoryRepository,
-                notificationProducer
+                fakeOpenBankingClient
         );
 
         BluetoothTransferRequestDto requestDto = BluetoothTransferRequestDto.builder()
