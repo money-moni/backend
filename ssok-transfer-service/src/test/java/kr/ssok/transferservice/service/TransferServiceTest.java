@@ -318,6 +318,73 @@ public class TransferServiceTest {
                 });
     }
 
+    @Test
+    void 출금계좌와_입금계좌가_같으면_SAME_ACCOUNT_TRANSFER_NOT_ALLOWED_예외를_던진다() {
+        // Given
+        TransferRequestDto requestDto = TransferRequestDto.builder()
+                .sendAccountId(5L)
+                .sendBankCode(1)
+                .sendName("테스트송신자")
+                .recvAccountNumber("1111-111-1111") // 출금 계좌와 동일한 계좌번호
+                .recvBankCode(1)
+                .recvName("테스트수신자")
+                .amount(15000L)
+                .build();
+        Long userId = 2L;
+
+        // When & Then
+        assertThatThrownBy(() -> transferService.transfer(userId, requestDto, TransferMethod.GENERAL))
+                .isInstanceOf(TransferException.class)
+                .satisfies(ex -> {
+                    TransferException exception = (TransferException) ex;
+                    assertThat(exception.getStatus().getCode())
+                            .isEqualTo(TransferResponseStatus.SAME_ACCOUNT_TRANSFER_NOT_ALLOWED.getCode());
+                    assertThat(exception.getStatus().getMessage())
+                            .isEqualTo(TransferResponseStatus.SAME_ACCOUNT_TRANSFER_NOT_ALLOWED.getMessage());
+                });
+    }
+
+    @Test
+    void 블루투스_출금계좌와_입금계좌가_같으면_SAME_ACCOUNT_TRANSFER_NOT_ALLOWED_예외를_던진다() {
+        // Given
+        // FakeAccountServiceClient는 수신자 계좌번호를 항상 "1111-111-1112"로 반환
+        // 출금 계좌도 동일하게 설정해서 예외 유도
+        fakeAccountServiceClient = new FakeAccountServiceClient() {
+            @Override
+            public BaseResponse<AccountResponseDto> getAccountInfo(Long accountId, String userId) {
+                return new BaseResponse<>(true, 2200, "계좌 조회 성공",
+                        new AccountResponseDto("1111-111-1112")); // 입금 계좌와 동일하게 설정
+            }
+        };
+        this.transferService = new TransferServiceImpl(
+                fakeAccountServiceClient,
+                fakeOpenBankingClient,
+                transferHistoryRepository,
+                notificationProducer
+        );
+
+        BluetoothTransferRequestDto requestDto = BluetoothTransferRequestDto.builder()
+                .sendAccountId(5L)
+                .sendBankCode(1)
+                .sendName("테스트송신자")
+                .recvUserId(10L)
+                .amount(15000L)
+                .build();
+        Long userId = 3L;
+
+        // When & Then
+        assertThatThrownBy(() -> transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH))
+                .isInstanceOf(TransferException.class)
+                .satisfies(ex -> {
+                    TransferException exception = (TransferException) ex;
+                    assertThat(exception.getStatus().getCode())
+                            .isEqualTo(TransferResponseStatus.SAME_ACCOUNT_TRANSFER_NOT_ALLOWED.getCode());
+                    assertThat(exception.getStatus().getMessage())
+                            .isEqualTo(TransferResponseStatus.SAME_ACCOUNT_TRANSFER_NOT_ALLOWED.getMessage());
+                });
+    }
+
+
     // ----------------------------------------------------------
     // 헬퍼 메서드
     // ----------------------------------------------------------
