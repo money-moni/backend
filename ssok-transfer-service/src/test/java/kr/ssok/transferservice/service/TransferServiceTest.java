@@ -2,9 +2,7 @@ package kr.ssok.transferservice.service;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
-import kr.ssok.transferservice.client.NotificationServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
-import kr.ssok.transferservice.client.dto.request.FcmNotificationRequestDto;
 import kr.ssok.transferservice.client.dto.response.*;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
 import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
@@ -18,9 +16,12 @@ import kr.ssok.transferservice.exception.TransferResponseStatus;
 import kr.ssok.transferservice.kafka.producer.NotificationProducer;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import kr.ssok.transferservice.service.impl.TransferServiceImpl;
+import kr.ssok.transferservice.service.impl.helper.AccountInfoResolver;
+import kr.ssok.transferservice.service.impl.helper.TransferHistoryRecorder;
+import kr.ssok.transferservice.service.impl.helper.TransferNotificationSender;
+import kr.ssok.transferservice.service.impl.validator.TransferValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -40,25 +41,29 @@ public class TransferServiceTest {
     private TransferHistoryRepository transferHistoryRepository;
     private FakeAccountServiceClient fakeAccountServiceClient;
     private FakeOpenBankingClient fakeOpenBankingClient;
-    private FakeNotificationServiceClient fakeNotificationServiceClient;
-
-    private NotificationProducer notificationProducer;
+    private TransferNotificationSender notificationSender;
+    private AccountInfoResolver accountInfoResolver;
+    private TransferHistoryRecorder transferHistoryRecorder;
+    private TransferValidator transferValidator;
 
     @BeforeEach
     void setUp() {
-        // Given: 모든 테스트 시작 전에 깨끗한 Fake 및 Mock 객체를 준비
         this.fakeAccountServiceClient = new FakeAccountServiceClient();
         this.fakeOpenBankingClient = new FakeOpenBankingClient();
         this.transferHistoryRepository = mock(TransferHistoryRepository.class);
-        this.fakeNotificationServiceClient = new FakeNotificationServiceClient();
-        this.notificationProducer = mock(NotificationProducer.class);
+
+        this.notificationSender = new TransferNotificationSender(mock(NotificationProducer.class));
+        this.accountInfoResolver = new AccountInfoResolver(fakeAccountServiceClient);
+        this.transferHistoryRecorder = new TransferHistoryRecorder(transferHistoryRepository);
+        this.transferValidator = new TransferValidator();
 
         this.transferService = new TransferServiceImpl(
+                transferValidator,
+                accountInfoResolver,
+                transferHistoryRecorder,
+                notificationSender,
                 fakeAccountServiceClient,
-                fakeOpenBankingClient,
-                transferHistoryRepository,
-                fakeNotificationServiceClient,
-                notificationProducer
+                fakeOpenBankingClient
         );
     }
 
@@ -234,16 +239,6 @@ public class TransferServiceTest {
         }
     }
 
-    /**
-     * Fake: 알림 서버 송금 알림을 흉내내는 객체
-     */
-    private static class FakeNotificationServiceClient implements NotificationServiceClient {
-        @Override
-        public ResponseEntity<BaseResponse<Void>> sendFcmNotification(FcmNotificationRequestDto requestDto) {
-            return null;
-        }
-    }
-
     // ----------------------------------------------------------
     // 헬퍼 메서드
     // ----------------------------------------------------------
@@ -333,6 +328,78 @@ public class TransferServiceTest {
                     assertThat(exception.getStatus().getMessage()).isEqualTo(TransferResponseStatus.INVALID_TRANSFER_AMOUNT.getMessage());
                 });
     }
+
+    @Test
+    void 출금계좌와_입금계좌가_같으면_SAME_ACCOUNT_TRANSFER_NOT_ALLOWED_예외를_던진다() {
+        // Given
+        TransferRequestDto requestDto = TransferRequestDto.builder()
+                .sendAccountId(5L)
+                .sendBankCode(1)
+                .sendName("테스트송신자")
+                .recvAccountNumber("1111-111-1111") // 출금 계좌와 동일한 계좌번호
+                .recvBankCode(1)
+                .recvName("테스트수신자")
+                .amount(15000L)
+                .build();
+        Long userId = 2L;
+
+        // When & Then
+        assertThatThrownBy(() -> transferService.transfer(userId, requestDto, TransferMethod.GENERAL))
+                .isInstanceOf(TransferException.class)
+                .satisfies(ex -> {
+                    TransferException exception = (TransferException) ex;
+                    assertThat(exception.getStatus().getCode())
+                            .isEqualTo(TransferResponseStatus.SAME_ACCOUNT_TRANSFER_NOT_ALLOWED.getCode());
+                    assertThat(exception.getStatus().getMessage())
+                            .isEqualTo(TransferResponseStatus.SAME_ACCOUNT_TRANSFER_NOT_ALLOWED.getMessage());
+                });
+    }
+
+    @Test
+    void 블루투스_출금계좌와_입금계좌가_같으면_SAME_ACCOUNT_TRANSFER_NOT_ALLOWED_예외를_던진다() {
+        // Given
+        // FakeAccountServiceClient는 수신자 계좌번호를 항상 "1111-111-1112"로 반환
+        // 출금 계좌도 동일하게 설정해서 예외 유도
+        fakeAccountServiceClient = new FakeAccountServiceClient() {
+            @Override
+            public BaseResponse<AccountResponseDto> getAccountInfo(Long accountId, String userId) {
+                return new BaseResponse<>(true, 2200, "계좌 조회 성공",
+                        new AccountResponseDto("1111-111-1112")); // 입금 계좌와 동일하게 설정
+            }
+        };
+
+        accountInfoResolver = new AccountInfoResolver(fakeAccountServiceClient);
+
+        this.transferService = new TransferServiceImpl(
+                transferValidator,
+                accountInfoResolver,
+                transferHistoryRecorder,
+                notificationSender,
+                fakeAccountServiceClient,
+                fakeOpenBankingClient
+        );
+
+        BluetoothTransferRequestDto requestDto = BluetoothTransferRequestDto.builder()
+                .sendAccountId(5L)
+                .sendBankCode(1)
+                .sendName("테스트송신자")
+                .recvUserId(10L)
+                .amount(15000L)
+                .build();
+        Long userId = 3L;
+
+        // When & Then
+        assertThatThrownBy(() -> transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH))
+                .isInstanceOf(TransferException.class)
+                .satisfies(ex -> {
+                    TransferException exception = (TransferException) ex;
+                    assertThat(exception.getStatus().getCode())
+                            .isEqualTo(TransferResponseStatus.SAME_ACCOUNT_TRANSFER_NOT_ALLOWED.getCode());
+                    assertThat(exception.getStatus().getMessage())
+                            .isEqualTo(TransferResponseStatus.SAME_ACCOUNT_TRANSFER_NOT_ALLOWED.getMessage());
+                });
+    }
+
 
     // ----------------------------------------------------------
     // 헬퍼 메서드
