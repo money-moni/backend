@@ -6,6 +6,7 @@ import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
+import kr.ssok.transferservice.dto.response.TransferRecentHistoryResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
@@ -47,8 +48,11 @@ public class TransferHistoryServiceImpl implements TransferHistoryService {
         LocalDateTime threeMonthsAgo = LocalDateTime.now().minusMonths(3);
 
         // 2. 3개월 송금 이력 조회
+        long start = System.currentTimeMillis();
         List<TransferHistory> histories = transferHistoryRepository
                 .findByAccountIdAndCreatedAtAfterOrderByCreatedAtDesc(accountId, threeMonthsAgo);
+        long end = System.currentTimeMillis();
+        log.info("[SSOK-TRANSFER-HISTORY] 3개월 송금 이력 조회 시간: {}ms", end - start);
 
         return histories.stream()
                 .map(history -> TransferHistoryResponseDto.builder()
@@ -76,22 +80,77 @@ public class TransferHistoryServiceImpl implements TransferHistoryService {
             throw new TransferException(TransferResponseStatus.INVALID_USER_ID);
         }
 
-        // 1. 계좌 서비스에서 사용자 ID로 모든 계좌 ID 조회
-        BaseResponse<List<AccountIdResponseDto>> accountListResponse =
-                this.accountServiceClient.getAccountIdsByUserId(userId.toString());
-
-        // NPE 방지
-        if (!accountListResponse.getIsSuccess() ||
-                accountListResponse.getResult() == null ||
-                accountListResponse.getResult().isEmpty()) {
-            return List.of(); // 비어 있는 리스트 반환
+        List<Long> accountIds = getAccountIdsByUserId(userId);
+        if (accountIds.isEmpty()) {
+            log.warn("[SSOK-TRANSFER] 사용자 ID {}에 해당하는 계좌가 없습니다.", userId);
+            return List.of();
         }
 
-        // 2. 계좌 ID 목록으로 송금 상대 조회 (QueryDSL)
-        List<Long> accountIds = accountListResponse.getResult().stream()
+        long start = System.currentTimeMillis();
+        List<TransferCounterpartResponseDto> result = this.transferHistoryRepository.findRecentCounterparts(accountIds);
+        long end = System.currentTimeMillis();
+        log.info("[SSOK-TRANSFER-HISTORY] 최근 송금 상대 조회 시간: {}ms", end - start);
+        log.info("[SSOK-TRANSFER-HISTORY] 사용자 ID {}의 계좌들로부터 최근 송금 상대 {}건 조회", userId, result.size());
+
+        return result;
+    }
+
+    @Override
+    public List<TransferRecentHistoryResponseDto> getRecentHistories(Long userId) {
+        if (userId == null) {
+            throw new TransferException(TransferResponseStatus.INVALID_USER_ID);
+        }
+
+        List<Long> accountIds = getAccountIdsByUserId(userId);
+        if (accountIds.isEmpty()) {
+            log.warn("[SSOK-TRANSFER-HISTORY] 사용자 ID {}의 계좌가 존재하지 않아 최근 송금 이력을 조회할 수 없습니다.", userId);
+            return List.of();
+        }
+
+        long start = System.currentTimeMillis();
+        // 3. 최근 송금 이력 3건 조회
+        List<TransferHistory> histories = transferHistoryRepository
+                .findTop3ByAccountIdInOrderByCreatedAtDesc(accountIds);
+        long end = System.currentTimeMillis();
+        log.info("[SSOK-TRANSFER-HISTORY] 최근 송금 이력 3건 조회 시간: {}ms", end - start);
+
+        return histories.stream()
+                .map(history -> TransferRecentHistoryResponseDto.builder()
+                        .transferId(history.getId())
+                        .transferType(history.getTransferType())
+                        .counterpartName(history.getCounterpartName())
+                        .transferMoney(history.getTransferMoney())
+                        .currencyCode(history.getCurrencyCode())
+                        .transferMethod(history.getTransferMethod())
+                        .createdAt(history.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 사용자 ID로 계좌 ID 목록 조회 (공통 로직 분리)
+     *
+     * @param userId 사용자 ID
+     * @return 계좌 ID 리스트 (없으면 빈 리스트 반환)
+     */
+    private List<Long> getAccountIdsByUserId(Long userId) {
+        // 1. 계좌 서비스에서 사용자 ID로 모든 계좌 ID 조회
+        long start = System.currentTimeMillis();
+        BaseResponse<List<AccountIdResponseDto>> accountListResponse =
+                this.accountServiceClient.getAccountIdsByUserId(userId.toString());
+        long end = System.currentTimeMillis();
+        log.info("[SSOK-ACCOUNT] 사용자 계좌 ID 조회 시간: {}ms", end - start);
+
+        // NPE 방지
+        if (!accountListResponse.getIsSuccess()
+                || accountListResponse.getResult() == null
+                || accountListResponse.getResult().isEmpty()) {
+            return List.of();
+        }
+
+        // 2. 계좌 ID 리스트 추출
+        return accountListResponse.getResult().stream()
                 .map(AccountIdResponseDto::getAccountId)
                 .collect(Collectors.toList());
-
-        return this.transferHistoryRepository.findRecentCounterparts(accountIds);
     }
 }

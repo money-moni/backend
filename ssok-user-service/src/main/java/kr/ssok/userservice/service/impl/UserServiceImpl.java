@@ -2,6 +2,7 @@ package kr.ssok.userservice.service.impl;
 
 import kr.ssok.userservice.client.AligoClient;
 import kr.ssok.userservice.client.BankClient;
+import kr.ssok.userservice.constants.ProfileConstants;
 import kr.ssok.userservice.dto.request.AligoVerificationRequestDto;
 import kr.ssok.userservice.dto.request.BankAccountRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
@@ -14,6 +15,7 @@ import kr.ssok.userservice.exception.UserException;
 import kr.ssok.userservice.exception.UserResponseStatus;
 import kr.ssok.userservice.repository.ProfileImageRepository;
 import kr.ssok.userservice.repository.UserRepository;
+import kr.ssok.userservice.service.S3FileService;
 import kr.ssok.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final S3FileService s3FileService;
     private final ProfileImageRepository profileImageRepository;
     private final BankClient bankClient;
     private final AligoClient aligoClient;
@@ -80,12 +83,14 @@ public class UserServiceImpl implements UserService {
         
         User savedUser = userRepository.save(user);
 
+        String fileUrl = s3FileService.getFileUrl(ProfileConstants.DEFAULT_IMAGE_FILENAME);
+
         // noImage(기본 이미지) 객체 생성
         ProfileImage profileImage = ProfileImage.builder()
                 .user(savedUser)
-                .storedFilename("noImage")
-                .url("noUrl")
-                .contentType("noType")
+                .storedFilename(ProfileConstants.DEFAULT_IMAGE_FILENAME)
+                .url(fileUrl)
+                .contentType(ProfileConstants.DEFAULT_IMAGE_CONTENT_TYPE)
                 .build();
 
         profileImageRepository.save(profileImage);

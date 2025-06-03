@@ -13,5 +13,5 @@ public class PrimaryAccountResponseDto {
     private Long accountId;
     private String accountNumber;
     private Integer bankCode;
-    private String accountName;
+    private String username;
 }

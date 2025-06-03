@@ -11,26 +11,19 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration
 @EnableAsync
 public class AsyncConfig {
-    @Bean(name = "customExecutorFeign")
-    public Executor myCustomExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(600); // 지속적으로 유지할 스레드
-        executor.setMaxPoolSize(1000);  // 피크 대응
-        executor.setQueueCapacity(2000); // 큐에 쌓일 수 있는 요청 수
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.setThreadNamePrefix("customFeign-");
-        executor.initialize();
-        return executor;
-    }
 
     @Bean(name = "customExecutorWebClient")
     public Executor webClientExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(300);           // WebClient는 주로 I/O 콜백 처리 → 적절한 수준이면 충분
-        executor.setMaxPoolSize(600);            // 병렬 요청량 많을 경우 대비
-        executor.setQueueCapacity(1000);         // 대기열 용량
-        executor.setThreadNamePrefix("customWebClient-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        int cores = Runtime.getRuntime().availableProcessors();
+
+        executor.setCorePoolSize(cores * 10);       // 기본 스레드 수
+        executor.setMaxPoolSize(cores * 20);        // 최대 스레드 수
+        executor.setQueueCapacity(500);             // 대기열 용량
+        executor.setKeepAliveSeconds(120);          // 임시로 늘어난 스레드 유지 시간
+        executor.setThreadNamePrefix("customWebClient-");   // 스레드 이름 접두어
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());    // 대기열이 꽉 찬 경우, 서블릿 스레드가 직접 처리
+
         executor.initialize();
         return executor;
     }

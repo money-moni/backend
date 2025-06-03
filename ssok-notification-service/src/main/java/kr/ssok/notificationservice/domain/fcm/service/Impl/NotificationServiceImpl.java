@@ -29,7 +29,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendFcmNotification(Long userId, String title, String body) {
         try {
-            String token = redisTemplate.opsForValue().get("user:" + userId);
+            String token = redisTemplate.opsForValue().get("userfcm:" + userId);
 
             if (token == null) {
                 log.warn("FCM 토큰이 존재하지 않습니다: userId={}", userId);

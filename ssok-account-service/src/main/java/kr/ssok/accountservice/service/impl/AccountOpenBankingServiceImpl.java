@@ -2,7 +2,6 @@ package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.client.OpenBankingClient;
 import kr.ssok.accountservice.client.UserServiceClient;
-import kr.ssok.accountservice.client.dto.response.OpenBankingResponse;
 import kr.ssok.accountservice.dto.request.AccountOwnerRequestDto;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountBalanceRequestDto;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountOwnerRequestDto;
@@ -10,7 +9,6 @@ import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAllAccountsRequ
 import kr.ssok.accountservice.dto.response.AccountOwnerResponseDto;
 import kr.ssok.accountservice.dto.response.AllAccountsResponseDto;
 import kr.ssok.accountservice.dto.response.openbanking.OpenBankingAccountBalanceResponseDto;
-import kr.ssok.accountservice.dto.response.openbanking.OpenBankingAccountOwnerResponseDto;
 import kr.ssok.accountservice.dto.response.openbanking.OpenBankingAllAccountsResponseDto;
 import kr.ssok.accountservice.dto.response.userservice.UserInfoResponseDto;
 import kr.ssok.accountservice.exception.AccountException;
@@ -20,12 +18,14 @@ import kr.ssok.accountservice.util.AccountIdentifierUtil;
 import kr.ssok.common.exception.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * 오픈뱅킹과의 연동 기능을 제공하는 서비스 구현 클래스
@@ -39,9 +39,6 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
     private final OpenBankingClient openBankingClient;
     private final UserServiceClient userServiceClient;
     private final RedisTemplate<String, String> redisTemplate;
-
-    @Value("${external.openbanking-service.api-key}")
-    private String OPENBANKING_API_KEY;
 
     /**
      * 오픈뱅킹 서버와 사용자 서비스로부터 사용자 정보를 기반으로 전체 연동 계좌 목록을 조회합니다.
@@ -58,32 +55,34 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
      * @throws AccountException 사용자 정보 또는 오픈뱅킹 응답이 유효하지 않을 경우 발생
      */
     @Override
-    public List<AllAccountsResponseDto> fetchAllAccountsFromOpenBanking(Long userId) {
-        BaseResponse<UserInfoResponseDto> userInfoResponse = this.userServiceClient.sendUserInfoRequest(userId.toString());
+    @Async("customExecutorWebClient")
+    public CompletableFuture<List<AllAccountsResponseDto>> fetchAllAccountsFromOpenBanking(Long userId) {
+        BaseResponse<UserInfoResponseDto> userInfoResponse = userServiceClient.sendUserInfoRequest(userId.toString());
 
         if (userInfoResponse == null || userInfoResponse.getResult() == null) {
             log.warn("[USERSERVICE] 사용자 정보 조회 실패: userId={}", userId);
             throw new AccountException(AccountResponseStatus.USER_INFO_NOT_FOUND);
         }
 
-        OpenBankingAllAccountsRequestDto requestDto =
-                OpenBankingAllAccountsRequestDto.from(userInfoResponse.getResult());
+        OpenBankingAllAccountsRequestDto requestDto = OpenBankingAllAccountsRequestDto.from(userInfoResponse.getResult());
 
-        OpenBankingResponse<List<OpenBankingAllAccountsResponseDto>> response =
-                this.openBankingClient.sendAllAccountsRequest(OPENBANKING_API_KEY, requestDto);
+        return openBankingClient.sendAllAccountsRequest(requestDto)
+                .thenApply(response -> {
+                    if (response == null || response.getResult() == null) {
+                        log.warn("[OPENBANKING] 전체 계좌 조회 실패: userId={}, username={}", userId, requestDto.getUsername());
+                        throw new AccountException(AccountResponseStatus.OPENBANKING_ACCOUNT_LIST_FAILED);
+                    }
 
-        if (response == null || response.getResult() == null) {
-            log.warn("[OPENBANKING] 전체 계좌 조회 실패: userId={}, username={}", userId, requestDto.getUsername());
-            throw new AccountException(AccountResponseStatus.OPENBANKING_ACCOUNT_LIST_FAILED);
-        }
+                    cacheAvailableAccountSet(userId, response.getResult());
 
-        // 계좌 유효성 검사를 위한 로직 - redis에 오픈뱅킹으로 받은 정보 캐싱
-        cacheAvailableAccountSet(userId, response.getResult());
-
-        return response.getResult()
-                .stream()
-                .map(AllAccountsResponseDto::from)
-                .toList();
+                    return response.getResult().stream()
+                            .map(AllAccountsResponseDto::from)
+                            .toList();
+                })
+                .exceptionally(e -> {
+                    log.error("[OPENBANKING] 오픈뱅킹 전체 계좌 조회 비동기 에러", e);
+                    throw new CompletionException(e);
+                });
     }
 
     /**
@@ -94,19 +93,23 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
      * @throws AccountException 실명 조회 실패 시 발생
      */
     @Override
-    public AccountOwnerResponseDto fetchAccountOwnerFromOpenBanking(AccountOwnerRequestDto accountOwnerRequestDto) {
+    @Async("customExecutorWebClient")
+    public CompletableFuture<AccountOwnerResponseDto> fetchAccountOwnerFromOpenBanking(AccountOwnerRequestDto accountOwnerRequestDto) {
         OpenBankingAccountOwnerRequestDto requestDto = OpenBankingAccountOwnerRequestDto.from(accountOwnerRequestDto);
 
-        OpenBankingResponse<OpenBankingAccountOwnerResponseDto> response =
-                this.openBankingClient.sendAccountOwnerRequest(OPENBANKING_API_KEY, requestDto);
+        return openBankingClient.sendAccountOwnerRequest(requestDto)
+                .thenApply(response -> {
+                    if (response == null || response.getResult() == null) {
+                        log.warn("[OPENBANKING] 실명 조회 실패: accountNumber={}, bankCode={}", requestDto.getAccountNumber(), requestDto.getBankCode());
+                        throw new AccountException(AccountResponseStatus.OPENBANKING_OWNER_LOOKUP_FAILED);
+                    }
 
-        if (response == null || response.getResult() == null) {
-            log.warn("[OPENBANKING] 실명 조회 실패: accountNumber={}, bankCode={}",
-                    requestDto.getAccountNumber(), requestDto.getBankCode());
-            throw new AccountException(AccountResponseStatus.OPENBANKING_OWNER_LOOKUP_FAILED);
-        }
-
-        return AccountOwnerResponseDto.from(response.getResult(), requestDto.getAccountNumber());
+                    return AccountOwnerResponseDto.from(response.getResult(), requestDto.getAccountNumber());
+                })
+                .exceptionally(e -> {
+                    log.error("[OPENBANKING] 오픈뱅킹 실명 조회 비동기 에러", e);
+                    throw new CompletionException(e);
+                });
     }
 
     /**
@@ -117,17 +120,20 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
      * @throws AccountException 잔액 조회 실패 시 발생
      */
     @Override
-    public OpenBankingAccountBalanceResponseDto fetchAccountBalanceFromOpenBanking(OpenBankingAccountBalanceRequestDto requestDto) {
-        OpenBankingResponse<OpenBankingAccountBalanceResponseDto> response =
-                this.openBankingClient.sendAccountBalanceRequest(OPENBANKING_API_KEY, requestDto);
-
-        if (response == null || response.getResult() == null) {
-            log.warn("[OPENBANKING] 잔액 조회 실패: accountNumber={}, bankCode={}",
-                    requestDto.getAccountNumber(), requestDto.getBankCode());
-            throw new AccountException(AccountResponseStatus.OPENBANKING_BALANCE_LOOKUP_FAILED);
-        }
-
-        return response.getResult();
+    @Async("customExecutorWebClient")
+    public CompletableFuture<OpenBankingAccountBalanceResponseDto> fetchAccountBalanceFromOpenBanking(OpenBankingAccountBalanceRequestDto requestDto) {
+        return openBankingClient.sendAccountBalanceRequest(requestDto)
+                .thenApplyAsync(response -> {
+                    if (response == null || response.getResult() == null) {
+                        log.error("[OPENBANKING] 잔액 조회 실패: bankCode={}, accountNumber={}", requestDto.getBankCode(), requestDto.getAccountNumber());
+                        throw new AccountException(AccountResponseStatus.OPENBANKING_BALANCE_LOOKUP_FAILED);
+                    }
+                    return response.getResult();
+                })
+                .exceptionally(e -> {
+                    log.error("[OPENBANKING] 오픈뱅킹 잔액 조회 비동기 에러", e);
+                    throw new CompletionException(e);
+                });
     }
 
     private void cacheAvailableAccountSet(Long userId, List<OpenBankingAllAccountsResponseDto> accounts) {

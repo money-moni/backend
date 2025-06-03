@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 계좌 서비스 비즈니스 로직을 구현한 클래스
@@ -118,7 +119,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
-     * 사용자 ID에 해당하는 모든 연동 계좌 목록을 조회합니다.
+     * 사용자 ID에 해당하는 모든 연동 계좌 목록을 비동기로 조회합니다.
      *
      * <p>오픈뱅킹 서버를 통해 각 계좌의 잔액을 병렬로 조회하며,
      * 잔액 조회 실패 시 해당 계좌의 잔액은 -1로 처리됩니다.</p>
@@ -129,36 +130,39 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<AccountBalanceResponseDto> findAllAccounts(Long userId) {
+    public CompletableFuture<List<AccountBalanceResponseDto>> findAllAccounts(Long userId) {
         List<LinkedAccount> linkedAccounts = this.accountRepository.findByUserIdAndIsDeletedFalse(userId);
 
         if (CollectionUtils.isEmpty(linkedAccounts)) {
             log.warn("[GET] Account not found: userId={}", userId);
-            throw new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
+            CompletableFuture<List<AccountBalanceResponseDto>> failed = new CompletableFuture<>();
+            failed.completeExceptionally(new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND));
+            return failed;
         }
 
-        // 병렬 처리
-        return linkedAccounts.parallelStream()
+        List<CompletableFuture<AccountBalanceResponseDto>> futures = linkedAccounts.stream()
                 .map(account -> {
-                    try {
-                        OpenBankingAccountBalanceRequestDto requestDto =
-                                OpenBankingAccountBalanceRequestDto.from(account);
+                    OpenBankingAccountBalanceRequestDto requestDto = OpenBankingAccountBalanceRequestDto.from(account);
 
-                        Long balance = accountOpenBankingService
-                                .fetchAccountBalanceFromOpenBanking(requestDto)
-                                .getBalance();
-                        return AccountBalanceResponseDto.from(balance, account);
-                    } catch (Exception e) {
-                        // 예외 발생 시에도 잔액을 제외한 나머지 계좌 정보 조회는 가능하도록
-                        log.error("[OPENBANKING][병렬] 잔액 조회 실패: {}", account.getAccountNumber());
-                        return AccountBalanceResponseDto.from(-1L, account);
-                    }
+                    return accountOpenBankingService.fetchAccountBalanceFromOpenBanking(requestDto)
+                            .thenApply(balanceDto -> AccountBalanceResponseDto.from(
+                                    balanceDto != null && balanceDto.getBalance() != null ? balanceDto.getBalance() : -1L,
+                                    account))
+                            .exceptionally(e -> {
+                                log.error("[OPENBANKING][비동기] 잔액 조회 에러: {}", account.getAccountNumber(), e);
+                                return AccountBalanceResponseDto.from(-1L, account);
+                            });
                 })
                 .toList();
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .toList());
     }
 
     /**
-     * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 상세 조회합니다.
+     * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 비동기로 상세 조회합니다.
      *
      * <p>오픈뱅킹 서버를 통해 해당 계좌의 잔액을 조회하며,
      * 잔액 조회 실패 시 잔액은 -1로 설정됩니다.</p>
@@ -170,27 +174,24 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     @Transactional(readOnly = true)
-    public AccountBalanceResponseDto findAccountById(Long userId, Long accountId) {
+    public CompletableFuture<AccountBalanceResponseDto> findAccountById(Long userId, Long accountId) {
         LinkedAccount linkedAccount = this.accountRepository.findByAccountIdAndUserIdAndIsDeletedFalse(accountId, userId)
                 .orElseThrow(() -> {
                     log.warn("[GET] Account not found: accountId={}, userId={}", accountId, userId);
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
                 });
 
-        OpenBankingAccountBalanceRequestDto requestDto =
-                OpenBankingAccountBalanceRequestDto.from(linkedAccount);
+        OpenBankingAccountBalanceRequestDto requestDto = OpenBankingAccountBalanceRequestDto.from(linkedAccount);
 
-        Long balance;
-        try {
-            balance = this.accountOpenBankingService
-                    .fetchAccountBalanceFromOpenBanking(requestDto)
-                    .getBalance();
-        } catch (Exception e) {
-            // 예외 발생 시에도 잔액을 제외한 나머지 계좌 정보 조회는 가능하도록
-            log.error("[OPENBANKING] 잔액 조회 실패: accountId={}, userId={}", accountId, userId, e);
-            balance = -1L;
-        }
-        return AccountBalanceResponseDto.from(balance, linkedAccount);
+        // WebClient 비동기 방식으로 잔액 조회
+        return accountOpenBankingService.fetchAccountBalanceFromOpenBanking(requestDto)
+                .thenApply(balanceDto -> AccountBalanceResponseDto.from(
+                        balanceDto != null && balanceDto.getBalance() != null ? balanceDto.getBalance() : -1L,
+                        linkedAccount))
+                .exceptionally(e -> {
+                    log.error("[OPENBANKING][비동기] 잔액 조회 에러: accountId={}, userId={}", accountId, userId, e);
+                    return AccountBalanceResponseDto.from(-1L, linkedAccount);
+                });
     }
 
     /**
@@ -301,6 +302,7 @@ public class AccountServiceImpl implements AccountService {
                 dto.getAccountTypeCode()
         );
 
-        return redisTemplate.opsForSet().isMember(redisKey, lookupKey); // 해당 계좌의 존재 여부를 boolean으로 리턴
+        // 해당 계좌의 존재 여부를 boolean으로 리턴
+        return redisTemplate.opsForSet().isMember(redisKey, lookupKey);
     }
 }

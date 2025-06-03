@@ -44,6 +44,9 @@ dependencies {
     // H2(테스트용)
     runtimeOnly 'com.h2database:h2'
 
+    // Logback
+    implementation libs.logback
+
     // gRPC 라이브러리
     implementation(libs.grpcStub)
     implementation(libs.grpcProtobuf)

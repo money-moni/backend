@@ -26,4 +26,10 @@ public class ProfileImage extends TimeStamp {
     private String url; // s3 저장경로
 
     private String contentType; // image/jpeg
+
+    public void updateImage(String storedFilename, String url, String contentType) {
+        this.storedFilename = storedFilename;
+        this.url = url;
+        this.contentType = contentType;
+    }
 }
