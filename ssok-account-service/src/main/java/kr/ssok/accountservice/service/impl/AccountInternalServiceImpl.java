@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +44,7 @@ public class AccountInternalServiceImpl implements AccountInternalService {
      *
      * @param userId 사용자 ID
      * @param accountId 조회할 계좌 ID
-     * @return 조회된 계좌 정보를 담은 {@link AccountInfoResponseDto}
+     * @return 조회된 계좌 정보를 담은 DTO
      * @throws AccountException 해당 계좌가 존재하지 않는 경우 발생
      */
     @Override
@@ -62,7 +63,7 @@ public class AccountInternalServiceImpl implements AccountInternalService {
      * 계좌번호에 해당하는 계좌 ID, 유저 ID 정보를 조회합니다.
      *
      * @param accountNumber 조회할 계좌번호
-     * @return 계좌 ID, 유저 ID를 포함한 응답 DTO {@link AccountIdsResponseDto}
+     * @return 계좌 ID, 유저 ID를 포함한 응답 DTO
      * @throws AccountException 해당 계좌가 존재하지 않는 경우 발생
      */
     @Override
@@ -81,7 +82,7 @@ public class AccountInternalServiceImpl implements AccountInternalService {
      * 사용자 ID에 해당하는 모든 계좌의 ID 목록을 조회합니다.
      *
      * @param userId 사용자 ID
-     * @return 사용자의 연동 계좌 ID 목록을 담은 {@link List}<{@link AccountIdsResponseDto}>
+     * @return 사용자의 연동 계좌 ID 목록을 담은 DTO
      * @throws AccountException 등록된 계좌가 하나도 없는 경우 발생
      */
     @Override
@@ -103,7 +104,7 @@ public class AccountInternalServiceImpl implements AccountInternalService {
      * 사용자 ID에 해당하는 대표 계좌 정보를 조회합니다.
      *
      * @param userId 사용자 ID
-     * @return 대표 계좌 정보와 사용자 이름을 포함한 {@link PrimaryAccountInfoResponseDto}
+     * @return 대표 계좌 정보와 사용자 이름을 포함한 DTO
      * @throws AccountException 대표 계좌가 존재하지 않거나, 사용자 정보 조회에 실패한 경우 발생
      */
     @Override
@@ -124,8 +125,15 @@ public class AccountInternalServiceImpl implements AccountInternalService {
         return PrimaryAccountInfoResponseDto.from(linkedAccount, userInfoResponse.getResult().getUsername());
     }
 
+    /**
+     * 사용자 ID에 해당하는 대표 계좌 잔액 정보를 비동기로 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 대표 계좌 정보와 잔액 정보를 포함한 DTO
+     * @throws AccountException 대표 계좌가 존재하지 않거나, 잔액 정보 조회에 실패한 경우 발생
+     */
     @Override
-    public PrimaryAccountBalanceResponseDto findPrimaryAccountBalanceByUserId(Long userId) {
+    public CompletableFuture<PrimaryAccountBalanceResponseDto> findPrimaryAccountBalanceByUserId(Long userId) {
         LinkedAccount linkedAccount = this.accountRepository.findByUserIdAndIsPrimaryAccountTrueAndIsDeletedFalse(userId)
                 .orElseThrow(() -> {
                     log.warn("[GET] Account not found: userId={}", userId);
@@ -135,17 +143,13 @@ public class AccountInternalServiceImpl implements AccountInternalService {
         OpenBankingAccountBalanceRequestDto requestDto =
                 OpenBankingAccountBalanceRequestDto.from(linkedAccount);
 
-        Long balance;
-        try {
-            balance = this.accountOpenBankingService
-                    .fetchAccountBalanceFromOpenBanking(requestDto)
-                    .getBalance();
-        } catch (Exception e) {
-            // 예외 발생 시에도 잔액을 제외한 나머지 계좌 정보 조회는 가능하도록
-            log.error("[OPENBANKING] 잔액 조회 실패: userId={}", userId, e);
-            balance = -1L;
-        }
-
-        return PrimaryAccountBalanceResponseDto.from(linkedAccount, balance);
+        return accountOpenBankingService.fetchAccountBalanceFromOpenBanking(requestDto)
+                .thenApply(balanceDto -> PrimaryAccountBalanceResponseDto.from(
+                        linkedAccount,
+                        balanceDto != null && balanceDto.getBalance() != null ? balanceDto.getBalance() : -1L))
+                .exceptionally(e -> {
+                    log.error("[OPENBANKING][비동기] 잔액 조회 에러: userId={}", userId, e);
+                    return PrimaryAccountBalanceResponseDto.from(linkedAccount, -1L);
+                });
     }
 }

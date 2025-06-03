@@ -6,6 +6,7 @@ import kr.ssok.accountservice.dto.response.AccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.AccountResponseDto;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 계좌 관련 비즈니스 로직을 정의하는 Service 인터페이스
@@ -37,7 +38,7 @@ public interface AccountService {
      * @param userId 사용자 ID
      * @return 조회된 연동 계좌 목록을 담은 List<AccountBalanceResponseDto>
      */
-    List<AccountBalanceResponseDto> findAllAccounts(Long userId);
+    CompletableFuture<List<AccountBalanceResponseDto>> findAllAccounts(Long userId);
 
     /**
      * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 상세 조회합니다.
@@ -46,7 +47,7 @@ public interface AccountService {
      * @param accountId 조회할 계좌 ID
      * @return 조회된 연동 계좌 정보를 담은 AccountBalanceResponseDto
      */
-    AccountBalanceResponseDto findAccountById(Long userId, Long accountId);
+    CompletableFuture<AccountBalanceResponseDto> findAccountById(Long userId, Long accountId);
 
     /**
      * 사용자 ID와 계좌 ID에 해당하는 연동 계좌를 삭제합니다.

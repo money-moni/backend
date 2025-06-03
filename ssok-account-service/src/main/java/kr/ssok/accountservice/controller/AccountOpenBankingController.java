@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 오픈뱅킹 관련 API 요청을 처리하는 REST 컨트롤러
@@ -28,11 +29,13 @@ public class AccountOpenBankingController {
      * @return 조회된 전체 계좌 목록을 담은 {@link BaseResponse}
      */
     @PostMapping
-    public ResponseEntity<BaseResponse<List<AllAccountsResponseDto>>> getOpenBankingAccounts(
+    public CompletableFuture<ResponseEntity<BaseResponse<List<AllAccountsResponseDto>>>> getOpenBankingAccounts(
             @RequestHeader("X-User-Id") String userId) {
-        List<AllAccountsResponseDto> result = this.accountOpenBankingService.fetchAllAccountsFromOpenBanking(Long.parseLong(userId));
 
-        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
+        return accountOpenBankingService.fetchAllAccountsFromOpenBanking(Long.parseLong(userId))
+                .thenApply(result -> ResponseEntity.ok(
+                        new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result)
+                ));
     }
 
     /**
@@ -42,10 +45,12 @@ public class AccountOpenBankingController {
      * @return 예금주의 실명 정보를 담은 {@link BaseResponse}
      */
     @PostMapping("/verify-name")
-    public ResponseEntity<BaseResponse<AccountOwnerResponseDto>> getOpenBankingAccountOwner(
+    public CompletableFuture<ResponseEntity<BaseResponse<AccountOwnerResponseDto>>> getOpenBankingAccountOwner(
             @RequestBody AccountOwnerRequestDto accountOwnerRequestDto) {
-        AccountOwnerResponseDto result = this.accountOpenBankingService.fetchAccountOwnerFromOpenBanking(accountOwnerRequestDto);
 
-        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
+        return accountOpenBankingService.fetchAccountOwnerFromOpenBanking(accountOwnerRequestDto)
+                .thenApply(result ->
+                        ResponseEntity.ok(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result))
+                );
     }
 }
