@@ -10,7 +10,7 @@ import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.BluetoothTransferResponseDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
-import kr.ssok.transferservice.entity.enums.TransferMethod;
+import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
 import kr.ssok.transferservice.kafka.producer.NotificationProducer;

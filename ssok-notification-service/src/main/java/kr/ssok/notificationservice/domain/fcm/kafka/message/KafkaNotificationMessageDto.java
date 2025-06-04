@@ -1,6 +1,6 @@
-package kr.ssok.transferservice.kafka.message;
+package kr.ssok.notificationservice.domain.fcm.kafka.message;
 
-import kr.ssok.transferservice.enums.TransferType;
+import kr.ssok.notificationservice.domain.fcm.enums.TransferType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

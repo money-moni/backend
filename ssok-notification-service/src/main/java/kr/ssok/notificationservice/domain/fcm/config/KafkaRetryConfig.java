@@ -1,8 +1,9 @@
 package kr.ssok.notificationservice.domain.fcm.config;
 
-import kr.ssok.notificationservice.domain.fcm.handler.KafkaDltHandler;
+import kr.ssok.notificationservice.domain.fcm.kafka.handler.KafkaDltHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,11 +24,19 @@ import org.springframework.kafka.support.EndpointHandlerMethod;
  */
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
 public class KafkaRetryConfig extends RetryTopicConfigurationSupport {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ConcurrentKafkaListenerContainerFactory<String, String> containerFactory;
+
+    public KafkaRetryConfig(
+            KafkaTemplate<String, String> kafkaTemplate,
+            @Qualifier("mainKafkaListenerContainerFactory")
+            ConcurrentKafkaListenerContainerFactory<String, String> containerFactory
+    ) {
+        this.kafkaTemplate = kafkaTemplate;
+        this.containerFactory = containerFactory;
+    }
 
     @Value("${kafka.retry.max-attempts}")
     private int maxAttempts;
