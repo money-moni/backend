@@ -1,4 +1,4 @@
-package kr.ssok.transferservice.entity.enums;
+package kr.ssok.transferservice.enums;
 
 public enum TransferMethod {
     GENERAL,     // 일반 송금

@@ -1,9 +1,9 @@
 package kr.ssok.transferservice.entity;
 
 import jakarta.persistence.*;
-import kr.ssok.transferservice.entity.enums.CurrencyCode;
-import kr.ssok.transferservice.entity.enums.TransferMethod;
-import kr.ssok.transferservice.entity.enums.TransferType;
+import kr.ssok.transferservice.enums.CurrencyCode;
+import kr.ssok.transferservice.enums.TransferMethod;
+import kr.ssok.transferservice.enums.TransferType;
 import lombok.*;
 
 import java.time.LocalDateTime;

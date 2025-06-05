@@ -4,7 +4,7 @@ import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.BluetoothTransferResponseDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
-import kr.ssok.transferservice.entity.enums.TransferMethod;
+import kr.ssok.transferservice.enums.TransferMethod;
 
 /**
  * 송금 처리 비즈니스 로직 인터페이스
