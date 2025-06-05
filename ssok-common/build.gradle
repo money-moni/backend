@@ -33,6 +33,8 @@ dependencies {
     // AOP 설정 추가
     implementation 'org.aspectj:aspectjweaver:1.9.19'
     implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+    implementation 'org.aspectj:aspectjrt:1.9.19'
+
 
 }
 
