@@ -30,6 +30,10 @@ dependencies {
     implementation 'org.hibernate.orm:hibernate-core:6.4.4.Final'
     implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
 
+    // AOP 설정 추가
+    implementation 'org.aspectj:aspectjweaver:1.9.19'
+    implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+
 }
 
 //// bootJar 비활성화
