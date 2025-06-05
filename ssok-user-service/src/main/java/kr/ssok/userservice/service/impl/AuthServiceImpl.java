@@ -1,5 +1,6 @@
 package kr.ssok.userservice.service.impl;
 
+import kr.ssok.common.logging.annotation.ServiceLogging;
 import kr.ssok.userservice.dto.request.LoginRequestDto;
 import kr.ssok.userservice.dto.response.LoginResponseDto;
 import kr.ssok.userservice.entity.User;
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ServiceLogging(logParameters = false, maskSensitiveData = true) // 클래스 레벨 AOP 로깅 적용
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -81,7 +83,8 @@ public class AuthServiceImpl implements AuthService {
                 LocalDateTime unlockTime = LocalDateTime.now().plusSeconds(remainingSeconds);
                 additionalInfo.put("unlockTime", unlockTime.format(DATE_FORMATTER));
             }
-            
+
+            log.warn("계정 잠금 상태에서 로그인 시도. 사용자: {}", requestDto.getUserId());
             throw new UserException(UserResponseStatus.ACCOUNT_LOCKED, additionalInfo);
         }
         
@@ -101,7 +104,8 @@ public class AuthServiceImpl implements AuthService {
                 LocalDateTime unlockTime = LocalDateTime.now().plusSeconds(remainingSeconds);
                 additionalInfo.put("unlockTime", unlockTime.format(DATE_FORMATTER));
             }
-            
+
+            log.warn("로그인 제한 상태에서 로그인 시도. 사용자: {}", requestDto.getUserId());
             throw new UserException(UserResponseStatus.TOO_MANY_LOGIN_ATTEMPTS, additionalInfo);
         }
         
@@ -122,9 +126,11 @@ public class AuthServiceImpl implements AuthService {
             
             // 남은 시도 횟수 계산
             int remainingAttempts = MAX_LOGIN_ATTEMPTS - attempts.intValue();
-            log.warn("로그인 실패. 사용자: {}, 시도 횟수: {}/{}, 남은 시도: {}", 
+//            log.warn("로그인 실패. 사용자: {}, 시도 횟수: {}/{}, 남은 시도: {}",
+//                    requestDto.getUserId(), attempts, MAX_LOGIN_ATTEMPTS, remainingAttempts);
+            log.warn("PIN 코드 불일치. 사용자: {}, 시도 횟수: {}/{}, 남은 시도: {}",
                     requestDto.getUserId(), attempts, MAX_LOGIN_ATTEMPTS, remainingAttempts);
-            
+
             // 로그인 시도 횟수 초과 시 제한
             if (attempts >= MAX_LOGIN_ATTEMPTS) {
                 // 이전 시도 횟수 초기화
@@ -149,7 +155,10 @@ public class AuthServiceImpl implements AuthService {
                 // 제한 해제 예상 시간 추가
                 LocalDateTime unlockTime = LocalDateTime.now().plusSeconds(LOGIN_BLOCKED_DURATION);
                 additionalInfo.put("unlockTime", unlockTime.format(DATE_FORMATTER));
-                
+
+                log.warn("로그인 시도 횟수 초과로 계정 제한 적용. 사용자: {}, 제한 횟수: {}",
+                        requestDto.getUserId(), blockCount);
+
                 // 로그인 제한이 3회 이상이면 계정 잠금
                 if (blockCount >= 3) {
                     redisTemplate.opsForValue().set(accountLockedKey, "locked", ACCOUNT_LOCKED_DURATION, TimeUnit.SECONDS);
@@ -161,7 +170,9 @@ public class AuthServiceImpl implements AuthService {
                     // 잠금 해제 예상 시간 추가
                     LocalDateTime lockUnlockTime = LocalDateTime.now().plusSeconds(ACCOUNT_LOCKED_DURATION);
                     additionalInfo.put("accountUnlockTime", lockUnlockTime.format(DATE_FORMATTER));
-                    
+
+                    log.error("계정 잠금 적용. 사용자: {}", requestDto.getUserId());
+
                     throw new UserException(UserResponseStatus.ACCOUNT_LOCKED, additionalInfo);
                 }
                 
@@ -210,6 +221,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponseDto refreshToken(String refreshToken) {
         // 토큰 유효성 검증
         if (!jwtTokenProvider.validateToken(refreshToken)) {
+            log.warn("유효하지 않은 리프레시 토큰으로 갱신 시도");
             throw new UserException(UserResponseStatus.INVALID_REFRESH_TOKEN);
         }
         
@@ -221,13 +233,17 @@ public class AuthServiceImpl implements AuthService {
         String storedToken = redisTemplate.opsForValue().get(refreshTokenKey);
         
         if (storedToken == null || !storedToken.equals(refreshToken)) {
+            log.warn("저장된 토큰과 일치하지 않는 리프레시 토큰 사용. 사용자: {}", userId);
             throw new UserException(UserResponseStatus.INVALID_REFRESH_TOKEN);
         }
         
         // 사용자 정보 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserResponseStatus.USER_NOT_FOUND));
-        
+
+        // 보안 관련 중요 이벤트 로깅 유지
+        log.info("로그인 성공. 사용자: {}", userId);
+
         // 새 토큰 생성
         String newAccessToken = jwtTokenProvider.createAccessToken(user.getId());
         String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getId());

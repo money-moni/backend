@@ -3,6 +3,7 @@ package kr.ssok.userservice.service.impl;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import kr.ssok.common.logging.annotation.ServiceLogging;
 import kr.ssok.userservice.constants.ProfileConstants;
 import kr.ssok.userservice.exception.UserException;
 import kr.ssok.userservice.exception.UserResponseStatus;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ServiceLogging(logParameters = true, logResult = false, logExecutionTime = true)
 public class S3FileServiceImpl implements S3FileService {
 
     private final AmazonS3 amazonS3;
