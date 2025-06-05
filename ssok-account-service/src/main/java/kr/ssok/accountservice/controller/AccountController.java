@@ -7,6 +7,7 @@ import kr.ssok.accountservice.dto.response.AccountResponseDto;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
 import kr.ssok.accountservice.service.AccountService;
 import kr.ssok.common.exception.BaseResponse;
+import kr.ssok.common.logging.annotation.ControllerLogging;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/accounts")
 @RequiredArgsConstructor
+@ControllerLogging(logResult = true, maskSensitiveData = true)
 public class AccountController {
     private final AccountService accountService;
 

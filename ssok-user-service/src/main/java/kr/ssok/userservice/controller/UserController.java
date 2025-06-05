@@ -2,6 +2,7 @@ package kr.ssok.userservice.controller;
 
 import jakarta.validation.Valid;
 import kr.ssok.common.exception.BaseResponse;
+import kr.ssok.common.logging.annotation.ControllerLogging;
 import kr.ssok.userservice.dto.request.PinCodeRequestDto;
 import kr.ssok.userservice.dto.request.PhoneVerificationRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@ControllerLogging(logParameters = true, logResult = true)
 public class UserController {
     private final UserService userService;
 
