@@ -120,7 +120,13 @@ public class ProfileServiceImpl implements ProfileService {
                 defaultImageUrl,
                 ProfileConstants.DEFAULT_IMAGE_CONTENT_TYPE
         );
-        profileImageRepository.save(profileImage);
+
+        try {
+            profileImageRepository.save(profileImage);
+        } catch (Exception e) {
+            log.error("프로필 이미지 기본 이미지로 변경 실패: userId={}, error={}", userId, e.getMessage());
+            throw new UserException(UserResponseStatus.PROFILE_IMAGE_SAVE_ERROR);
+        }
 
         log.info("프로필 이미지를 기본 이미지로 변경 완료: userId={}", userId);
     }

@@ -17,7 +17,7 @@ public class TransferValidator {
      */
     public void validateTransferAmount(Long amount) {
         if (amount == null || amount <= 0) {
-            log.error("유효하지 않은 송금 금액: {}", amount);
+            log.warn("유효하지 않은 송금 금액: {}", amount);
             throw new TransferException(TransferResponseStatus.INVALID_TRANSFER_AMOUNT);
         }
     }

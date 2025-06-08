@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 내부 서비스 간 연동을 위한 계좌 조회 기능을 제공하는 구현 클래스
+     * 내부 서비스 간 연동을 위한 계좌 조회 기능을 제공하는 구현 클래스
  *
  * <p>계좌 ID, 계좌번호, 사용자 ID 기반의 계좌 정보 조회 기능을 제공합니다.</p>
  */
@@ -142,7 +142,7 @@ public class AccountInternalServiceImpl implements AccountInternalService {
                     .getBalance();
         } catch (Exception e) {
             // 예외 발생 시에도 잔액을 제외한 나머지 계좌 정보 조회는 가능하도록
-            log.error("[OPENBANKING] 잔액 조회 실패: userId={}", userId, e);
+            log.warn("[OPENBANKING] 잔액 조회 실패: userId={}", userId, e);
             balance = -1L;
         }
 

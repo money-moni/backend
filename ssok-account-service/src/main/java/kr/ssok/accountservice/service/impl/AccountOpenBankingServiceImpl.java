@@ -80,15 +80,19 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
         // 계좌 유효성 검사를 위한 로직 - redis에 오픈뱅킹으로 받은 정보 캐싱
         String redisKey = AccountIdentifierUtil.buildLookupKey(userId);
 
-        redisTemplate.opsForSet().add(redisKey, response.getResult().stream()
-                .map(dto -> AccountIdentifierUtil.buildLookupValue(
-                        dto.getBankCode(),
-                        dto.getAccountNumber(),
-                        dto.getAccountTypeCode()))
-                .distinct()
-                .toArray(String[]::new));
+        try {
+            redisTemplate.opsForSet().add(redisKey, response.getResult().stream()
+                    .map(dto -> AccountIdentifierUtil.buildLookupValue(
+                            dto.getBankCode(),
+                            dto.getAccountNumber(),
+                            dto.getAccountTypeCode()))
+                    .distinct()
+                    .toArray(String[]::new));
 
-        redisTemplate.expire(redisKey, Duration.ofMinutes(5)); // TTL 5분
+            redisTemplate.expire(redisKey, Duration.ofMinutes(5)); // TTL 5분
+        } catch (Exception e) {
+            log.error("Redis 계좌 정보 캐싱 실패: userId={}, error={}", userId, e.getMessage());
+        }
 
 
         return response.getResult()
