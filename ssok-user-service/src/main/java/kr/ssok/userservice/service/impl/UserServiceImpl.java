@@ -37,7 +37,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ServiceLogging(logParameters = true, logResult = false, logExecutionTime = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final S3FileService s3FileService;

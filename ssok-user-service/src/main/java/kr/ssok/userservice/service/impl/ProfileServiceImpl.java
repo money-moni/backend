@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-@ServiceLogging(logParameters = true, logResult = false, logExecutionTime = true)
 public class ProfileServiceImpl implements ProfileService {
 
     private final ProfileImageRepository profileImageRepository;

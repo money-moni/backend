@@ -20,7 +20,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@ServiceLogging(logParameters = true, logResult = false, logExecutionTime = true)
 public class S3FileServiceImpl implements S3FileService {
 
     private final AmazonS3 amazonS3;

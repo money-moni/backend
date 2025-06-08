@@ -20,7 +20,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/accounts")
 @RequiredArgsConstructor
-@ControllerLogging(logResult = true, maskSensitiveData = true)
 public class AccountController {
     private final AccountService accountService;
 
