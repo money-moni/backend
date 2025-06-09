@@ -64,7 +64,7 @@ public class AccountServiceImpl implements AccountService {
         Boolean isValidAccount = validateAccountOwnership(userId, createAccountRequestDto);
 
         // 계좌 정보가 존재하지 않을 시, 예외발생
-        if (Boolean.FALSE.equals(isValidAccount)) {
+        if (Boolean.FALSE.equals(isValidAccount) || isValidAccount == null) {
             throw new AccountException(AccountResponseStatus.ACCOUNT_CREATION_FORBIDDEN);
         }
         // 기존 계좌가 존재하는 지 확인
@@ -135,9 +135,7 @@ public class AccountServiceImpl implements AccountService {
 
         if (CollectionUtils.isEmpty(linkedAccounts)) {
             log.warn("[GET] Account not found: userId={}", userId);
-            CompletableFuture<List<AccountBalanceResponseDto>> failed = new CompletableFuture<>();
-            failed.completeExceptionally(new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND));
-            return failed;
+            return CompletableFuture.failedFuture(new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND));
         }
 
         List<CompletableFuture<AccountBalanceResponseDto>> futures = linkedAccounts.stream()
