@@ -2,7 +2,7 @@ package kr.ssok.transferservice.service.impl.helper;
 
 import kr.ssok.transferservice.client.NotificationServiceClient;
 import kr.ssok.transferservice.client.dto.request.FcmNotificationRequestDto;
-import kr.ssok.transferservice.entity.enums.TransferType;
+import kr.ssok.transferservice.enums.TransferType;
 import kr.ssok.transferservice.enums.BankCode;
 import kr.ssok.transferservice.kafka.message.KafkaNotificationMessageDto;
 import kr.ssok.transferservice.kafka.producer.NotificationProducer;

@@ -1,10 +1,9 @@
 package kr.ssok.transferservice.service.impl.helper;
 
-import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.entity.TransferHistory;
-import kr.ssok.transferservice.entity.enums.CurrencyCode;
-import kr.ssok.transferservice.entity.enums.TransferMethod;
-import kr.ssok.transferservice.entity.enums.TransferType;
+import kr.ssok.transferservice.enums.CurrencyCode;
+import kr.ssok.transferservice.enums.TransferMethod;
+import kr.ssok.transferservice.enums.TransferType;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

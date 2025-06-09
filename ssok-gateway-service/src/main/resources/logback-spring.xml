@@ -7,7 +7,7 @@
     <!-- 콘솔 로그: 텍스트 형식 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
+            <pattern>[%X{traceId:-NO_TRACE}][%X{userId:-NO_USER}] %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -24,6 +24,10 @@
                     <fieldName>time</fieldName>
                     <timeZone>Asia/Seoul</timeZone>
                 </timestamp>
+                <!-- MDC (traceId, userId 포함) -->
+                <mdc>
+                    <includeKeys>traceId,userId</includeKeys>
+                </mdc>
                 <pattern>
                     <pattern>
                         {

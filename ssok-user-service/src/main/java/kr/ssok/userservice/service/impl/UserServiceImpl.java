@@ -1,5 +1,6 @@
 package kr.ssok.userservice.service.impl;
 
+import kr.ssok.common.logging.annotation.ServiceLogging;
 import kr.ssok.userservice.client.AligoClient;
 import kr.ssok.userservice.client.BankClient;
 import kr.ssok.userservice.constants.ProfileConstants;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ServiceLogging(logParameters = true, logResult = false, logExecutionTime = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final S3FileService s3FileService;

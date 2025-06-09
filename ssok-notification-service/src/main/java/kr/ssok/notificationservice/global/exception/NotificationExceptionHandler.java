@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * 송금 서비스 전용 예외 처리 핸들러
+ * 알림 서비스 전용 예외 처리 핸들러
  * 공통 예외처리 외에 송금 서비스만의 특별한 예외 처리가 필요한 경우 사용
  */
 @RestControllerAdvice(basePackages = "kr.ssok.notificationservice")
 public class NotificationExceptionHandler {
 
     /**
-     * TransferException 처리
+     * NotificationException 처리
      */
     @ExceptionHandler(NotificationException.class)
     public ResponseEntity<BaseResponse<?>> handleTransferException(NotificationException e) {

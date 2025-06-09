@@ -1,5 +1,6 @@
 package kr.ssok.notificationservice.domain.fcm.config;
 
+import kr.ssok.notificationservice.global.exception.NotificationPermanentException;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +10,8 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,20 +61,48 @@ public class KafkaConsumerConfig {
     }
 
     /**
-     * Kafka 메시지를 수신할 리스너 컨테이너 팩토리 Bean
-     * - @KafkaListener 메서드가 사용할 컨테이너 설정을 제공
+     * Main 토픽 전용 ConcurrentKafkaListenerContainerFactory Bean
+     * - NotificationPermanentException 발생 시, 재시도 없이 즉시 DLT로 보낸다.
      *
      * @return ConcurrentKafkaListenerContainerFactory<String, String>
      */
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
-        // ConcurrentKafkaListenerContainerFactory는 멀티스레드 기반 메시지 소비가 가능함
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    @Bean(name = "mainKafkaListenerContainerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, String> mainKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
 
-        // 앞서 정의한 consumerFactory를 사용하여 메시지 수신
         factory.setConsumerFactory(consumerFactory());
 
-        // 기본 concurrency(동시성)는 1 → 필요 시 factory.setConcurrency(n) 설정 가능
+        // Permanent 예외 발생 시 Retry 없이 바로 DLT로 보내기
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(
+                new FixedBackOff(0L, 0L)  // 재시도 없이 즉시 DLT
+        );
+        // NotificationPermanentException이 발생하면 즉시 DLT (Retry 대상 제외)
+        errorHandler.addNotRetryableExceptions(NotificationPermanentException.class);
+        factory.setCommonErrorHandler(errorHandler);
+
+        return factory;
+    }
+
+    /**
+     * Recovery 토픽 전용 ConcurrentKafkaListenerContainerFactory Bean
+     * - 실패 시 단 한 번만 시도하고, swallow 하도록 설정 (무한루프 방지)
+     *
+     * @return ConcurrentKafkaListenerContainerFactory<String, String>
+     */
+    @Bean(name = "recoveryKafkaListenerContainerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, String> recoveryKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+
+        factory.setConsumerFactory(consumerFactory());
+
+        // Recovery 단계에서는 재시도 없이 바로 swallow(예외 무시) 후 다음 메시지로 넘어감
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(
+                new FixedBackOff(0L, 0L)
+        );
+        factory.setCommonErrorHandler(errorHandler);
+
         return factory;
     }
 }
