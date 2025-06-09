@@ -7,6 +7,7 @@ import kr.ssok.accountservice.dto.response.transferservice.AccountInfoResponseDt
 import kr.ssok.accountservice.dto.response.transferservice.PrimaryAccountInfoResponseDto;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * MSA 내 다른 서비스에서 내부 호출을 위한 계좌 조회 기능을 정의하는 Service 인터페이스
@@ -61,5 +62,5 @@ public interface AccountInternalService {
      * @param userId 사용자 ID
      * @return 대표 계좌 정보를 담은 PrimaryAccountBalanceResponseDto
      */
-    PrimaryAccountBalanceResponseDto findPrimaryAccountBalanceByUserId(Long userId);
+    CompletableFuture<PrimaryAccountBalanceResponseDto> findPrimaryAccountBalanceByUserId(Long userId);
 }

@@ -40,26 +40,15 @@ public class FcmController {
     }
 
     /**
-     * 푸시 알림 전송 API(프론트 테스트용 - 삭제 예정)
+     * 푸시 알림 전송 API(openfeign용)
      *
-     * @param userId 사용자 ID
-     * @param title  알림 제목
-     * @param body   알림 내용
+     * @param request 사용자 ID, 알림 제목, 알림 내용
      * @return 알림 전송 응답
      */
-    @PostMapping("/send")
-    public ResponseEntity<BaseResponse<Void>> sendPushNotification(
-            @RequestHeader("X-User-Id") String userId,
-            @RequestParam("title") String title,
-            @RequestParam("body") String body) {
-        notificationService.sendFcmNotification(Long.parseLong(userId), title, body);
-        return ResponseEntity.ok(new BaseResponse<>(NotificationResponseStatus.TOKEN_REGISTER_SUCCESS)); // 임시 응답
-    }
-
     // 삭제 예정(openfeign 용)
-//    @PostMapping("/send")
-//    public ResponseEntity<BaseResponse<Void>> sendFcmNotification(@RequestBody FcmNotificationRequestDto request) {
-//        notificationService.sendFcmNotification(request.getUserId(), request.getTitle(), request.getBody());
-//        return ResponseEntity.ok(new BaseResponse<>(NotificationResponseStatus.TOKEN_REGISTER_SUCCESS));
-//    }
+    @PostMapping("/send")
+    public ResponseEntity<BaseResponse<Void>> sendFcmNotification(@RequestBody FcmNotificationRequestDto request) {
+        notificationService.sendFcmNotification(request.getUserId(), request.getTitle(), request.getBody());
+        return ResponseEntity.ok(new BaseResponse<>(NotificationResponseStatus.TOKEN_REGISTER_SUCCESS));
+    }
 }

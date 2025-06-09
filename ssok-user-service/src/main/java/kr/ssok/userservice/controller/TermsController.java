@@ -2,6 +2,7 @@ package kr.ssok.userservice.controller;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.common.exception.CommonResponseStatus;
+import kr.ssok.common.logging.annotation.ControllerLogging;
 import kr.ssok.userservice.dto.response.TermsDetailResponseDto;
 import kr.ssok.userservice.dto.response.TermsListResponseDto;
 import kr.ssok.userservice.service.TermsService;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequestMapping("/api/terms")
 @RequiredArgsConstructor
 @Slf4j
+@ControllerLogging(logParameters = true, logResult = true)
 public class TermsController {
     private final TermsService termsService;
 

@@ -158,7 +158,7 @@ class AccountInternalServiceImplTest {
         // 검증
         assertThat(result.getAccountId()).isEqualTo(300L);
         assertThat(result.getAccountNumber()).isEqualTo("333-3333");
-        assertThat(result.getAccountName()).isEqualTo("홍길동");
+        assertThat(result.getUsername()).isEqualTo("홍길동");
         assertThat(result.getBankCode()).isEqualTo(BankCode.SSOK_BANK.getIdx());
     }
 

@@ -1,8 +1,8 @@
 package kr.ssok.transferservice.dto.response;
 
-import kr.ssok.transferservice.entity.enums.CurrencyCode;
-import kr.ssok.transferservice.entity.enums.TransferMethod;
-import kr.ssok.transferservice.entity.enums.TransferType;
+import kr.ssok.transferservice.enums.CurrencyCode;
+import kr.ssok.transferservice.enums.TransferMethod;
+import kr.ssok.transferservice.enums.TransferType;
 import lombok.Builder;
 import lombok.Getter;
 

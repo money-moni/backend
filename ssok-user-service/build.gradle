@@ -36,6 +36,9 @@ dependencies {
     // PostgreSQL Driver
     runtimeOnly 'org.postgresql:postgresql'
 
+    // Logback
+    implementation libs.logback
+
     // Redis
     implementation libs.redis
 
@@ -56,6 +59,10 @@ dependencies {
 
     // H2(테스트용)
     runtimeOnly 'com.h2database:h2'
+
+    // AWS S3
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.470'
 
     // gRPC 라이브러리
     implementation(libs.grpcStub)

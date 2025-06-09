@@ -80,6 +80,6 @@ public class FcmServiceImpl implements FcmService {
      * @return Redis 키
      */
     private String userKey(Long userId) {
-        return "user:" + userId;
+        return "userfcm:" + userId;
     }
 }

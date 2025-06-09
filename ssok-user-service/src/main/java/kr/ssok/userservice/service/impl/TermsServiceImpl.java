@@ -1,5 +1,6 @@
 package kr.ssok.userservice.service.impl;
 
+import kr.ssok.common.logging.annotation.ServiceLogging;
 import kr.ssok.userservice.dto.response.TermsDetailResponseDto;
 import kr.ssok.userservice.dto.response.TermsListResponseDto;
 import kr.ssok.userservice.entity.Terms;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@ServiceLogging(logParameters = true, logResult = false, logExecutionTime = true)
 public class TermsServiceImpl implements TermsService {
     private final TermsRepository termsRepository;
 

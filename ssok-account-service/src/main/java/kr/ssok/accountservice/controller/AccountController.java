@@ -7,11 +7,13 @@ import kr.ssok.accountservice.dto.response.AccountResponseDto;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
 import kr.ssok.accountservice.service.AccountService;
 import kr.ssok.common.exception.BaseResponse;
+import kr.ssok.common.logging.annotation.ControllerLogging;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 계좌 관련 API 요청을 처리하는 REST 컨트롤러
@@ -19,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/accounts")
 @RequiredArgsConstructor
+@ControllerLogging(logResult = true, maskSensitiveData = true)
 public class AccountController {
     private final AccountService accountService;
 
@@ -45,13 +48,13 @@ public class AccountController {
      * @return 조회된 연동 계좌 목록을 담은 {@link BaseResponse}
      */
     @GetMapping
-    public ResponseEntity<BaseResponse<List<AccountBalanceResponseDto>>> getAllAccounts(
+    public CompletableFuture<ResponseEntity<BaseResponse<List<AccountBalanceResponseDto>>>> getAllAccounts(
             @RequestHeader("X-User-Id") String userId) {
-        List<AccountBalanceResponseDto> result = this.accountService.findAllAccounts(Long.parseLong(userId));
-
-        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
+        return accountService.findAllAccounts(Long.parseLong(userId))
+                .thenApply(result ->
+                        ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result))
+                );
     }
-
 
     /**
      * 특정 계좌 ID에 해당하는 연동 계좌 상세 정보를 조회합니다.
@@ -61,13 +64,13 @@ public class AccountController {
      * @return 조회된 계좌 정보를 담은 {@link BaseResponse}
      */
     @GetMapping("/{accountId}")
-    public ResponseEntity<BaseResponse<AccountBalanceResponseDto>> getAccountById(
+    public CompletableFuture<ResponseEntity<BaseResponse<AccountBalanceResponseDto>>> getAccountById(
             @RequestHeader("X-User-Id") String userId,
             @PathVariable("accountId") Long accountId) {
-        AccountBalanceResponseDto result = this.accountService.findAccountById(Long.parseLong(userId), accountId);
-
-        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result));
-
+        return accountService.findAccountById(Long.parseLong(userId), accountId)
+                .thenApply(result ->
+                        ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_GET_SUCCESS, result))
+                );
     }
 
     /**

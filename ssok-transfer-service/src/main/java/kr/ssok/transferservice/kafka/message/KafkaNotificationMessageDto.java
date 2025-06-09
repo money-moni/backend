@@ -1,6 +1,6 @@
 package kr.ssok.transferservice.kafka.message;
 
-import kr.ssok.transferservice.entity.enums.TransferType;
+import kr.ssok.transferservice.enums.TransferType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

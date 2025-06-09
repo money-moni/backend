@@ -41,6 +41,12 @@ dependencies {
     // Redis
     implementation libs.redis
 
+    // Logback
+    implementation libs.logback
+
+    // WebFlux (WebClient 사용 목적)
+    implementation libs.webflux
+
     // gRPC 라이브러리
     implementation(libs.grpcStub)
     implementation(libs.grpcProtobuf)

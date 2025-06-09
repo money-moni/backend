@@ -27,6 +27,10 @@ dependencyResolutionManagement {
             version("protobuf", "3.25.5")   //protobuf 버전 추가
             version("protobufPlugin", "0.9.5")
             version("jakartaAnnotation", "3.0.0")
+            version("logback", "8.1")
+            version("micrometer", "1.14.5")
+            version("webflux", "3.4.5")
+
             
             // 플러그인 정의
             plugin('springBoot', 'org.springframework.boot').versionRef('springBoot')
@@ -46,6 +50,7 @@ dependencyResolutionManagement {
             library('springCloud', 'org.springframework.cloud', 'spring-cloud-dependencies').versionRef('springCloud')
             library('swagger', 'org.springdoc', 'springdoc-openapi-starter-webmvc-ui').versionRef('swagger')
             library('openfeign', 'org.springframework.cloud', 'spring-cloud-starter-openfeign').versionRef('openfeign')
+            library('webflux', 'org.springframework.boot', 'spring-boot-starter-webflux').versionRef('webflux')
 
             // Jackson 라이브러리 정의
             library('jacksonDatabind', 'com.fasterxml.jackson.core', 'jackson-databind').versionRef('jackson')
@@ -64,10 +69,17 @@ dependencyResolutionManagement {
             library("grpcCodegen", "io.grpc", "protoc-gen-grpc-java").versionRef("grpc")
             library("jakartaAnnotation", "jakarta.annotation", "jakarta.annotation-api").versionRef("jakartaAnnotation")
 
+            // logback 라이브러리 정의
+            library("logback", "net.logstash.logback", "logstash-logback-encoder").versionRef("logback")
+
+            // micrometer 라이브러리 정의
+            library("micrometer", "io.micrometer", "micrometer-registry-prometheus").versionRef("micrometer")
+
             // 버전이 따로 표기되어 있지 않을때 사용
             library('springBootWeb', 'org.springframework.boot', 'spring-boot-starter-web').withoutVersion()
             library('springBootDevtools', 'org.springframework.boot', 'spring-boot-devtools').withoutVersion()
             library('springBootTest', 'org.springframework.boot', 'spring-boot-starter-test').withoutVersion()
+            library('springBootActuator', 'org.springframework.boot', 'spring-boot-starter-actuator').withoutVersion()
 
         }
     }
