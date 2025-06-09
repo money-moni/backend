@@ -7,6 +7,7 @@ import kr.ssok.accountservice.dto.response.AllAccountsResponseDto;
 import kr.ssok.accountservice.dto.response.openbanking.OpenBankingAccountBalanceResponseDto;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 오픈뱅킹 연동 기능을 정의하는 Service 인터페이스
@@ -22,26 +23,26 @@ import java.util.List;
 public interface AccountOpenBankingService {
 
     /**
-     * 사용자 ID를 기반으로 오픈뱅킹 서버에 전체 계좌 목록을 조회합니다.
+     * 사용자 ID를 기반으로 오픈뱅킹 서버에 전체 계좌 목록을 비동기로 조회합니다.
      *
      * @param userId 사용자 ID
      * @return 전체 계좌 목록 응답 DTO 리스트
      */
-    List<AllAccountsResponseDto> fetchAllAccountsFromOpenBanking(Long userId);
+    CompletableFuture<List<AllAccountsResponseDto>> fetchAllAccountsFromOpenBanking(Long userId);
 
     /**
-     * 오픈뱅킹 서버에 계좌 실명 확인 요청을 보냅니다.
+     * 오픈뱅킹 서버에 계좌 실명 확인 요청을 비동기로 보냅니다.
      *
      * @param accountOwnerRequestDto 실명 조회 요청 DTO
      * @return 실명 확인 결과 DTO
      */
-    AccountOwnerResponseDto fetchAccountOwnerFromOpenBanking(AccountOwnerRequestDto accountOwnerRequestDto);
+    CompletableFuture<AccountOwnerResponseDto> fetchAccountOwnerFromOpenBanking(AccountOwnerRequestDto accountOwnerRequestDto);
 
     /**
-     * 오픈뱅킹 서버에 계좌 잔액 조회 요청을 보냅니다.
+     * 오픈뱅킹 서버에 계좌 잔액 조회 요청을 비동기로 보냅니다.
      *
      * @param openBankingAccountBalanceRequestDto 잔액 조회 요청 DTO
      * @return 잔액 조회 결과 DTO
      */
-    OpenBankingAccountBalanceResponseDto fetchAccountBalanceFromOpenBanking(OpenBankingAccountBalanceRequestDto openBankingAccountBalanceRequestDto);
+    CompletableFuture<OpenBankingAccountBalanceResponseDto> fetchAccountBalanceFromOpenBanking(OpenBankingAccountBalanceRequestDto openBankingAccountBalanceRequestDto);
 }
