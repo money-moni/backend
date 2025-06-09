@@ -28,9 +28,8 @@ public class GrpcServerConfig {
 
     @PostConstruct
     public void startServer() throws IOException {
-
-        // TODO. 스레드 풀 갯수는 최적화가 필요할 듯
-        executor = Executors.newFixedThreadPool(4);
+        int cores = Runtime.getRuntime().availableProcessors();
+        executor = Executors.newFixedThreadPool(cores * 2);
         server = Grpc.newServerBuilderForPort(GRPC_SERVER_PORT, InsecureServerCredentials.create())
                 .executor(executor)
                 .addService(this.userGrpcService)
