@@ -42,8 +42,10 @@ public enum UserResponseStatus implements ResponseStatus {
     FILE_DELETE_ERROR(false, 5022, "파일 삭제 중 오류가 발생했습니다."),
     FILE_EMPTY(false, 4020, "파일이 비어있습니다."),
     INVALID_FILE_TYPE(false, 4021, "지원하지 않는 파일 형식입니다. 이미지 파일만 업로드 가능합니다."),
-    FILE_SIZE_EXCEEDED(false, 4022, "파일 크기가 5MB를 초과합니다.");
+    FILE_SIZE_EXCEEDED(false, 4022, "파일 크기가 5MB를 초과합니다."),
 
+    // gRPC 내부 통신 관련 오류
+    INTERNAL_SERVER_ERROR(false, 4050, "내부 서버 에러가 발생했습니다.");
 
     private final boolean success;
     private final int code;

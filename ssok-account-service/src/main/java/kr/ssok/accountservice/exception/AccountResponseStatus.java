@@ -38,7 +38,9 @@ public enum AccountResponseStatus implements ResponseStatus {
     INVALID_OPENBANKING_CODE(false, 4211, "오픈뱅킹 예외처리 코드가 유효하지 않습니다."),
     OPENBANKING_REQUEST_FAILED(false, 4212, "오픈뱅킹 API 요청에 실패했습니다."),
 
-    USER_INFO_NOT_FOUND(false, 4213, "사용자 정보를 찾을 수 없습니다.");
+    USER_INFO_NOT_FOUND(false, 4213, "사용자 정보를 찾을 수 없습니다."),
+
+    INTERNAL_SERVER_ERROR(false, 4250, "내부 서버 에러가 발생했습니다.");
 
     private final boolean success;
     private final int code;

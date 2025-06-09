@@ -38,7 +38,15 @@ public enum TransferResponseStatus implements ResponseStatus {
     DEPOSIT_ERROR(false, 4311, "입금 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     TRANSFER_LIMIT_EXCEEDED(false, 4312, "해당 계좌의 출금 한도에 도달하였습니다.", HttpStatus.BAD_REQUEST),
     TRANSFER_UNKNOWN_ERROR(false, 4313, "송금 처리 중 알 수 없는 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-    BANK_API_COMMUNICATION_FAILED(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY);
+    BANK_API_COMMUNICATION_FAILED(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
+
+    // gRPC 에러 처리
+    aa(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
+    bb(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
+    cc(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
+    dd(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
+    ee(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
+    ;
 
     private final boolean success;
     private final int code;
