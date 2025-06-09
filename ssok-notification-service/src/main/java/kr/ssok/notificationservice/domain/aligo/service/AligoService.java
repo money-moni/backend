@@ -1,6 +1,7 @@
 package kr.ssok.notificationservice.domain.aligo.service;
 
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Service
 @NoArgsConstructor
+@Slf4j
 public class AligoService {
 
     @Value(("${aligo.SMS_API_URL}"))
@@ -57,7 +59,7 @@ public class AligoService {
             System.out.println("Response Status: " + response.getStatusCode());
             System.out.println("Response Body: " + response.getBody());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("SMS 발송 실패: phoneNumber={}, verificationCode={}", phoneNumber, verificationCode,e);
         }
     }
 

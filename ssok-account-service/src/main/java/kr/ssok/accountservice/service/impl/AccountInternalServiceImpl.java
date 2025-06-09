@@ -26,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * 내부 서비스 간 연동을 위한 계좌 조회 기능을 제공하는 구현 클래스
+     * 내부 서비스 간 연동을 위한 계좌 조회 기능을 제공하는 구현 클래스
  *
  * <p>계좌 ID, 계좌번호, 사용자 ID 기반의 계좌 정보 조회 기능을 제공합니다.</p>
  */

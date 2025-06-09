@@ -37,7 +37,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ServiceLogging(logParameters = true, logResult = false, logExecutionTime = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final S3FileService s3FileService;
@@ -66,7 +65,7 @@ public class UserServiceImpl implements UserService {
         if (bindingResult.hasErrors()) {
             FieldError error = bindingResult.getFieldError();
             String errorMessage = error != null ? error.getDefaultMessage() : "유효성 검증 오류";
-            log.error("Validation 에러: {}", errorMessage);
+            log.warn("Validation 에러: {}", errorMessage);
             throw new UserException(UserResponseStatus.INVALID_SIGNUP_REQUEST_VALUE);
         }
         
@@ -82,8 +81,15 @@ public class UserServiceImpl implements UserService {
                 .birthDate(requestDto.getBirthDate())
                 .pinCode(passwordEncoder.encode(String.valueOf(requestDto.getPinCode()))) // int -> String 변환
                 .build();
-        
-        User savedUser = userRepository.save(user);
+
+        User savedUser;
+
+        try {
+            savedUser = userRepository.save(user);
+        } catch (Exception e) {
+            log.error("사용자 정보 저장 실패: phoneNumber={}, error={}", requestDto.getPhoneNumber(), e.getMessage());
+            throw new UserException(UserResponseStatus.USER_SAVE_ERROR);
+        }
 
         String fileUrl = s3FileService.getFileUrl(ProfileConstants.DEFAULT_IMAGE_FILENAME);
 
@@ -136,11 +142,21 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         // Feign Client를 통한 인증번호 발송 요청
-        aligoClient.sendVerificationCode(requestDto);
+        try {
+            aligoClient.sendVerificationCode(requestDto);
+        } catch (Exception e) {
+            log.error("SMS 발송 실패: phoneNumber={}, error={}", phoneNumber, e.getMessage());
+            throw new UserException(UserResponseStatus.SMS_SEND_ERROR);
+        }
         log.info(phoneNumber + " " + verificationCode + ": 인증코드 전송");
 
         // 인증코드 redis 저장 (유효시간 3분)
-        redisTemplate.opsForValue().set(phoneNumber, verificationCode, 3, TimeUnit.MINUTES);
+        try {
+            redisTemplate.opsForValue().set(phoneNumber, verificationCode, 3, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            log.error("Redis 인증 코드 저장 실패: phoneNumber={}, error={}", phoneNumber, e.getMessage());
+            throw new UserException(UserResponseStatus.REDIS_SAVE_ERROR);
+        }
     }
 
     /**
@@ -235,6 +251,7 @@ public class UserServiceImpl implements UserService {
         Boolean hasAuth = Boolean.TRUE.equals(redisTemplate.hasKey(pinAuthKey));
 
         if (!hasAuth) {
+            log.warn("PIN 변경 인증 없이 시도: userId={}", userId);
             throw new UserException(UserResponseStatus.PIN_CHANGE_AUTH_REQUIRED);
         }
 

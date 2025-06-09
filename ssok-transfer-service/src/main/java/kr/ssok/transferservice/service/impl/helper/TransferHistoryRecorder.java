@@ -4,7 +4,10 @@ import kr.ssok.transferservice.entity.TransferHistory;
 import kr.ssok.transferservice.enums.CurrencyCode;
 import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.enums.TransferType;
+import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
+import kr.ssok.transferservice.exception.TransferResponseStatus;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -39,6 +42,12 @@ public class TransferHistoryRecorder {
                 .transferMethod(transferMethod)
                 .build();
 
-        transferHistoryRepository.save(history);
+        try {
+            transferHistoryRepository.save(history);
+        } catch (Exception e) {
+            log.error("송금 이력 저장 실패: accountId={}, amount={}, error={}",
+                    accountId, amount, e.getMessage());
+            throw new TransferException(TransferResponseStatus.TRANSFER_HISTORY_SAVE_ERROR);
+        }
     }
 }

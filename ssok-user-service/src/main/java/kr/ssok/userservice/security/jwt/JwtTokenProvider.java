@@ -109,12 +109,20 @@ public class JwtTokenProvider {
      */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
             return true;
+
+        } catch (ExpiredJwtException e) {
+            log.debug("만료된 JWT 토큰: {}", e.getMessage());
         } catch (JwtException | IllegalArgumentException e) {
-            log.error("Invalid JWT token: {}", e.getMessage());
-            return false;
+            log.warn("유효하지 않은 JWT 토큰: {}", e.getMessage());
+        } catch (Exception e) {
+            log.error("JWT 검증 중 알 수 없는 예외 발생: {}", e.getMessage(), e);
         }
+        return false;
     }
 
     /**

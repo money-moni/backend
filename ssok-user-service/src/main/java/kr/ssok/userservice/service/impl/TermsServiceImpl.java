@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@ServiceLogging(logParameters = true, logResult = false, logExecutionTime = true)
 public class TermsServiceImpl implements TermsService {
     private final TermsRepository termsRepository;
 

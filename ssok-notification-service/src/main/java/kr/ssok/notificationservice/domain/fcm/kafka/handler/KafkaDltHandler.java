@@ -41,7 +41,7 @@ public class KafkaDltHandler {
             @Header(KafkaHeaders.EXCEPTION_MESSAGE) String errorMessage,
             @Header(KafkaHeaders.GROUP_ID) String groupId
     ) {
-        log.error("[DLQ 처리] 실패 메시지: '{}', 토픽: '{}', 파티션: {}, 오프셋: {}, 그룹: {}, 예외: {}",
+        log.warn("[DLQ 처리] 실패 메시지: '{}', 토픽: '{}', 파티션: {}, 오프셋: {}, 그룹: {}, 예외: {}",
                 record.value(), topic, partition, offset, groupId, errorMessage);
 
         // 2) 복구 토픽으로 메시지 재전송 (비동기)

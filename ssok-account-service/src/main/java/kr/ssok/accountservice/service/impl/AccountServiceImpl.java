@@ -113,7 +113,13 @@ public class AccountServiceImpl implements AccountService {
                 .accountTypeCode(accountTypeCode)
                 .build();
 
-        this.accountRepository.save(linkedAccount);
+        try {
+            this.accountRepository.save(linkedAccount);
+        } catch (Exception e) {
+            log.error("계좌 저장 실패: userId={}, accountNumber={}, error={}",
+                    userId, createAccountRequestDto.getAccountNumber(), e.getMessage());
+            throw new AccountException(AccountResponseStatus.ACCOUNT_SAVE_ERROR);
+        }
 
         return AccountResponseDto.from(linkedAccount);
     }
@@ -215,7 +221,13 @@ public class AccountServiceImpl implements AccountService {
             log.warn("[DELETE] Attempted to delete primary account: accountId={}, userId={}", accountId, userId);
             throw new AccountException(AccountResponseStatus.ACCOUNT_PRIMARY_CANNOT_DELETE);    }
 
-        linkedAccount.markAsDeleted();
+        try {
+            linkedAccount.markAsDeleted();
+        } catch (Exception e) {
+            log.error("계좌 삭제 상태 업데이트 실패: accountId={}, userId={}, error={}",
+                    accountId, userId, e.getMessage());
+            throw new AccountException(AccountResponseStatus.ACCOUNT_UPDATE_ERROR);
+        }
 
         return AccountResponseDto.from(linkedAccount);
     }

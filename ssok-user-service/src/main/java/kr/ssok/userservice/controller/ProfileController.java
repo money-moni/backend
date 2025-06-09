@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/profiles")
 @RequiredArgsConstructor
 @Tag(name = "Profile", description = "프로필 이미지 관리 API")
-@ControllerLogging(logParameters = true, logResult = true)
 public class ProfileController {
 
     private final ProfileService profileService;

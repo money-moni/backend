@@ -20,7 +20,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@ServiceLogging(logParameters = true, logResult = false, logExecutionTime = true)
 public class S3FileServiceImpl implements S3FileService {
 
     private final AmazonS3 amazonS3;
@@ -52,7 +51,7 @@ public class S3FileServiceImpl implements S3FileService {
             return fileName;
             
         } catch (IOException e) {
-            log.error("S3 파일 업로드 실패: {}", e.getMessage());
+            log.error("S3 업로드 실패: userId={}, fileSize={}, error={}", userId, file.getSize(), e.getMessage());
             throw new UserException(UserResponseStatus.FILE_UPLOAD_ERROR);
         }
     }
