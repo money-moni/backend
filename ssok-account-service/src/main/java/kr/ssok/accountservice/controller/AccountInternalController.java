@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 내부 서비스 간 연동을 위한 계좌 정보 API를 제공하는 REST 컨트롤러
@@ -89,11 +90,13 @@ public class AccountInternalController {
      * @return 사용자 ID에 해당하는 주계좌 정보를 담은 {@link BaseResponse}
      */
     @GetMapping("/primary-account-balance")
-    public ResponseEntity<BaseResponse<PrimaryAccountBalanceResponseDto>> getPrimaryAccountBalance(
+    public CompletableFuture<ResponseEntity<BaseResponse<PrimaryAccountBalanceResponseDto>>> getPrimaryAccountBalance(
             @RequestHeader("X-User-Id") String userId) {
-        PrimaryAccountBalanceResponseDto result = this.accountInternalService.findPrimaryAccountBalanceByUserId(Long.parseLong(userId));
-
-        return ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_INFO_GET_SUCCESS, result));
+        return accountInternalService.findPrimaryAccountBalanceByUserId(Long.parseLong(userId))
+                .thenApply(result ->
+                        ResponseEntity.ok().body(new BaseResponse<>(AccountResponseStatus.ACCOUNT_INFO_GET_SUCCESS, result))
+                );
     }
+
 
 }
