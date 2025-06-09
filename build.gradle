@@ -54,7 +54,6 @@ subprojects {
         if (project.name != 'ssok-common') {
             implementation libs.springBootActuator
             implementation libs.micrometer
-            implementation libs.chaosMonkey
         }
     }
 
