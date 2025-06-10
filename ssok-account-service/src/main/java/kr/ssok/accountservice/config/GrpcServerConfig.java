@@ -1,8 +1,7 @@
 package kr.ssok.accountservice.config;
 
-import io.grpc.Grpc;
-import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
+import io.grpc.ServerBuilder;
 import kr.ssok.accountservice.grpc.server.AccountGrpcInternalServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,12 +29,12 @@ public class GrpcServerConfig {
     public void startServer() throws IOException {
         int cores = Runtime.getRuntime().availableProcessors();
         executor = Executors.newFixedThreadPool(cores * 2);
-        server = Grpc.newServerBuilderForPort(GRPC_ACCOUNT_SERVER_PORT, InsecureServerCredentials.create())
+        server = ServerBuilder.forPort(GRPC_ACCOUNT_SERVER_PORT)
+                .addService(this.accountGrpcInternalService)
                 .executor(executor)
-                .addService(this.accountGrpcInternalService) // 직접 서비스 주입
+                .maxConnectionAge(30, TimeUnit.SECONDS)  // 30초마다 연결 종료
                 .build()
                 .start();
-        System.out.println("gRPC server started on port 50051");
     }
 
     @PreDestroy
@@ -49,6 +48,5 @@ public class GrpcServerConfig {
             // 스레드 풀 정리
             executor.shutdown();
         }
-        System.out.println("gRPC server stopped");
     }
 }

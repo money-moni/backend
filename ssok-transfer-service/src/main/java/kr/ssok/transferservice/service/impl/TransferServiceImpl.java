@@ -1,10 +1,8 @@
 package kr.ssok.transferservice.service.impl;
 
-import kr.ssok.common.exception.BaseResponse;
-import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
-import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
+import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.client.dto.response.OpenBankingResponse;
 import kr.ssok.transferservice.client.dto.response.PrimaryAccountResponseDto;
 import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
@@ -17,6 +15,7 @@ import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.enums.TransferType;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
+import kr.ssok.transferservice.grpc.client.AccountServiceClient;
 import kr.ssok.transferservice.service.TransferService;
 import kr.ssok.transferservice.service.impl.helper.AccountInfoResolver;
 import kr.ssok.transferservice.service.impl.helper.TransferHistoryRecorder;
@@ -193,19 +192,21 @@ public class TransferServiceImpl implements TransferService {
      */
     private void saveDepositHistoryIfReceiverExists(String sendAccountNumber, TransferRequestDto dto, TransferMethod transferMethod) {
         long start = System.currentTimeMillis();
-        BaseResponse<AccountIdResponseDto> response =
+//        BaseResponse<AccountIdResponseDto> response =
+//                this.accountServiceClient.getAccountId(dto.getRecvAccountNumber());
+        AccountIdResponseDto response =
                 this.accountServiceClient.getAccountId(dto.getRecvAccountNumber());
         long end = System.currentTimeMillis();
         log.info("[SSOK-ACCOUNT] 송금 수신자 유저 조회 시간: {}ms", end - start);
 
-        if (response.getIsSuccess()
-                && response.getCode() == 2200
-                && response.getResult() != null
-                && response.getResult().getAccountId() != null) {
+//        if (response.getIsSuccess()
+//                && response.getCode() == 2200
+//                && response.getResult() != null
+//                && response.getResult().getAccountId() != null) {
 
             start = System.currentTimeMillis();
             transferHistoryRecorder.saveTransferHistory(
-                    response.getResult().getAccountId(), // 상대방 계좌 ID
+                    response.getAccountId(), // 상대방 계좌 ID
                     sendAccountNumber,                   // 출금자 계좌번호
                     dto.getSendName(),                   // 송금자 이름 정보
                     TransferType.DEPOSIT,
@@ -220,7 +221,7 @@ public class TransferServiceImpl implements TransferService {
             start = System.currentTimeMillis();
 
             notificationSender.sendKafkaNotification(
-                    response.getResult().getUserId(),               // 수신자 userId
+                    response.getUserId(),               // 수신자 userId
                     dto.getSendName(),                              // 송신자 이름
                     dto.getRecvBankCode(),                          // 수신자 은행 코드
                     dto.getAmount(),                                // 금액
@@ -228,7 +229,7 @@ public class TransferServiceImpl implements TransferService {
             );
             end = System.currentTimeMillis();
             log.info("[SSOK-NOTIFICATION] 카프카 푸시 알림 요청 시간: {}ms", end - start);
-        }
+//        }
     }
 
     /**
@@ -257,12 +258,12 @@ public class TransferServiceImpl implements TransferService {
      */
     private TransferBluetoothRequestDto createTransferRequest(BluetoothTransferRequestDto requestDto) {
         // 상대방 계좌 정보 조회
-        BaseResponse<PrimaryAccountResponseDto> response = accountServiceClient.getAccountInfo(requestDto.getRecvUserId().toString());
-        if (!response.getIsSuccess()) {
-            throw new TransferException(TransferResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED);
-        }
-        PrimaryAccountResponseDto accountInfo = response.getResult();
-
+//        BaseResponse<PrimaryAccountResponseDto> response = accountServiceClient.getAccountInfo(requestDto.getRecvUserId().toString());
+//        if (!response.getIsSuccess()) {
+//            throw new TransferException(TransferResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED);
+//        }
+//        PrimaryAccountResponseDto accountInfo = response.getResult();
+        PrimaryAccountResponseDto accountInfo = accountServiceClient.getAccountInfo(requestDto.getRecvUserId().toString());
         // 송금 요청 DTO 생성
         return TransferBluetoothRequestDto.builder()
                 .sendAccountId(requestDto.getSendAccountId())

@@ -49,13 +49,12 @@ public class GrpcExceptionUtil {
             }
 
             return switch (code) {
-                case 3123 -> new AccountException(AccountResponseStatus.OPENBANKING_OWNER_LOOKUP_FAILED);
-//                case 132123 -> new TransferException(TransferResponseStatus.DORMANT_ACCOUNT);
-//                case 123213 -> new TransferException(TransferResponseStatus.ACCOUNT_LOOKUP_FAILED);
-                default -> new AccountException(AccountResponseStatus.OPENBANKING_OWNER_LOOKUP_FAILED);
+                case 4050 -> new AccountException(AccountResponseStatus.USER_SERVER_ERROR);
+                case 5011 -> new AccountException(AccountResponseStatus.USER_INFO_NOT_FOUND);
+                default -> new AccountException(AccountResponseStatus.UNSUPPORTED_CODE);
             };
         }
         // 메타데이터 없거나 매핑 실패 시
-        return new AccountException(AccountResponseStatus.OPENBANKING_OWNER_LOOKUP_FAILED);
+        return new AccountException(AccountResponseStatus.GRPC_METADATA_INVALID);
     }
 }

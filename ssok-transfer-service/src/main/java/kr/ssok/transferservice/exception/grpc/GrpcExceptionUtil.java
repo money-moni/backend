@@ -35,13 +35,12 @@ public class GrpcExceptionUtil {
             }
 
             return switch (code) {
-                case 3123 -> new TransferException(TransferResponseStatus.ACCOUNT_NOT_FOUND);
-                case 132123 -> new TransferException(TransferResponseStatus.DORMANT_ACCOUNT);
-                case 123213 -> new TransferException(TransferResponseStatus.ACCOUNT_LOOKUP_FAILED);
-                default -> new TransferException(TransferResponseStatus.TRANSFER_FAILED);
+                case 4250 -> new TransferException(TransferResponseStatus.ACCOUNT_SERVER_ERROR);
+                case 4200 -> new TransferException(TransferResponseStatus.ACCOUNT_LOOKUP_FAILED);
+                default -> new TransferException(TransferResponseStatus.UNSUPPORTED_CODE);
             };
         }
         // 메타데이터 없거나 매핑 실패 시
-        return new TransferException(TransferResponseStatus.TRANSFER_UNKNOWN_ERROR);
+        return new TransferException(TransferResponseStatus.GRPC_METADATA_INVALID);
     }
 }

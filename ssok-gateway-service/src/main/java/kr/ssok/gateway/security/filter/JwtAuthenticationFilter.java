@@ -46,7 +46,8 @@ public class JwtAuthenticationFilter implements WebFilter {
                 "/actuator/prometheus",
                 "/actuator",
                 "/actuator/health",
-                "/actuator/info"
+                "/actuator/info",
+                "/chaos/"
         );
     }
 

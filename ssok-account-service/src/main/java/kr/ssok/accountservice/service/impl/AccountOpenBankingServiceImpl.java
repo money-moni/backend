@@ -1,7 +1,6 @@
 package kr.ssok.accountservice.service.impl;
 
 import kr.ssok.accountservice.client.OpenBankingClient;
-import kr.ssok.accountservice.client.UserServiceClient;
 import kr.ssok.accountservice.dto.request.AccountOwnerRequestDto;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountBalanceRequestDto;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountOwnerRequestDto;
@@ -13,9 +12,9 @@ import kr.ssok.accountservice.dto.response.openbanking.OpenBankingAllAccountsRes
 import kr.ssok.accountservice.dto.response.userservice.UserInfoResponseDto;
 import kr.ssok.accountservice.exception.AccountException;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
+import kr.ssok.accountservice.grpc.client.UserServiceClient;
 import kr.ssok.accountservice.service.AccountOpenBankingService;
 import kr.ssok.accountservice.util.AccountIdentifierUtil;
-import kr.ssok.common.exception.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -57,14 +56,15 @@ public class AccountOpenBankingServiceImpl implements AccountOpenBankingService 
     @Override
     @Async("customExecutorWebClient")
     public CompletableFuture<List<AllAccountsResponseDto>> fetchAllAccountsFromOpenBanking(Long userId) {
-        BaseResponse<UserInfoResponseDto> userInfoResponse = userServiceClient.sendUserInfoRequest(userId.toString());
+//        BaseResponse<UserInfoResponseDto> userInfoResponse = userServiceClient.sendUserInfoRequest(userId.toString());
+//
+//        if (userInfoResponse == null || userInfoResponse.getResult() == null) {
+//            log.warn("[USERSERVICE] 사용자 정보 조회 실패: userId={}", userId);
+//            throw new AccountException(AccountResponseStatus.USER_INFO_NOT_FOUND);
+//        }
+        UserInfoResponseDto userInfoResponse = userServiceClient.getUserInfo(userId.toString());
 
-        if (userInfoResponse == null || userInfoResponse.getResult() == null) {
-            log.warn("[USERSERVICE] 사용자 정보 조회 실패: userId={}", userId);
-            throw new AccountException(AccountResponseStatus.USER_INFO_NOT_FOUND);
-        }
-
-        OpenBankingAllAccountsRequestDto requestDto = OpenBankingAllAccountsRequestDto.from(userInfoResponse.getResult());
+        OpenBankingAllAccountsRequestDto requestDto = OpenBankingAllAccountsRequestDto.from(userInfoResponse);
 
         return openBankingClient.sendAllAccountsRequest(requestDto)
                 .thenApply(response -> {

@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ServiceLogging(logParameters = false, maskSensitiveData = true) // 클래스 레벨 AOP 로깅 적용
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;

@@ -44,7 +44,17 @@ public enum UserResponseStatus implements ResponseStatus {
     INVALID_FILE_TYPE(false, 4021, "지원하지 않는 파일 형식입니다. 이미지 파일만 업로드 가능합니다."),
     FILE_SIZE_EXCEEDED(false, 4022, "파일 크기가 5MB를 초과합니다."),
 
-    // gRPC 내부 통신 관련 오류
+    // SMS 관련 오류
+    SMS_SEND_ERROR(false, 5030, "SMS 발송 중 오류가 발생했습니다."),
+
+    // 데이터베이스 관련 오류
+    USER_SAVE_ERROR(false, 5031, "사용자 정보 저장 중 오류가 발생했습니다."),
+    PROFILE_IMAGE_SAVE_ERROR(false, 5032, "프로필 이미지 저장 중 오류가 발생했습니다."),
+
+    // Redis 관련 오류
+    REDIS_SAVE_ERROR(false, 5034, "Redis 데이터 저장 중 오류가 발생했습니다."),
+
+    // gRPC 클라이언트에 전달 목적
     INTERNAL_SERVER_ERROR(false, 4050, "내부 서버 에러가 발생했습니다.");
 
     private final boolean success;

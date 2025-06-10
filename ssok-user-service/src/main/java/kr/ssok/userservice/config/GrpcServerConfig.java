@@ -1,9 +1,8 @@
 package kr.ssok.userservice.config;
 
-import io.grpc.Grpc;
-import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
-import kr.ssok.userservice.grpc.server.UserGrpcServiceImpl;
+import io.grpc.ServerBuilder;
+import kr.ssok.userservice.grpc.server.UserGrpcInternalServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -18,10 +17,10 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @RequiredArgsConstructor
 public class GrpcServerConfig {
-    private final UserGrpcServiceImpl userGrpcService;
+    private final UserGrpcInternalServiceImpl userGrpcInternalService;
 
-    @Value("${grpc.server.port}")
-    private int GRPC_SERVER_PORT;
+    @Value("${grpc.account-server.port}")
+    private int GRPC_USER_SERVER_PORT;
 
     private Server server;
     private ExecutorService executor;
@@ -30,12 +29,12 @@ public class GrpcServerConfig {
     public void startServer() throws IOException {
         int cores = Runtime.getRuntime().availableProcessors();
         executor = Executors.newFixedThreadPool(cores * 2);
-        server = Grpc.newServerBuilderForPort(GRPC_SERVER_PORT, InsecureServerCredentials.create())
+        server = ServerBuilder.forPort(GRPC_USER_SERVER_PORT)
+                .addService(this.userGrpcInternalService)
                 .executor(executor)
-                .addService(this.userGrpcService)
+                .maxConnectionAge(30, TimeUnit.SECONDS)  // 30초마다 연결 종료
                 .build()
                 .start();
-        System.out.println("gRPC server started on port 50051");
     }
 
     @PreDestroy
@@ -49,6 +48,5 @@ public class GrpcServerConfig {
             // 스레드 풀 정리
             executor.shutdown();
         }
-        System.out.println("gRPC server stopped");
     }
 }

@@ -18,7 +18,6 @@ import java.util.List;
 @RequestMapping("/api/terms")
 @RequiredArgsConstructor
 @Slf4j
-@ControllerLogging(logParameters = true, logResult = true)
 public class TermsController {
     private final TermsService termsService;
 

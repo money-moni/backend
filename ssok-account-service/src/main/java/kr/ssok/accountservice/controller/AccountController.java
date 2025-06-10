@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/accounts")
 @RequiredArgsConstructor
-@ControllerLogging(logResult = true, maskSensitiveData = true)
 public class AccountController {
     private final AccountService accountService;
 

@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@ControllerLogging(logParameters = true, logResult = true)
 public class UserController {
     private final UserService userService;
 

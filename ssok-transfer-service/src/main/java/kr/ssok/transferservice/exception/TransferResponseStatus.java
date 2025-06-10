@@ -41,11 +41,13 @@ public enum TransferResponseStatus implements ResponseStatus {
     BANK_API_COMMUNICATION_FAILED(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
 
     // gRPC 에러 처리
-    aa(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
-    bb(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
-    cc(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
-    dd(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
-    ee(false, 4314, "은행 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
+    UNSUPPORTED_CODE(false, 4316, "[ACCOUNT - TRANSFER] 지원하지 않는 예외처리 코드입니다."),
+    GRPC_METADATA_INVALID(false, 4317, "[ACCOUNT - TRANSFER] gRPC 메타 데이터가 유효하지 않습니다."),
+
+    // 서버 에러 - 데이트베이스 관련 (5300~5309)
+    TRANSFER_HISTORY_SAVE_ERROR(false, 5300, "송금 내역 저장 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    ACCOUNT_SERVER_ERROR(false, 5301, "[ACCOUNT - TRANSFER] ACCOUNT 서버에 에러가 발생했습니다."),
+
     ;
 
     private final boolean success;

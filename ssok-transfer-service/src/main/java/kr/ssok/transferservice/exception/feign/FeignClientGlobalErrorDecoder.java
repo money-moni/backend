@@ -42,8 +42,14 @@ public class FeignClientGlobalErrorDecoder implements ErrorDecoder {
                     .lines()
                     .collect(Collectors.joining("\n"));
 
-            log.error("Feign Client Error - Method: {}, Status: {}, Response: {}",
-                    methodKey, response.status(), responseBody);
+//            log.error("Feign Client Error - Method: {}, Status: {}, Response: {}",
+//                    methodKey, response.status(), responseBody);
+
+            if (response.status() >= 400 && response.status() <= 499) {
+                log.warn("Feign 클라이언트 에러: method={}, status={}", methodKey, response.status());
+            } else if (response.status() >= 500 && response.status() <= 599) {
+                log.error("Feign 서버 에러: method={}, status={}", methodKey, response.status());
+            }
 
             // OpenBankingResponse로 파싱
             OpenBankingResponse openBankingResponse = objectMapper.readValue(responseBody, OpenBankingResponse.class);

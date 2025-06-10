@@ -9,11 +9,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 @Configuration
 public class GrpcClientConfig {
     @Value("${grpc.user-server.address}")
     private String GRPC_USER_SERVER_ADDRESS;
-
 
     @Value("${grpc.user-server.port}")
     private int GRPC_USER_SERVER_PORT;
@@ -22,10 +25,20 @@ public class GrpcClientConfig {
 
     @Bean
     public ManagedChannel managedChannel() {
-        String target = GRPC_USER_SERVER_ADDRESS + ":" + GRPC_USER_SERVER_PORT;
+        String target = "dns:///" + GRPC_USER_SERVER_ADDRESS + ":" + GRPC_USER_SERVER_PORT;
         this.managedChannel = Grpc.newChannelBuilder(target, InsecureChannelCredentials.create())
+                .defaultServiceConfig(Map.of(
+                        "loadBalancingPolicy", "round_robin",
+                        "retryPolicy", Map.of(
+                                "maxAttempts", 3,
+                                "initialBackoff", "0.5s",
+                                "maxBackoff", "10s",
+                                "retryableStatusCodes", List.of("UNAVAILABLE")
+                        )
+                ))
+                .keepAliveTime(30, TimeUnit.SECONDS)
                 .build();
-        return this.managedChannel;
+        return managedChannel;
     }
 
     @Bean
@@ -35,8 +48,20 @@ public class GrpcClientConfig {
 
     @PreDestroy
     public void shutdown() {
-        if (this.managedChannel != null && !this.managedChannel.isShutdown()) {
-            this.managedChannel.shutdown();
+        shutdownChannel(this.managedChannel);
+    }
+
+    private void shutdownChannel(ManagedChannel channel) {
+        if (channel != null && !channel.isShutdown()) {
+            channel.shutdown();
+            try {
+                if (!channel.awaitTermination(5, TimeUnit.SECONDS)) {
+                    channel.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                channel.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class UserGrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
+public class UserGrpcInternalServiceImpl extends UserServiceGrpc.UserServiceImplBase {
     private final UserService userService;
 
     @Override

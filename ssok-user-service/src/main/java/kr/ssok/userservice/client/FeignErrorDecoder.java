@@ -16,7 +16,7 @@ public class FeignErrorDecoder implements ErrorDecoder {
         log.error("Status code : {}, methodKey: {}", response.status(), methodKey);
         
         if (response.status() >= 400 && response.status() <= 499) {
-            log.error("Feign call 중 client 에러: {}", response.reason());
+            log.warn("Feign call 중 client 에러: {}", response.reason());
             return new UserException(UserResponseStatus.BANK_SERVER_ERROR);
         } else if (response.status() >= 500 && response.status() <= 599) {
             log.error("Feign call 중 server 에러: {}", response.reason());

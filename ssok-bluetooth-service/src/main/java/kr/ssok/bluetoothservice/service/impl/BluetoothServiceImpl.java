@@ -1,15 +1,16 @@
 package kr.ssok.bluetoothservice.service.impl;
 
-import kr.ssok.bluetoothservice.client.AccountServiceClient;
-import kr.ssok.bluetoothservice.client.UserServiceClient;
 import kr.ssok.bluetoothservice.client.dto.AccountInfoDto;
 import kr.ssok.bluetoothservice.client.dto.UserInfoDto;
 import kr.ssok.bluetoothservice.dto.response.BluetoothMatchResponseDto;
 import kr.ssok.bluetoothservice.dto.response.UserInfoResponseDto;
 import kr.ssok.bluetoothservice.exception.BluetoothException;
 import kr.ssok.bluetoothservice.exception.BluetoothResponseStatus;
+import kr.ssok.bluetoothservice.grpc.client.AccountServiceClient;
+import kr.ssok.bluetoothservice.grpc.client.UserServiceClient;
 import kr.ssok.bluetoothservice.service.BluetoothService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
  * Bluetooth UUID 비즈니스 로직 구현체
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class BluetoothServiceImpl implements BluetoothService {
 
@@ -75,6 +77,7 @@ public class BluetoothServiceImpl implements BluetoothService {
             redisTemplate.opsForValue().set(userKey(userId), bluetoothUUID, Duration.ofSeconds(ttlSeconds));
 
         } catch (DataAccessException e) {
+            log.error("Redis 처리 중 서버 오류 발생: userId={}, bluetoothUUID={}", userId, bluetoothUUID);
             throw new BluetoothException(BluetoothResponseStatus.REDIS_ACCESS_FAILED);
         }
     }
@@ -102,6 +105,7 @@ public class BluetoothServiceImpl implements BluetoothService {
     @Override
     public BluetoothMatchResponseDto matchBluetoothUsers(String userId, List<String> bluetoothUUIDs) {
         if (CollectionUtils.isEmpty(bluetoothUUIDs)) {
+            log.warn("UUID 스캔 실패: userId={}, bluetoothUUIDs={}", userId, bluetoothUUIDs);
             throw new BluetoothException(BluetoothResponseStatus.NO_SCAN_UUID);
         }
 
@@ -114,7 +118,7 @@ public class BluetoothServiceImpl implements BluetoothService {
                         if (userIdStr == null) return null;
 
                         // 유저 서비스에서 사용자 정보를 조회하여 반환
-                        UserInfoDto userInfo = userServiceClient.getUserInfo(userIdStr).getResult();
+                        UserInfoDto userInfo = userServiceClient.getUserInfo(userIdStr);
 
                         if(userInfo == null) return null;
 
@@ -131,13 +135,16 @@ public class BluetoothServiceImpl implements BluetoothService {
 
             // 매칭된 사용자가 없는 경우 예외 발생
             if (CollectionUtils.isEmpty(matchedUsers)) {
+                log.warn("UUID 스캔 실패: userId={}, bluetoothUUIDs={}", userId, bluetoothUUIDs);
                 throw new BluetoothException(BluetoothResponseStatus.NO_MATCH_FOUND);
             }
 
             // 사용자의 주 계좌 정보를 조회
-            AccountInfoDto primaryAccount = accountServiceClient.getPrimaryAccount(userId).getResult();
+//            AccountInfoDto primaryAccount = accountServiceClient.getPrimaryAccount(userId).getResult();
+            AccountInfoDto primaryAccount = accountServiceClient.getPrimaryAccount(userId);
             return new BluetoothMatchResponseDto(matchedUsers, primaryAccount);
         } catch (DataAccessException e) {
+            log.error("Redis 처리 실패: userId={}, bluetoothUUIDs={}", userId, bluetoothUUIDs);
             throw new BluetoothException(BluetoothResponseStatus.REDIS_ACCESS_FAILED);
         }
     }

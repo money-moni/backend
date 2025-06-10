@@ -35,12 +35,14 @@ public class GrpcExceptionUtil {
             }
 
             return switch (code) {
-                case 3123 -> new BluetoothException(BluetoothResponseStatus.BLUETOOTH_TRANSFER_SUCCESS);
-                case 132123 -> new BluetoothException(BluetoothResponseStatus.BLUETOOTH_TRANSFER_SUCCESS);
-                default -> new BluetoothException(BluetoothResponseStatus.BLUETOOTH_TRANSFER_SUCCESS);
+                case 4050 -> new BluetoothException(BluetoothResponseStatus.USER_SERVER_ERROR);
+                case 5011 -> new BluetoothException(BluetoothResponseStatus.USER_INFO_NOT_FOUND);
+                case 4250 -> new BluetoothException(BluetoothResponseStatus.ACCOUNT_SERVER_ERROR);
+                case 4200 -> new BluetoothException(BluetoothResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED);
+                default -> new BluetoothException(BluetoothResponseStatus.UNSUPPORTED_CODE);
             };
         }
         // 메타데이터 없거나 매핑 실패 시
-        return new BluetoothException(BluetoothResponseStatus.BLUETOOTH_TRANSFER_SUCCESS);
+        return new BluetoothException(BluetoothResponseStatus.GRPC_METADATA_INVALID);
     }
 }

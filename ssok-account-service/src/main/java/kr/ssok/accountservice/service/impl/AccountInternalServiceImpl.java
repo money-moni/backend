@@ -1,6 +1,5 @@
 package kr.ssok.accountservice.service.impl;
 
-import kr.ssok.accountservice.client.UserServiceClient;
 import kr.ssok.accountservice.dto.request.openbanking.OpenBankingAccountBalanceRequestDto;
 import kr.ssok.accountservice.dto.response.bluetoothservice.PrimaryAccountBalanceResponseDto;
 import kr.ssok.accountservice.dto.response.transferservice.AccountIdResponseDto;
@@ -11,10 +10,10 @@ import kr.ssok.accountservice.dto.response.userservice.UserInfoResponseDto;
 import kr.ssok.accountservice.entity.LinkedAccount;
 import kr.ssok.accountservice.exception.AccountException;
 import kr.ssok.accountservice.exception.AccountResponseStatus;
+import kr.ssok.accountservice.grpc.client.UserServiceClient;
 import kr.ssok.accountservice.repository.AccountRepository;
 import kr.ssok.accountservice.service.AccountInternalService;
 import kr.ssok.accountservice.service.AccountOpenBankingService;
-import kr.ssok.common.exception.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * 내부 서비스 간 연동을 위한 계좌 조회 기능을 제공하는 구현 클래스
+     * 내부 서비스 간 연동을 위한 계좌 조회 기능을 제공하는 구현 클래스
  *
  * <p>계좌 ID, 계좌번호, 사용자 ID 기반의 계좌 정보 조회 기능을 제공합니다.</p>
  */
@@ -115,14 +114,14 @@ public class AccountInternalServiceImpl implements AccountInternalService {
                     return new AccountException(AccountResponseStatus.ACCOUNT_NOT_FOUND);
                 });
 
-        BaseResponse<UserInfoResponseDto> userInfoResponse = this.userServiceClient.sendUserInfoRequest(userId.toString());
+        UserInfoResponseDto userInfoResponse = this.userServiceClient.getUserInfo(userId.toString());
+//        BaseResponse<UserInfoResponseDto> userInfoResponse = this.userServiceClient.sendUserInfoRequest(userId.toString());
+//        if (userInfoResponse == null || userInfoResponse.getResult() == null) {
+//            log.warn("[USERSERVICE] 사용자 정보 조회 실패: userId={}", userId);
+//            throw new AccountException(AccountResponseStatus.USER_INFO_NOT_FOUND);
+//        }
 
-        if (userInfoResponse == null || userInfoResponse.getResult() == null) {
-            log.warn("[USERSERVICE] 사용자 정보 조회 실패: userId={}", userId);
-            throw new AccountException(AccountResponseStatus.USER_INFO_NOT_FOUND);
-        }
-
-        return PrimaryAccountInfoResponseDto.from(linkedAccount, userInfoResponse.getResult().getUsername());
+        return PrimaryAccountInfoResponseDto.from(linkedAccount, userInfoResponse.getUsername());
     }
 
     /**

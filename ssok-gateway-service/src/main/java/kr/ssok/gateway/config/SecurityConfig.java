@@ -38,7 +38,8 @@ public class SecurityConfig {
             "/actuator/prometheus",
             "/actuator",
             "/actuator/health",
-            "/actuator/info"
+            "/actuator/info",
+            "/chaos/**"
     );
 
     /**

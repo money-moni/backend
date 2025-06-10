@@ -2,6 +2,7 @@ package kr.ssok.transferservice.service;
 
 import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.AccountServiceClient;
+import kr.ssok.transferservice.client.NotificationServiceClient;
 import kr.ssok.transferservice.client.OpenBankingClient;
 import kr.ssok.transferservice.client.dto.response.*;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
@@ -52,7 +53,9 @@ public class TransferServiceTest {
         this.fakeOpenBankingClient = new FakeOpenBankingClient();
         this.transferHistoryRepository = mock(TransferHistoryRepository.class);
 
-        this.notificationSender = new TransferNotificationSender(mock(NotificationProducer.class));
+        this.notificationSender = new TransferNotificationSender(
+                mock(NotificationProducer.class),
+                mock(NotificationServiceClient.class));
         this.accountInfoResolver = new AccountInfoResolver(fakeAccountServiceClient);
         this.transferHistoryRecorder = new TransferHistoryRecorder(transferHistoryRepository);
         this.transferValidator = new TransferValidator();
