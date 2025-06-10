@@ -39,11 +39,7 @@ public class SecurityConfig {
             "/actuator",
             "/actuator/health",
             "/actuator/info",
-            "/chaos/account-service/actuator/chaosmonkey",
-            "/chaos/transfer-service",
-            "/chaos/user-service",
-            "/chaos/notification-service",
-            "/chaos/bluetooth-service"
+            "/chaos/**"
     );
 
     /**
