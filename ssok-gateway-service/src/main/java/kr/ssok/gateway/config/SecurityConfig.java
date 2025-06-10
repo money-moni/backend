@@ -38,7 +38,12 @@ public class SecurityConfig {
             "/actuator/prometheus",
             "/actuator",
             "/actuator/health",
-            "/actuator/info"
+            "/actuator/info",
+            "/chaos/account-service",
+            "/chaos/transfer-service",
+            "/chaos/user-service",
+            "/chaos/notification-service",
+            "/chaos/bluetooth-service"
     );
 
     /**
