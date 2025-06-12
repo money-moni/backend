@@ -23,6 +23,9 @@ dependencies {
         exclude group: 'io.grpc', module: 'grpc-netty-shaded'
     }
 
+    // gRPC 의존성 (Spring Cloud Gateway 3.x에서 필요)
+    implementation 'io.grpc:grpc-netty:1.70.0'
+
     // Spring Boot WebFlux (Gateway는 WebFlux 기반)
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
