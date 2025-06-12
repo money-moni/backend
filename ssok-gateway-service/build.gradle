@@ -16,7 +16,12 @@ repositories {
 
 dependencies {
 
-    implementation project(':ssok-common')
+    implementation(project(':ssok-common')) {
+        exclude group: 'io.grpc', module: 'grpc-core'
+        exclude group: 'io.grpc', module: 'grpc-stub'
+        exclude group: 'io.grpc', module: 'grpc-protobuf'
+        exclude group: 'io.grpc', module: 'grpc-netty-shaded'
+    }
 
     // Spring Boot WebFlux (Gateway는 WebFlux 기반)
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
