@@ -39,7 +39,10 @@ public class SecurityConfig {
             "/actuator",
             "/actuator/health",
             "/actuator/info",
-            "/chaos/**"
+            "/chaos/**",
+            "/api/users/phone/verify-with-user-check",
+            "/api/users/pin/existing-user"
+
     );
 
     /**

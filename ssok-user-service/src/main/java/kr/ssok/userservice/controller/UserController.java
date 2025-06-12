@@ -149,12 +149,12 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(new BaseResponse<>(UserResponseStatus.SUCCESS, responseDto));
     }
 
-    // pin 번호 재등록 - 앱 삭제 후 재설치 했을 때
-    @PatchMapping("/re-pin")
-    public ResponseEntity<BaseResponse<Void>> reRegisterPinCode(@RequestHeader("X-User-Id") String userId) {
-        userService.reRegisterPinCode(userId);
-        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
-    }
+//    // pin 번호 재등록 - 앱 삭제 후 재설치 했을 때
+//    @PatchMapping("/re-pin")
+//    public ResponseEntity<BaseResponse<Void>> reRegisterPinCode(@RequestHeader("X-User-Id") String userId) {
+//        userService.reRegisterPinCode(userId);
+//        return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
+//    }
 
     /**
      * PIN 재등록 API (기존 사용자용)
@@ -163,7 +163,7 @@ public class UserController {
      * @param requestDto PIN 재등록 요청 정보 (사용자 ID, 새로운 PIN)
      * @return PIN 재등록 결과
      */
-    @PatchMapping("/re-pin/existing-user")
+    @PatchMapping("/pin/existing-user")
     public ResponseEntity<BaseResponse<Void>> reRegisterPinForExistingUser(@RequestBody PinCodeRequestDto requestDto) {
         userService.reRegisterPinForExistingUser(requestDto.getUserId(), requestDto.getPinCode());
         return ResponseEntity.ok(new BaseResponse<>(UserResponseStatus.SUCCESS));
