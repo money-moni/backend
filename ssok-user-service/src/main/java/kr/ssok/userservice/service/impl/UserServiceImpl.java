@@ -1,6 +1,5 @@
 package kr.ssok.userservice.service.impl;
 
-import kr.ssok.common.logging.annotation.ServiceLogging;
 import kr.ssok.userservice.client.AligoClient;
 import kr.ssok.userservice.client.BankClient;
 import kr.ssok.userservice.constants.ProfileConstants;
@@ -9,6 +8,7 @@ import kr.ssok.userservice.dto.request.BankAccountRequestDto;
 import kr.ssok.userservice.dto.request.SignupRequestDto;
 import kr.ssok.userservice.dto.response.BankAccountResponseDto;
 import kr.ssok.userservice.dto.response.SignupResponseDto;
+import kr.ssok.userservice.dto.response.PhoneVerificationResponseDto;
 import kr.ssok.userservice.dto.response.UserInfoResponseDto;
 import kr.ssok.userservice.entity.ProfileImage;
 import kr.ssok.userservice.entity.User;
@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -44,16 +45,18 @@ public class UserServiceImpl implements UserService {
     private final BankClient bankClient;
     private final AligoClient aligoClient;
     private final PasswordEncoder passwordEncoder;
-    private final RedisTemplate redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
-     * 회원가입 구현
-     * 1. 입력값 유효성 검증
-     * 2. 중복 가입 확인
-     * 3. User 엔티티 생성 및 저장
-     * 4. BankClient를 통한 계좌 생성
-     * 
-     * @param requestDto 회원가입 요청 정보
+     * 회원가입 구현 (개선됨)
+     * 1. 휴대폰 인증 완료 상태 확인
+     * 2. 인증 완료되었다면 휴대폰 인증 과정 건너뛰고 회원가입 처리
+     * 3. 입력값 유효성 검증
+     * 4. 중복 가입 확인
+     * 5. User 엔티티 생성 및 저장
+     * 6. BankClient를 통한 계좌 생성
+     *
+     * @param requestDto    회원가입 요청 정보
      * @param bindingResult 유효성 검증 결과
      * @return 회원가입 성공 정보 (사용자 ID)
      * @throws UserException 유효성 검증 실패, 중복 가입, 계좌 생성 실패 등의 예외 발생 시
@@ -68,12 +71,28 @@ public class UserServiceImpl implements UserService {
             log.warn("Validation 에러: {}", errorMessage);
             throw new UserException(UserResponseStatus.INVALID_SIGNUP_REQUEST_VALUE);
         }
+
+        // 휴대폰 인증 완료 상태 확인
+        String phoneVerifiedKey = "phone:verified:" + requestDto.getPhoneNumber();
+        String verificationStatus = (String) redisTemplate.opsForValue().get(phoneVerifiedKey);
         
-        // 중복 가입 확인
+        boolean isPhoneVerified = verificationStatus != null && verificationStatus.equals("new_user");
+        
+        if (!isPhoneVerified) {
+            // 휴대폰 인증이 완료되지 않은 경우 에러 반환
+            log.warn("휴대폰 인증이 완료되지 않은 상태에서 회원가입 시도: {}", requestDto.getPhoneNumber());
+            throw new UserException(UserResponseStatus.PHONE_VERIFICATION_REQUIRED);
+        }
+
+        // 인증 완료 상태이므로 Redis에서 인증 정보 삭제
+        redisTemplate.delete(phoneVerifiedKey);
+        log.info("휴대폰 인증 완료 상태 확인됨. 회원가입 진행: {}", requestDto.getPhoneNumber());
+
+        // 중복 가입 확인 (혹시 모를 경우를 대비)
         if (userRepository.existsByPhoneNumber(requestDto.getPhoneNumber())) {
             throw new UserException(UserResponseStatus.USER_ALREADY_EXISTS);
         }
-        
+
         // User 엔티티 생성 및 저장
         User user = User.builder()
                 .username(requestDto.getUsername())
@@ -118,14 +137,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
-
     /**
      * 휴대폰 본인 인증 구현
      * 1. 6자리 랜덤 인증코드 생성
      * 2. 알리고 서비스를 통한 SMS 발송
      * 3. Redis에 인증코드 저장 (유효시간 3분)
-     * 
+     *
      * @param phoneNumber 인증코드를 받을 휴대폰 번호
      */
     @Override
@@ -162,7 +179,7 @@ public class UserServiceImpl implements UserService {
     /**
      * 인증번호 생성
      * 6자리 랜덤 숫자(100000-999999)를 생성합니다.
-     * 
+     *
      * @return 생성된 6자리 인증번호
      */
     private String generateVerificationCode() {
@@ -171,11 +188,62 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * 인증코드 확인 구현 (기존 사용자 확인 포함)
+     * Redis에서 휴대폰 번호를 키로 저장된 인증코드를 조회하고 일치 여부를 확인합니다.
+     * 인증 성공 시 Redis에서 해당 키를 삭제하고, 해당 휴대폰 번호로 등록된 기존 사용자가 있는지 확인합니다.
+     *
+     * @param phoneNumber      인증을 요청한 휴대폰 번호
+     * @param verificationCode 사용자가 입력한 인증코드
+     * @return 인증 결과 및 기존 사용자 정보
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public PhoneVerificationResponseDto verifyCodeWithUserCheck(String phoneNumber, String verificationCode) {
+        // 인증코드 검증
+        String codeInRedis = (String) redisTemplate.opsForValue().get(phoneNumber);
+
+        if (codeInRedis == null || !codeInRedis.equals(verificationCode)) {
+            // 인증코드가 일치하지 않거나 만료된 경우
+            log.warn("인증코드 검증 실패. 휴대폰 번호: {}", phoneNumber);
+            throw new UserException(UserResponseStatus.CODE_VERIFICATION_FAIL);
+        }
+
+        // 인증코드 검증 성공 - Redis에서 삭제
+        redisTemplate.delete(phoneNumber);
+        log.info("인증번호 검증 완료, Redis 인증번호 값 삭제");
+
+        // 기존 사용자 확인
+        Optional<User> existingUser = userRepository.findByPhoneNumber(phoneNumber);
+
+        if (existingUser.isPresent()) {
+            // 기존 사용자인 경우 - 휴대폰 인증 완료 상태를 Redis에 저장 (PIN 재등록용)
+            String phoneVerifiedKey = "phone:verified:" + phoneNumber;
+            redisTemplate.opsForValue().set(phoneVerifiedKey, "existing_user:" + existingUser.get().getId(), 10, TimeUnit.MINUTES);
+            
+            log.info("기존 사용자 확인됨. 휴대폰 번호: {}, 사용자 ID: {}", phoneNumber, existingUser.get().getId());
+            return PhoneVerificationResponseDto.builder()
+                    .isExistingUser(true)
+                    .userId(existingUser.get().getId())
+                    .build();
+        } else {
+            // 신규 사용자인 경우 - 휴대폰 인증 완료 상태를 Redis에 저장 (회원가입용)
+            String phoneVerifiedKey = "phone:verified:" + phoneNumber;
+            redisTemplate.opsForValue().set(phoneVerifiedKey, "new_user", 10, TimeUnit.MINUTES);
+            
+            log.info("신규 사용자 확인됨. 휴대폰 번호: {}", phoneNumber);
+            return PhoneVerificationResponseDto.builder()
+                    .isExistingUser(false)
+                    .userId(null)
+                    .build();
+        }
+    }
+
+    /**
      * 인증코드 확인 구현
      * Redis에서 휴대폰 번호를 키로 저장된 인증코드를 조회하고 일치 여부를 확인합니다.
      * 인증 성공 시 Redis에서 해당 키를 삭제합니다.
-     * 
-     * @param phoneNumber 인증을 요청한 휴대폰 번호
+     *
+     * @param phoneNumber      인증을 요청한 휴대폰 번호
      * @param verificationCode 사용자가 입력한 인증코드
      * @return 인증코드 일치 여부 (true: 일치, false: 불일치 또는 만료)
      */
@@ -198,6 +266,7 @@ public class UserServiceImpl implements UserService {
      * 2. 6자리 랜덤 인증코드 생성
      * 3. 알리고 서비스를 통한 SMS 발송
      * 4. Redis에 인증코드 저장 (유효시간 3분)
+     *
      * @param userId 앱 내에 저장되어있던 userId
      */
     @Override
@@ -210,6 +279,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * PIN 번호 변경을 위한 인증코드 확인
+     *
      * @param phoneNumber      전화번호
      * @param verificationCode 인증코드
      * @param userId           사용자 ID
@@ -240,6 +310,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * PIN 번호 변경 서비스
+     *
      * @param userId  앱 내에 저장해놓은 userId
      * @param pinCode 사용자에게 입력받은 pinCode
      */
@@ -268,9 +339,9 @@ public class UserServiceImpl implements UserService {
         redisTemplate.delete(pinAuthKey);
     }
 
-
     /**
      * 특정 유저 정보 조회 서비스
+     *
      * @param userId Gateway에서 전달한 사용자 ID (헤더)
      * @return 유저 정보 조회 결과 DTO
      */
@@ -285,8 +356,6 @@ public class UserServiceImpl implements UserService {
                 .profileImage(user.getProfileImage().getUrl())
                 .build();
     }
-
-    //
 
     /**
      * 뱅크 서버를 통한 계좌 생성
@@ -310,6 +379,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * userRepository에서 userId로 User를 조회합니다.
+     *
      * @param userId User 식별자
      * @return User 객체
      */
@@ -317,5 +387,62 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new UserException(UserResponseStatus.USER_NOT_FOUND));
         return user;
+    }
+
+    /**
+     * PIN 번호 재등록 (앱 삭제 후 재설치 시)
+     * 사용자 ID로 기존 사용자의 PIN 코드를 초기화합니다.
+     *
+     * @param userId 사용자 ID
+     */
+    @Override
+    @Transactional
+    public void reRegisterPinCode(String userId) {
+        Long userIdLong = Long.parseLong(userId);
+
+        // 사용자 조회
+        User user = getUserFromRepository(userIdLong);
+
+        // PIN 코드를 null로 초기화 (재설정 필요 상태로 만듦)
+        user.updatePinCode(null);
+
+        log.info("PIN 번호 재등록 완료. 사용자 ID: {}", userId);
+    }
+
+    /**
+     * PIN 재등록 (기존 사용자용) 구현
+     * 앱 재설치 등으로 인해 기존 사용자가 PIN을 재등록할 때 사용합니다.
+     * 휴대폰 인증이 완료된 상태에서만 PIN 재등록이 가능합니다.
+     * 
+     * @param userId 기존 사용자 ID
+     * @param pinCode 새로운 PIN 코드
+     */
+    @Override
+    @Transactional
+    public void reRegisterPinForExistingUser(Long userId, String pinCode) {
+        // 사용자 조회
+        User user = getUserFromRepository(userId);
+        
+        // 해당 사용자의 휴대폰 번호로 인증이 완료되었는지 확인
+        String phoneVerifiedKey = "phone:verified:" + user.getPhoneNumber();
+        String verificationStatus = (String) redisTemplate.opsForValue().get(phoneVerifiedKey);
+        
+        boolean isPhoneVerified = verificationStatus != null && verificationStatus.startsWith("existing_user:");
+        
+        if (!isPhoneVerified) {
+            // 휴대폰 인증이 완료되지 않은 경우 에러 반환
+            log.warn("휴대폰 인증이 완료되지 않은 상태에서 PIN 재등록 시도. 사용자 ID: {}", userId);
+            throw new UserException(UserResponseStatus.PHONE_VERIFICATION_REQUIRED);
+        }
+        
+        // 인증 완료 상태이므로 Redis에서 인증 정보 삭제
+        redisTemplate.delete(phoneVerifiedKey);
+        log.info("휴대폰 인증 완료 상태 확인됨. PIN 재등록 진행: {}", userId);
+        
+        // PIN 코드 암호화 후 업데이트
+        String encodedPinCode = passwordEncoder.encode(pinCode);
+        user.updatePinCode(encodedPinCode);
+        
+        log.info("기존 사용자 PIN 재등록 완료. 사용자 ID: {}", userId);
     }
 }

@@ -27,7 +27,7 @@ public class User extends TimeStamp {
     @Column(nullable = false)
     private String birthDate;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String pinCode;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
