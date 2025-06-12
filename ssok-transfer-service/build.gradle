@@ -89,24 +89,3 @@ tasks.named('test') {
 }
 
 tasks.register("prepareKotlinBuildScriptModel"){}
-
-// protobuf 설정
-protobuf {
-    protoc {
-        // Protocol Buffers 컴파일러
-        artifact = libs.protobufCompiler.get().toString()
-    }
-    plugins {
-        grpc {
-            // gRPC Java 코드 생성용 플러그인 (Stub, Service 등)
-            artifact = libs.grpcCodegen.get().toString()
-        }
-    }
-    generateProtoTasks {
-        all().configureEach {
-            plugins {
-                grpc {}
-            }
-        }
-    }
-}
