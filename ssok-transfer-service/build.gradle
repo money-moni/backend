@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.grpcStub)
     implementation(libs.grpcProtobuf)
     runtimeOnly(libs.grpcNetty)
+    // 의존성 충돌로 인해 명시적으로 추가
+    implementation 'com.google.protobuf:protobuf-java:3.25.5'
 }
 
 dependencyManagement {
