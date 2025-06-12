@@ -37,7 +37,7 @@ public class GrpcClientConfig {
                 .defaultServiceConfig(Map.of(
                         "loadBalancingPolicy", "round_robin",
                         "retryPolicy", Map.of(
-                                "maxAttempts", 3,
+                                "maxAttempts", 3.0,
                                 "initialBackoff", "0.5s",
                                 "maxBackoff", "10s",
                                 "retryableStatusCodes", List.of("UNAVAILABLE")
@@ -55,7 +55,7 @@ public class GrpcClientConfig {
                 .defaultServiceConfig(Map.of(
                         "loadBalancingPolicy", "round_robin",
                         "retryPolicy", Map.of(
-                                "maxAttempts", 3,
+                                "maxAttempts", 3.0,
                                 "initialBackoff", "0.5s",
                                 "maxBackoff", "10s",
                                 "retryableStatusCodes", List.of("UNAVAILABLE")
