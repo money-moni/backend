@@ -11,10 +11,12 @@ import kr.ssok.accountservice.exception.grpc.GrpcExceptionUtil;
 import kr.ssok.accountservice.service.AccountInternalService;
 import kr.ssok.common.grpc.account.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AccountGrpcInternalServiceImpl extends AccountServiceGrpc.AccountServiceImplBase {
@@ -35,8 +37,10 @@ public class AccountGrpcInternalServiceImpl extends AccountServiceGrpc.AccountSe
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (AccountException ex) {
+            log.error("[gRPC][getAccountInfo] UserException: {}", ex.getStatus());
             responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(ex.getStatus()));
         } catch (Exception ex) {
+            log.error("[gRPC][getAccountInfo] Unexpected error", ex);
             responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(AccountResponseStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -55,8 +59,10 @@ public class AccountGrpcInternalServiceImpl extends AccountServiceGrpc.AccountSe
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (AccountException ex) {
+            log.error("[gRPC][getAccountIdByAccountNumber] UserException: {}", ex.getStatus());
             responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(ex.getStatus()));
         } catch (Exception ex) {
+            log.error("[gRPC][getAccountIdByAccountNumber] Unexpected error", ex);
             responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(AccountResponseStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -78,8 +84,10 @@ public class AccountGrpcInternalServiceImpl extends AccountServiceGrpc.AccountSe
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (AccountException ex) {
+            log.error("[gRPC][getAccountIdsByUserId] UserException: {}", ex.getStatus());
             responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(ex.getStatus()));
         } catch (Exception ex) {
+            log.error("[gRPC][getAccountIdsByUserId] Unexpected error", ex);
             responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(AccountResponseStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -100,8 +108,10 @@ public class AccountGrpcInternalServiceImpl extends AccountServiceGrpc.AccountSe
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (AccountException ex) {
+            log.error("[gRPC][getPrimaryAccountInfo] UserException: {}", ex.getStatus());
             responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(ex.getStatus()));
         } catch (Exception ex) {
+            log.error("[gRPC][getPrimaryAccountInfo] Unexpected error", ex);
             responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(AccountResponseStatus.INTERNAL_SERVER_ERROR));
         }
     }
@@ -123,8 +133,10 @@ public class AccountGrpcInternalServiceImpl extends AccountServiceGrpc.AccountSe
                 .exceptionally(e -> {
                     Throwable cause = (e instanceof java.util.concurrent.CompletionException && e.getCause() != null) ? e.getCause() : e;
                     if (cause instanceof AccountException accEx) {
+                        log.error("[gRPC][getPrimaryAccountInfo] UserException: {}", accEx.getStatus());
                         responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(accEx.getStatus()));
                     } else {
+                        log.error("[gRPC][getPrimaryAccountInfo] Unexpected error", cause);
                         responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(AccountResponseStatus.INTERNAL_SERVER_ERROR));
                     }
                     return null;
