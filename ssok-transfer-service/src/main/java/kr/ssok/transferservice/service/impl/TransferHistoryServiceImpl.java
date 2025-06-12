@@ -1,15 +1,13 @@
 package kr.ssok.transferservice.service.impl;
 
-import kr.ssok.common.exception.BaseResponse;
-import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
-import kr.ssok.transferservice.client.dto.response.AccountIdsResponseDto;
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
 import kr.ssok.transferservice.dto.response.TransferRecentHistoryResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
+import kr.ssok.transferservice.grpc.client.AccountServiceClient;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import kr.ssok.transferservice.service.TransferHistoryService;
 import lombok.RequiredArgsConstructor;
@@ -136,20 +134,22 @@ public class TransferHistoryServiceImpl implements TransferHistoryService {
     private List<Long> getAccountIdsByUserId(Long userId) {
         // 1. 계좌 서비스에서 사용자 ID로 모든 계좌 ID 조회
         long start = System.currentTimeMillis();
-        BaseResponse<List<AccountIdResponseDto>> accountListResponse =
+//        BaseResponse<List<AccountIdResponseDto>> accountListResponse =
+//                this.accountServiceClient.getAccountIdsByUserId(userId.toString());
+        List<AccountIdResponseDto> accountListResponse =
                 this.accountServiceClient.getAccountIdsByUserId(userId.toString());
         long end = System.currentTimeMillis();
         log.info("[SSOK-ACCOUNT] 사용자 계좌 ID 조회 시간: {}ms", end - start);
 
         // NPE 방지
-        if (!accountListResponse.getIsSuccess()
-                || accountListResponse.getResult() == null
-                || accountListResponse.getResult().isEmpty()) {
-            return List.of();
-        }
+//        if (!accountListResponse.getIsSuccess()
+//                || accountListResponse.getResult() == null
+//                || accountListResponse.getResult().isEmpty()) {
+//            return List.of();
+//        }
 
         // 2. 계좌 ID 리스트 추출
-        return accountListResponse.getResult().stream()
+        return accountListResponse.stream()
                 .map(AccountIdResponseDto::getAccountId)
                 .collect(Collectors.toList());
     }
