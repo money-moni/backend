@@ -23,6 +23,11 @@ dependencies {
 
     // Spring Cloud Gateway
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+    
+    // gRPC 의존성 (Spring Cloud Gateway 3.x에서 필요)
+    implementation libs.grpcNetty
+    implementation libs.grpcStub
+    implementation libs.grpcProtobuf
 
     // Spring Cloud Kubernetes
     implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-config'
