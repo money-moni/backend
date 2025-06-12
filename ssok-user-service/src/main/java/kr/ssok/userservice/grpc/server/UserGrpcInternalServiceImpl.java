@@ -33,7 +33,6 @@ public class UserGrpcInternalServiceImpl extends UserServiceGrpc.UserServiceImpl
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-            log.info("정상적으로 onCompleted - userId: {}", request.getUserId());
         } catch (UserException ex) {
             log.error("[gRPC][getUserInfo] UserException: {}", ex.getStatus());
             responseObserver.onError(GrpcExceptionUtil.toStatusRuntimeException(ex.getStatus()));
