@@ -31,7 +31,6 @@ public class GrpcExceptionUtil {
                 code = Integer.parseInt(codeStr);
             } catch (Exception ex) {
                 log.error("gRPC code 파싱 에러: {}", codeStr, ex);
-                return new TransferException(TransferResponseStatus.TRANSFER_UNKNOWN_ERROR);
             }
 
             return switch (code) {
