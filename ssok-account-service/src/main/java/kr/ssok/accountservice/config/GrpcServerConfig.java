@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class GrpcServerConfig {
     private final AccountGrpcInternalServiceImpl accountGrpcInternalService;
 
-    @Value("${grpc.account-server.port}")
+    @Value("${grpc.account-service.port}")
     private int GRPC_ACCOUNT_SERVER_PORT;
 
     private Server server;

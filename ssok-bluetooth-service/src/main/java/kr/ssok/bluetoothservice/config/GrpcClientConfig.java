@@ -17,14 +17,14 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class GrpcClientConfig {
-    @Value("${grpc.account-server.address}")
+    @Value("${grpc.account-service.url}")
     private String GRPC_ACCOUNT_SERVER_ADDRESS;
-    @Value("${grpc.account-server.port}")
+    @Value("${grpc.account-service.port}")
     private int GRPC_ACCOUNT_SERVER_PORT;
 
-    @Value("${grpc.user-server.address}")
+    @Value("${grpc.user-service.url}")
     private String GRPC_USER_SERVER_ADDRESS;
-    @Value("${grpc.user-server.port}")
+    @Value("${grpc.user-service.port}")
     private int GRPC_USER_SERVER_PORT;
 
     private ManagedChannel accountChannel;
