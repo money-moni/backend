@@ -1,7 +1,7 @@
 package kr.ssok.transferservice.service.impl.helper;
 
 import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
-import kr.ssok.transferservice.grpc.client.AccountServiceClient;
+import kr.ssok.transferservice.grpc.client.AccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AccountInfoResolver {
 
-    private final AccountServiceClient accountServiceClient;
+    private final AccountService accountServiceClient;
 
     /**
      * 출금 계좌 번호 조회 메서드

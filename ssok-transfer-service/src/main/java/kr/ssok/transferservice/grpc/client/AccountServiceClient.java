@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AccountServiceClient {
+public class AccountServiceClient implements AccountService {
     private final AccountServiceGrpc.AccountServiceBlockingStub accountServiceBlockingStub;
 
     /**
@@ -24,6 +24,7 @@ public class AccountServiceClient {
      * @param userId 사용자 ID
      * @return 계좌 번호가 포함된 응답 DTO
      */
+    @Override
     public AccountResponseDto getAccountInfo(Long accountId, String userId) {
         AccountInfoRequest request = AccountInfoRequest.newBuilder()
                 .setAccountId(accountId)
@@ -43,6 +44,7 @@ public class AccountServiceClient {
      * @param accountNumber 조회할 계좌번호
      * @return 계좌 ID, 사용자 ID가 포함된 응답 DTO
      * */
+    @Override
     public AccountIdResponseDto getAccountId(String accountNumber) {
         AccountNumberRequest request = AccountNumberRequest.newBuilder()
                 .setAccountNumber(accountNumber)
@@ -63,6 +65,7 @@ public class AccountServiceClient {
      * @param userId 사용자 ID
      * @return 계좌 ID가 포함된 DTO를 리스트로 반환
      */
+    @Override
     public List<AccountIdResponseDto> getAccountIdsByUserId(String userId) {
         UserIdRequest request = UserIdRequest.newBuilder()
                 .setUserId(userId)
@@ -84,6 +87,7 @@ public class AccountServiceClient {
      * @param userId 사용자 ID를 담고 있는 헤더 값 (X-User-Id)
      * @return 사용자 주계좌 정보가 포함된 응답 DTO
      */
+    @Override
     public PrimaryAccountResponseDto getAccountInfo(String userId) {
         UserIdRequest request = UserIdRequest.newBuilder()
                 .setUserId(userId)
