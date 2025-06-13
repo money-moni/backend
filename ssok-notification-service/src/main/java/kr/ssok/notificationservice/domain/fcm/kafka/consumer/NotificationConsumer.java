@@ -14,6 +14,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -60,11 +61,13 @@ public class NotificationConsumer {
             String bankName = BankCode.fromIdx(message.getBankCode()).getValue();
             String body = String.format("%s → 내 %s 통장", message.getSenderName(), bankName);
 
-            // data 맵에 screen/accountId 추가
-            Map<String,String> data = Map.of(
-                    "screen",    "AccountDetail",
-                    "accountId", message.getAccountId().toString()
-            );
+            // 데이터 맵 빌드: accountId가 있을 때만 추가
+            Map<String, String> data = new HashMap<>();
+            data.put("screen", "AccountDetail");
+            if (message.getAccountId() != null) {
+                data.put("accountId", message.getAccountId().toString());
+            }
+            log.info("consume(): Data payload = {}", data);
 
             notificationService.sendFcmNotification(message.getUserId(), title, body, data);
 
