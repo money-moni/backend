@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class KafkaNotificationMessageDto {
     private Long userId;               // 수신자 userId
+    private Long accountId;            // 수신자 계좌 ID
     private String senderName;         // 송신자 이름
     private Integer bankCode;          // 수신자 은행 코드
     private Long amount;               // 금액

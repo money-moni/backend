@@ -14,6 +14,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 /**
  * Kafka 알림 메시지 수신자
  * 1) Main 토픽(consumption)용 리스너
@@ -58,7 +60,13 @@ public class NotificationConsumer {
             String bankName = BankCode.fromIdx(message.getBankCode()).getValue();
             String body = String.format("%s → 내 %s 통장", message.getSenderName(), bankName);
 
-            notificationService.sendFcmNotification(message.getUserId(), title, body);
+            // data 맵에 screen/accountId 추가
+            Map<String,String> data = Map.of(
+                    "screen",    "AccountDetail",
+                    "accountId", message.getAccountId().toString()
+            );
+
+            notificationService.sendFcmNotification(message.getUserId(), title, body, data);
 
             log.info("consume(): FCM 알림 전송 성공 (userId={}, amount={})",
                     message.getUserId(), message.getAmount());

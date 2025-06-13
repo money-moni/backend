@@ -12,6 +12,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 /**
  * FCM 푸시 알림 서비스 구현체
  */
@@ -27,7 +29,7 @@ public class NotificationServiceImpl implements NotificationService {
     private String defaultImage;
 
     @Override
-    public void sendFcmNotification(Long userId, String title, String body) {
+    public void sendFcmNotification(Long userId, String title, String body, Map<String,String> data) {
         try {
             String token = redisTemplate.opsForValue().get("userfcm:" + userId);
 
@@ -42,6 +44,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .body(body)
                     .image(defaultImage)
                     .token(token)
+                    .data(data)
                     .build();
 
             // FCM 클라이언트로 메시지 전송

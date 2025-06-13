@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 /**
  * FCM 알림 요청 DTO
  */
@@ -17,4 +19,5 @@ public class FcmMessageRequestDto {
     private String body;    // 알림 내용 (예: "송신자 -> 내 OO뱅크 통장")
     private String image;   // 알림 이미지 (예: 쏙 송금 앱 이미지)
     private String token;   // FCM 토큰
+    private Map<String, String> data;   // link url 관련 데이터
 }

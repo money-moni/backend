@@ -13,6 +13,7 @@ public enum NotificationResponseStatus implements ResponseStatus {
      * 1. 요청에 성공한 경우(2000~2999)
      */
     TOKEN_REGISTER_SUCCESS(true, 2500, "FCM 토큰 등록에 성공했습니다."),
+    FCM_SEND_SUCCESS(true, 2500, "FCM 알림 발송에 성공했습니다."),
 
     /**
      * 2. 클라이언트 에러(4000~4999)
