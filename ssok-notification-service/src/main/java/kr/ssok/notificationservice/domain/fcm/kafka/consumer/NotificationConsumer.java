@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,7 +40,7 @@ public class NotificationConsumer {
             groupId = "${kafka.group-id}",
             containerFactory = "mainKafkaListenerContainerFactory"  // Main 전용 컨테이너
     )
-    public void consume(String messageJson) {
+    public void consume(String messageJson, Acknowledgment ack) {
         KafkaNotificationMessageDto message;
         try {
             // 1) JSON 파싱
@@ -61,6 +62,9 @@ public class NotificationConsumer {
 
             log.info("consume(): FCM 알림 전송 성공 (userId={}, amount={})",
                     message.getUserId(), message.getAmount());
+
+            // 정상 처리 시점에만 커밋
+            ack.acknowledge();
 
         } catch (NotificationPermanentException pe) {
             // FCM 전송 중 Permanent 예외 → 즉시 DLT
@@ -84,13 +88,15 @@ public class NotificationConsumer {
             groupId = "${kafka.recovery-group-id}",
             containerFactory = "recoveryKafkaListenerContainerFactory"  // Recovery 전용 컨테이너
     )
-    public void reconsumeFailedMessages(String messageJson) {
+    public void reconsumeFailedMessages(String messageJson, Acknowledgment ack) {
         log.info("reconsumeFailedMessages(): 복구 토픽 메시지 수신, messageJson={}", messageJson);
         try {
-            consume(messageJson);
+            consume(messageJson, ack);
         } catch (Exception e) {
             // Recovery 단계에서 예외 발생 시 swallow(무시)하고 로그만 남김 → 무한루프 방지
             log.error("reconsumeFailedMessages(): 복구 단계에서 예외 발생. swallow 처리 후 종료. message={}", messageJson, e);
+            // 복구 단계에서는 swallow 후에도 커밋
+            ack.acknowledge();
         }
     }
 }

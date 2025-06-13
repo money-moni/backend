@@ -49,7 +49,6 @@ public class KafkaDltHandler {
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
                         log.error("[DLQ 처리] 복구 토픽 전송 실패: {}", RECOVERY_TOPIC, ex);
-                        // TODO: Slack 알림
                     } else {
                         log.info("[DLQ 처리] 복구 토픽 전송 성공: {}", RECOVERY_TOPIC);
                     }

@@ -25,6 +25,8 @@ public enum NotificationResponseStatus implements ResponseStatus {
      */
     JSON_PARSE_FAILED(false, 4502, "Kafka 메시지 JSON 파싱에 실패했습니다.", HttpStatus.BAD_REQUEST),
     FCM_SEND_FAILED_PERMANENT(false, 4503, "FCM 전송에 실패했습니다. (영구 오류)", HttpStatus.BAD_REQUEST),
+    FCM_SEND_FAILED_TRANSIENT(false, 4504, "FCM 전송에 실패했습니다. (일시적 오류)", HttpStatus.SERVICE_UNAVAILABLE),
+    FCM_TOKEN_INVALID(false, 4505, "FCM 토큰이 유효하지 않습니다.", HttpStatus.BAD_REQUEST),
 
     /**
      * 3. 서버 에러 (5000~5999)
