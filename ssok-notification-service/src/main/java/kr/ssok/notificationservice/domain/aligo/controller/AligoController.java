@@ -22,7 +22,7 @@ public class AligoController {
     private final AligoService aligoService;
 
     /**
-     * 인증코드 SMS 발송 API
+     * 인증코드 SMS 발송 API/
      * 사용자의 휴대폰 번호로 인증코드가 포함된 SMS를 발송합니다.
      * 
      * @param requestDto 휴대폰 번호와 인증코드가 포함된 요청 DTO
