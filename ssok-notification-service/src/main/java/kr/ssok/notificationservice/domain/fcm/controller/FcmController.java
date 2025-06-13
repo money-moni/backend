@@ -48,7 +48,7 @@ public class FcmController {
     // 삭제 예정(openfeign 용)
     @PostMapping("/send")
     public ResponseEntity<BaseResponse<Void>> sendFcmNotification(@RequestBody FcmNotificationRequestDto request) {
-        notificationService.sendFcmNotification(request.getUserId(), request.getTitle(), request.getBody());
+        notificationService.sendFcmNotification(request.getUserId(), request.getTitle(), request.getBody(), request.getData());
         return ResponseEntity.ok(new BaseResponse<>(NotificationResponseStatus.FCM_SEND_SUCCESS));
     }
 }
