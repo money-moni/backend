@@ -49,6 +49,6 @@ public class FcmController {
     @PostMapping("/send")
     public ResponseEntity<BaseResponse<Void>> sendFcmNotification(@RequestBody FcmNotificationRequestDto request) {
         notificationService.sendFcmNotification(request.getUserId(), request.getTitle(), request.getBody());
-        return ResponseEntity.ok(new BaseResponse<>(NotificationResponseStatus.TOKEN_REGISTER_SUCCESS));
+        return ResponseEntity.ok(new BaseResponse<>(NotificationResponseStatus.FCM_SEND_SUCCESS));
     }
 }

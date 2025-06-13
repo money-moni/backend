@@ -11,6 +11,9 @@ import kr.ssok.notificationservice.global.exception.NotificationTransientExcepti
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Firebase 클라이언트
  */
@@ -24,6 +27,11 @@ public class FirebaseClient {
      * @param request FCM 알림 요청 DTO
      */
     public void sendNotification(FcmMessageRequestDto request) {
+        // data null 대비
+        Map<String, String> dataMap = request.getData() != null
+                ? request.getData()
+                : Collections.emptyMap();
+
         Message message = Message.builder()
                 .setToken(request.getToken())
                 .setNotification(Notification.builder()
@@ -31,7 +39,9 @@ public class FirebaseClient {
                         .setBody(request.getBody())
                         .setImage(request.getImage())
                         .build())
+                .putAllData(dataMap)
                 .build();
+
         try {
             String response = FirebaseMessaging.getInstance().send(message);
             log.info("푸시 알림 전송 성공: {}", response);

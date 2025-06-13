@@ -147,6 +147,7 @@ public class TransferServiceImpl implements TransferService {
         start = System.currentTimeMillis();
         notificationSender.sendKafkaNotification(
                 requestDto.getRecvUserId(),               // 수신자 userId
+                transferRequestDto.getRecvAccountId(),    // 수신자 accountId
                 transferRequestDto.getSendName(),         // 송신자 이름
                 transferRequestDto.getRecvBankCode(),     // 수신자 은행 코드
                 requestDto.getAmount(),                   // 금액
@@ -222,10 +223,11 @@ public class TransferServiceImpl implements TransferService {
 
             notificationSender.sendKafkaNotification(
                     response.getUserId(),               // 수신자 userId
-                    dto.getSendName(),                              // 송신자 이름
-                    dto.getRecvBankCode(),                          // 수신자 은행 코드
-                    dto.getAmount(),                                // 금액
-                    TransferType.DEPOSIT                            // 송금 유형 (입금)
+                    response.getAccountId(),            // 수신자 계좌 ID
+                    dto.getSendName(),                  // 송신자 이름
+                    dto.getRecvBankCode(),              // 수신자 은행 코드
+                    dto.getAmount(),                    // 금액
+                    TransferType.DEPOSIT                // 송금 유형 (입금)
             );
             end = System.currentTimeMillis();
             log.info("[SSOK-NOTIFICATION] 카프카 푸시 알림 요청 시간: {}ms", end - start);
