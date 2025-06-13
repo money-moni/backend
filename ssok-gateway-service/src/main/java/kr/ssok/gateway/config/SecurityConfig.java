@@ -35,10 +35,8 @@ public class SecurityConfig {
             "/api/users/signup",
             "/api/users/phone",
             "/api/users/phone/verify",
-            "/actuator/prometheus",
             "/actuator",
-            "/actuator/health",
-            "/actuator/info",
+            "/actuator/**",
             "/chaos/**",
             "/api/users/phone/verify-with-user-check",
             "/api/users/pin/existing-user"
