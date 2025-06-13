@@ -15,6 +15,7 @@ import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.enums.TransferType;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
+import kr.ssok.transferservice.grpc.client.AccountService;
 import kr.ssok.transferservice.grpc.client.AccountServiceClient;
 import kr.ssok.transferservice.service.TransferService;
 import kr.ssok.transferservice.service.impl.helper.AccountInfoResolver;
@@ -41,7 +42,7 @@ public class TransferServiceImpl implements TransferService {
     private final TransferHistoryRecorder transferHistoryRecorder;
     private final TransferNotificationSender notificationSender;
 
-    private final AccountServiceClient accountServiceClient;
+    private final AccountService accountServiceClient;
     private final OpenBankingClient openBankingClient;
 
     @Value("${external.openbanking-service.api-key}")
@@ -199,6 +200,13 @@ public class TransferServiceImpl implements TransferService {
                 this.accountServiceClient.getAccountId(dto.getRecvAccountNumber());
         long end = System.currentTimeMillis();
         log.info("[SSOK-ACCOUNT] 송금 수신자 유저 조회 시간: {}ms", end - start);
+
+        // NPE 방지용
+        if (response == null || response.getAccountId() == null) {
+            log.info("[SSOK-ACCOUNT] 상대방 계좌 ID가 없어 입금 이력 저장을 건너뜁니다. recvAccountNumber={}",
+                    dto.getRecvAccountNumber());
+            return;
+        }
 
 //        if (response.getIsSuccess()
 //                && response.getCode() == 2200

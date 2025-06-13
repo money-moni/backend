@@ -142,11 +142,10 @@ public class TransferHistoryServiceImpl implements TransferHistoryService {
         log.info("[SSOK-ACCOUNT] 사용자 계좌 ID 조회 시간: {}ms", end - start);
 
         // NPE 방지
-//        if (!accountListResponse.getIsSuccess()
-//                || accountListResponse.getResult() == null
-//                || accountListResponse.getResult().isEmpty()) {
-//            return List.of();
-//        }
+        if (accountListResponse == null || accountListResponse.isEmpty()) {
+            log.warn("[SSOK-ACCOUNT] 사용자 ID {}에 해당하는 계좌가 없거나 응답이 비어있습니다.", userId);
+            return List.of();
+        }
 
         // 2. 계좌 ID 리스트 추출
         return accountListResponse.stream()
