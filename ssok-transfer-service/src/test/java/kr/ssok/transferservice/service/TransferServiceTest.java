@@ -194,7 +194,7 @@ public class TransferServiceTest {
         }
 
         @Override
-        public PrimaryAccountResponseDto getAccountInfo(String userId) {
+        public PrimaryAccountResponseDto getPrimaryAccountInfo(String userId) {
             if (failRecvAccountInfo) throw new TransferException(TransferResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED);
             return PrimaryAccountResponseDto.builder()
                     .accountId(10L)

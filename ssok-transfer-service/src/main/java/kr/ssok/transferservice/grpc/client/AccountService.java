@@ -10,5 +10,5 @@ public interface AccountService {
     AccountResponseDto getAccountInfo(Long accountId, String userId);
     AccountIdResponseDto getAccountId(String accountNumber);
     List<AccountIdResponseDto> getAccountIdsByUserId(String userId);
-    PrimaryAccountResponseDto getAccountInfo(String userId);
+    PrimaryAccountResponseDto getPrimaryAccountInfo(String userId);
 }
