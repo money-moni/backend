@@ -88,7 +88,7 @@ public class AccountServiceClient implements AccountService {
      * @return 사용자 주계좌 정보가 포함된 응답 DTO
      */
     @Override
-    public PrimaryAccountResponseDto getAccountInfo(String userId) {
+    public PrimaryAccountResponseDto getPrimaryAccountInfo(String userId) {
         UserIdRequest request = UserIdRequest.newBuilder()
                 .setUserId(userId)
                 .build();

@@ -16,7 +16,6 @@ import kr.ssok.transferservice.enums.TransferType;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
 import kr.ssok.transferservice.grpc.client.AccountService;
-import kr.ssok.transferservice.grpc.client.AccountServiceClient;
 import kr.ssok.transferservice.service.TransferService;
 import kr.ssok.transferservice.service.impl.helper.AccountInfoResolver;
 import kr.ssok.transferservice.service.impl.helper.TransferHistoryRecorder;
@@ -273,7 +272,11 @@ public class TransferServiceImpl implements TransferService {
 //            throw new TransferException(TransferResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED);
 //        }
 //        PrimaryAccountResponseDto accountInfo = response.getResult();
-        PrimaryAccountResponseDto accountInfo = accountServiceClient.getAccountInfo(requestDto.getRecvUserId().toString());
+        PrimaryAccountResponseDto accountInfo = accountServiceClient.getPrimaryAccountInfo(requestDto.getRecvUserId().toString());
+
+        // 테스트용 log
+        log.info("[DEBUG] 받은 PrimaryAccountResponseDto accountInfo: accountId={}", accountInfo.getAccountId());
+
         // 송금 요청 DTO 생성
         return TransferBluetoothRequestDto.builder()
                 .sendAccountId(requestDto.getSendAccountId())
