@@ -46,6 +46,7 @@ public class TransferHistoryRepositoryImpl implements TransferHistoryRepositoryC
                                 TransferCounterpartResponseDto.class,
                                 history.counterpartName,
                                 history.counterpartAccount,
+                                history.counterpartBankCode,
                                 history.createdAt.max() // max(createdAt)로 최신 송금 시간
                         )
                 )
@@ -55,7 +56,7 @@ public class TransferHistoryRepositoryImpl implements TransferHistoryRepositoryC
                         history.transferType.eq(TransferType.WITHDRAWAL),   // 출금 건만
                         history.transferMethod.eq(TransferMethod.GENERAL)   // 일반 송금만
                 )
-                .groupBy(history.counterpartAccount, history.counterpartName) // 상대방 계좌번호 + 이름 기준 그룹핑
+                .groupBy(history.counterpartAccount, history.counterpartName, history.counterpartBankCode) // 상대방 계좌번호 + 이름 기준 그룹핑
                 .orderBy(history.createdAt.max().desc()) // 최근 송금 시점 기준 정렬
                 .limit(50) // 최대 50개만 조회
                 .fetch(); // SQL 실행 및 결과 fetch

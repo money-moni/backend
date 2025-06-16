@@ -1,6 +1,7 @@
 package kr.ssok.transferservice.service.impl.helper;
 
 import kr.ssok.transferservice.entity.TransferHistory;
+import kr.ssok.transferservice.enums.BankCode;
 import kr.ssok.transferservice.enums.CurrencyCode;
 import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.enums.TransferType;
@@ -25,17 +26,19 @@ public class TransferHistoryRecorder {
      * @param accountId 계좌 ID
      * @param counterpartAccount 상대방 계좌 번호
      * @param counterpartName 상대방 이름
+     * @param counterpartBankCode 상대방 계좌 은행 코드
      * @param transferType 송금 유형 (출금/입금)
      * @param amount 송금 금액
      * @param currencyCode 통화 코드
      * @param transferMethod 송금 방법
      */
-    public void saveTransferHistory(Long accountId, String counterpartAccount, String counterpartName,
+    public void saveTransferHistory(Long accountId, String counterpartAccount, String counterpartName, BankCode counterpartBankCode,
                                          TransferType transferType, Long amount, CurrencyCode currencyCode, TransferMethod transferMethod) {
         TransferHistory history = TransferHistory.builder()
                 .accountId(accountId)
                 .counterpartAccount(counterpartAccount)
                 .counterpartName(counterpartName)
+                .counterpartBankCode(counterpartBankCode)
                 .transferType(transferType)
                 .transferMoney(amount)
                 .currencyCode(currencyCode)

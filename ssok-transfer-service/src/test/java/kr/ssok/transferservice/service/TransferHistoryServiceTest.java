@@ -4,6 +4,7 @@ import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
+import kr.ssok.transferservice.enums.BankCode;
 import kr.ssok.transferservice.enums.CurrencyCode;
 import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.enums.TransferType;
@@ -107,8 +108,8 @@ public class TransferHistoryServiceTest {
 
         // 2. 송금 상대 조회 모킹
         List<TransferCounterpartResponseDto> dummyResult = List.of(
-                new TransferCounterpartResponseDto("최지훈", "123-456-789", LocalDateTime.now()),
-                new TransferCounterpartResponseDto("홍길동", "987-654-321", LocalDateTime.now())
+                new TransferCounterpartResponseDto("최지훈", "123-456-789", BankCode.SHINHAN_BANK, LocalDateTime.now()),
+                new TransferCounterpartResponseDto("홍길동", "987-654-321", BankCode.SHINHAN_BANK, LocalDateTime.now())
         );
         when(transferHistoryRepository.findRecentCounterparts(accountIds)).thenReturn(dummyResult);
 
@@ -161,6 +162,7 @@ public class TransferHistoryServiceTest {
                         .map(h -> new TransferCounterpartResponseDto(
                                 h.getCounterpartName(),
                                 h.getCounterpartAccount(),
+                                BankCode.fromIdx(1),
                                 h.getCreatedAt()
                         ))
                         // 5) counterpartAccountNumber 기준으로 가장 최신만 남기기 (중복 제거)
