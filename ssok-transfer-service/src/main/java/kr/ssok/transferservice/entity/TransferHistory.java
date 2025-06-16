@@ -1,6 +1,7 @@
 package kr.ssok.transferservice.entity;
 
 import jakarta.persistence.*;
+import kr.ssok.transferservice.enums.BankCode;
 import kr.ssok.transferservice.enums.CurrencyCode;
 import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.enums.TransferType;
@@ -31,6 +32,10 @@ public class TransferHistory {
 
     @Column(nullable = false)
     private String counterpartName;         // 상대방 이름
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private BankCode counterpartBankCode;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

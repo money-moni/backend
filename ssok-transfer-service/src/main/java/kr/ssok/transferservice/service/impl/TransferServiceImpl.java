@@ -10,6 +10,7 @@ import kr.ssok.transferservice.dto.request.TransferBluetoothRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.BluetoothTransferResponseDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
+import kr.ssok.transferservice.enums.BankCode;
 import kr.ssok.transferservice.enums.CurrencyCode;
 import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.enums.TransferType;
@@ -78,7 +79,7 @@ public class TransferServiceImpl implements TransferService {
 
         start = System.currentTimeMillis();
         // 4. 출금 내역 저장
-        transferHistoryRecorder.saveTransferHistory(dto.getSendAccountId(), dto.getRecvAccountNumber(), dto.getRecvName(),
+        transferHistoryRecorder.saveTransferHistory(dto.getSendAccountId(), dto.getRecvAccountNumber(), dto.getRecvName(), BankCode.fromIdx(dto.getRecvBankCode()),
                 TransferType.WITHDRAWAL, dto.getAmount(), CurrencyCode.KRW, transferMethod);
         end = System.currentTimeMillis();
         log.info("[DB] 출금 내역 저장 시간: {}ms", end - start);
@@ -129,6 +130,7 @@ public class TransferServiceImpl implements TransferService {
         transferHistoryRecorder.saveTransferHistory(transferRequestDto.getSendAccountId(),
                 MaskingUtils.maskAccountNumber(transferRequestDto.getRecvAccountNumber()), // 계좌 번호 마스킹
                 MaskingUtils.maskUsername(transferRequestDto.getRecvName()),               // 상대방 이름 마스킹
+                BankCode.fromIdx(transferRequestDto.getRecvBankCode()),
                 TransferType.WITHDRAWAL, transferRequestDto.getAmount(),
                 CurrencyCode.KRW, transferMethod);
         end = System.currentTimeMillis();
@@ -139,6 +141,7 @@ public class TransferServiceImpl implements TransferService {
         transferHistoryRecorder.saveTransferHistory(transferRequestDto.getRecvAccountId(),
                 MaskingUtils.maskAccountNumber(sendAccountNumber),                         // 상대방 계좌 번호 마스킹
                 MaskingUtils.maskUsername(transferRequestDto.getSendName()),               // 상대방 이름 마스킹
+                BankCode.fromIdx(transferRequestDto.getSendBankCode()),
                 TransferType.DEPOSIT, transferRequestDto.getAmount(),
                 CurrencyCode.KRW, transferMethod);
         end = System.currentTimeMillis();
@@ -217,6 +220,7 @@ public class TransferServiceImpl implements TransferService {
                     response.getAccountId(), // 상대방 계좌 ID
                     sendAccountNumber,                   // 출금자 계좌번호
                     dto.getSendName(),                   // 송금자 이름 정보
+                    BankCode.fromIdx(dto.getSendBankCode()),
                     TransferType.DEPOSIT,
                     dto.getAmount(),
                     CurrencyCode.KRW,
