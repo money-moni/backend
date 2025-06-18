@@ -1,11 +1,10 @@
 package kr.ssok.transferservice.service;
 
 import kr.ssok.common.exception.BaseResponse;
-import kr.ssok.transferservice.client.AccountServiceClient;
-import kr.ssok.transferservice.client.NotificationServiceClient;
-import kr.ssok.transferservice.client.OpenBankingClient;
+import kr.ssok.transferservice.client.*;
 import kr.ssok.transferservice.client.dto.response.*;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
+import kr.ssok.transferservice.client.webclient.OpenBankingApiClient;
 import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.BluetoothTransferResponseDto;
@@ -23,9 +22,11 @@ import kr.ssok.transferservice.service.impl.helper.TransferNotificationSender;
 import kr.ssok.transferservice.service.impl.validator.TransferValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,7 +42,7 @@ public class TransferServiceTest {
     private TransferServiceImpl transferService;
     private TransferHistoryRepository transferHistoryRepository;
     private FakeAccountServiceClient fakeAccountServiceClient;
-    private FakeOpenBankingClient fakeOpenBankingClient;
+    private FakeOpenBankingWebClient fakeOpenBankingWebClient;
     private TransferNotificationSender notificationSender;
     private AccountInfoResolver accountInfoResolver;
     private TransferHistoryRecorder transferHistoryRecorder;
@@ -50,7 +51,7 @@ public class TransferServiceTest {
     @BeforeEach
     void setUp() {
         this.fakeAccountServiceClient = new FakeAccountServiceClient();
-        this.fakeOpenBankingClient = new FakeOpenBankingClient();
+        this.fakeOpenBankingWebClient = new FakeOpenBankingWebClient();
         this.transferHistoryRepository = mock(TransferHistoryRepository.class);
 
         this.notificationSender = new TransferNotificationSender(
@@ -66,7 +67,7 @@ public class TransferServiceTest {
                 transferHistoryRecorder,
                 notificationSender,
                 fakeAccountServiceClient,
-                fakeOpenBankingClient
+                fakeOpenBankingWebClient
         );
     }
 
@@ -77,7 +78,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When
-        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto, TransferMethod.GENERAL);
+        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto, TransferMethod.GENERAL).join();
 
         // Then
         assertThat(responseDto.getSendAccountId()).isEqualTo(5L);
@@ -96,7 +97,7 @@ public class TransferServiceTest {
         Long userId = 2L;
 
         // When
-        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto, TransferMethod.GENERAL);
+        TransferResponseDto responseDto = this.transferService.transfer(userId, requestDto, TransferMethod.GENERAL).join();
 
         // Then
         assertThat(responseDto.getSendAccountId()).isEqualTo(5L);
@@ -128,15 +129,15 @@ public class TransferServiceTest {
     @Test
     void 오픈뱅킹_송금에_실패하면_REMITTANCE_FAILED_예외를_던진다() {
         // Given
-        fakeOpenBankingClient.failTransfer = true;
+        fakeOpenBankingWebClient.failTransfer = true;
         TransferRequestDto requestDto = 기본_송금요청();
         Long userId = 2L;
 
         // When & Then
-        assertThatThrownBy(() -> transferService.transfer(userId, requestDto, TransferMethod.GENERAL))
-                .isInstanceOf(TransferException.class)
+        assertThatThrownBy(() -> transferService.transfer(userId, requestDto, TransferMethod.GENERAL).join())
+                .hasCauseInstanceOf(TransferException.class)
                 .satisfies(ex -> {
-                    TransferException exception = (TransferException) ex;
+                    TransferException exception = (TransferException) ex.getCause();
                     assertThat(exception.getStatus().getCode()).isEqualTo(TransferResponseStatus.REMITTANCE_FAILED.getCode());
                     assertThat(exception.getStatus().getMessage()).isEqualTo(TransferResponseStatus.REMITTANCE_FAILED.getMessage());
                 });
@@ -215,6 +216,25 @@ public class TransferServiceTest {
         }
     }
 
+    private static class FakeOpenBankingWebClient implements OpenBankingApiClient {
+        boolean failTransfer = false;
+
+        @Override
+        public Mono<OpenBankingResponse> sendTransferRequest(OpenBankingTransferRequestDto req) {
+            // not used in this test
+            return Mono.empty();
+        }
+        @Override
+        public CompletableFuture<OpenBankingResponse> sendTransferRequestAsync(OpenBankingTransferRequestDto req) {
+            if (failTransfer) {
+                return CompletableFuture.completedFuture(
+                        new OpenBankingResponse(false, "FAIL", "error", Map.of()));
+            }
+            return CompletableFuture.completedFuture(
+                    new OpenBankingResponse(true, "2000", "ok", Map.of(
+                            "transactionId","txid","status","COMPLETED","message","ok"))); }
+    }
+
     /**
      * Fake: 오픈뱅킹 송금 요청을 흉내내는 객체
      */
@@ -265,7 +285,7 @@ public class TransferServiceTest {
         Long userId = 3L;
 
         // When
-        BluetoothTransferResponseDto responseDto = this.transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH);
+        BluetoothTransferResponseDto responseDto = this.transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH).join();
 
         // Then
         assertThat(responseDto.getSendAccountId()).isEqualTo(5L);
@@ -296,15 +316,15 @@ public class TransferServiceTest {
     @Test
     void 블루투스_오픈뱅킹_송금에_실패하면_REMITTANCE_FAILED_예외를_던진다() {
         // Given
-        fakeOpenBankingClient.failTransfer = true;
+        fakeOpenBankingWebClient.failTransfer = true;
         BluetoothTransferRequestDto requestDto = 기본_블루투스_송금요청();
         Long userId = 3L;
 
         // When & Then
-        assertThatThrownBy(() -> transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH))
-                .isInstanceOf(TransferException.class)
+        assertThatThrownBy(() -> transferService.bluetoothTransfer(userId, requestDto, TransferMethod.BLUETOOTH).join())
+                .hasCauseInstanceOf(TransferException.class)
                 .satisfies(ex -> {
-                    TransferException exception = (TransferException) ex;
+                    TransferException exception = (TransferException) ex.getCause();
                     assertThat(exception.getStatus().getCode()).isEqualTo(TransferResponseStatus.REMITTANCE_FAILED.getCode());
                     assertThat(exception.getStatus().getMessage()).isEqualTo(TransferResponseStatus.REMITTANCE_FAILED.getMessage());
                 });
@@ -379,7 +399,7 @@ public class TransferServiceTest {
                 transferHistoryRecorder,
                 notificationSender,
                 fakeAccountServiceClient,
-                fakeOpenBankingClient
+                fakeOpenBankingWebClient
         );
 
         BluetoothTransferRequestDto requestDto = BluetoothTransferRequestDto.builder()
