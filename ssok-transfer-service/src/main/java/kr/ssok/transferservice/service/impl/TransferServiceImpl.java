@@ -33,8 +33,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
 
 /**
  * 송금 서비스의 실제 구현체
@@ -52,15 +50,6 @@ public class TransferServiceImpl implements TransferService {
     private final OpenBankingApiClient openBankingWebClient;
     private final AccountService accountServiceClient;
 
-    private final Executor customExecutorWebClient;
-
-    // null 체크 후 기본 ForkJoinPool 사용
-    private Executor executor() {
-        return customExecutorWebClient != null
-                ? customExecutorWebClient
-                : ForkJoinPool.commonPool();
-    }
-
     @Value("${external.openbanking-service.api-key}")
     private String OPENBANKING_API_KEY;
 
@@ -74,8 +63,8 @@ public class TransferServiceImpl implements TransferService {
      * @param transferMethod 송금 방법 (일반/블루투스 등)
      * @return 송금 응답 DTO
      */
-    //@Async("customExecutorWebClient")
-    //@Transactional
+    @Async("customExecutorWebClient")
+    @Transactional
     @Override
     public CompletableFuture<TransferResponseDto> transfer(Long userId, TransferRequestDto dto, TransferMethod transferMethod) {
         // 0. 송금 금액이 0보다 큰지 검증
@@ -98,48 +87,23 @@ public class TransferServiceImpl implements TransferService {
                 .amount(dto.getAmount())
                 .build();
 
+        // 4. WebClient 비동기 호출 및 후속 처리
         return openBankingWebClient
-                .sendTransferRequestAsync(obReq)
-                .thenApplyAsync(response -> {
+                .sendTransferRequestAsync(obReq)    // CompletableFuture<OpenBankingResponse>
+                .thenApply(response -> {            // 응답 완료 시점에 이 블록이 실행
                     if (!response.isSuccess()) {
                         log.error("오픈뱅킹 송금 실패: {}", response.getMessage());
                         throw new TransferException(TransferResponseStatus.REMITTANCE_FAILED);
                     }
+                    // 3) 출금/입금 내역 저장
+                    transferHistoryRecorder.saveTransferHistory(
+                            dto.getSendAccountId(), dto.getRecvAccountNumber(), dto.getRecvName(), BankCode.fromIdx(dto.getRecvBankCode()), TransferType.WITHDRAWAL,
+                            dto.getAmount(), CurrencyCode.KRW, transferMethod);
+                    saveDepositHistoryIfReceiverExists(sendAccountNumber, dto, transferMethod);
 
-                    // 일반 송금: 마스킹 없이
-                    transferHistoryRecorder.recordGeneralTransfer(
-                            dto.getSendAccountId(),
-                            sendAccountNumber,
-                            dto.getSendName(),
-                            dto.getSendBankCode(),
-                            dto.getRecvAccountNumber(),
-                            dto.getRecvName(),
-                            dto.getRecvBankCode(),
-                            dto.getAmount(),
-                            CurrencyCode.KRW,
-                            transferMethod
-                    );
-
+                    // 4) 결과 DTO 생성
                     return buildTransferResponse(dto);
-                }, executor());
-
-        // 4. WebClient 비동기 호출 및 후속 처리
-//        return openBankingWebClient
-//                .sendTransferRequestAsync(obReq)    // CompletableFuture<OpenBankingResponse>
-//                .thenApply(response -> {            // 응답 완료 시점에 이 블록이 실행
-//                    if (!response.isSuccess()) {
-//                        log.error("오픈뱅킹 송금 실패: {}", response.getMessage());
-//                        throw new TransferException(TransferResponseStatus.REMITTANCE_FAILED);
-//                    }
-//                    // 3) 출금/입금 내역 저장
-//                    transferHistoryRecorder.saveTransferHistory(
-//                            dto.getSendAccountId(), dto.getRecvAccountNumber(), dto.getRecvName(), BankCode.fromIdx(dto.getRecvBankCode()), TransferType.WITHDRAWAL,
-//                            dto.getAmount(), CurrencyCode.KRW, transferMethod);
-//                    saveDepositHistoryIfReceiverExists(sendAccountNumber, dto, transferMethod);
-//
-//                    // 4) 결과 DTO 생성
-//                    return buildTransferResponse(dto);
-//                });
+                });
     }
 
     /**
@@ -150,93 +114,57 @@ public class TransferServiceImpl implements TransferService {
      * @param transferMethod 송금 방법 (BLUETOOTH)
      * @return 블루투스 송금 응답 DTO
      */
-    //@Async("customExecutorWebClient")
-    //@Transactional
+    @Async("customExecutorWebClient")
+    @Transactional
     @Override
     public CompletableFuture<BluetoothTransferResponseDto> bluetoothTransfer(Long userId, BluetoothTransferRequestDto requestDto, TransferMethod transferMethod) {
         // 0. 송금 금액이 0보다 큰지 검증
         validator.validateTransferAmount(requestDto.getAmount());
 
         // 1. 상대방 계좌 정보 조회 및 송금 요청 DTO 생성
-        //TransferBluetoothRequestDto transferRequestDto = createTransferRequest(requestDto);
-        PrimaryAccountResponseDto accountInfo = accountServiceClient.getPrimaryAccountInfo(requestDto.getRecvUserId().toString());
+        TransferBluetoothRequestDto transferRequestDto = createTransferRequest(requestDto);
 
         // 2. 계좌 서비스에서 출금 계좌번호 조회
-        //String sendAccountNumber = accountResolver.findSendAccountNumber(transferRequestDto.getSendAccountId(), userId);
-        String sendAccountNumber = accountResolver.findSendAccountNumber(requestDto.getSendAccountId(), userId);
+        String sendAccountNumber = accountResolver.findSendAccountNumber(transferRequestDto.getSendAccountId(), userId);
 
         // 3. 츨금/입금 계좌 동일 여부 검증
-        //validator.validateSameAccount(sendAccountNumber, transferRequestDto.getRecvAccountNumber());
-        validator.validateSameAccount(sendAccountNumber, accountInfo.getAccountNumber());
+        validator.validateSameAccount(sendAccountNumber, transferRequestDto.getRecvAccountNumber());
 
         // 4. OpenBanking 비동기 송금 요청 DTO 빌드
-//        OpenBankingTransferRequestDto obReq = OpenBankingTransferRequestDto.builder()
-//                .sendAccountNumber(sendAccountNumber)
-//                .sendBankCode(transferRequestDto.getSendBankCode())
-//                .sendName(transferRequestDto.getSendName())
-//                .recvAccountNumber(transferRequestDto.getRecvAccountNumber())
-//                .recvBankCode(transferRequestDto.getRecvBankCode())
-//                .recvName(transferRequestDto.getRecvName())
-//                .amount(transferRequestDto.getAmount())
-//                .build();
         OpenBankingTransferRequestDto obReq = OpenBankingTransferRequestDto.builder()
                 .sendAccountNumber(sendAccountNumber)
-                .sendBankCode(requestDto.getSendBankCode())
-                .sendName(requestDto.getSendName())
-                .recvAccountNumber(accountInfo.getAccountNumber())
-                .recvBankCode(accountInfo.getBankCode())
-                .recvName(accountInfo.getUsername())
-                .amount(requestDto.getAmount())
+                .sendBankCode(transferRequestDto.getSendBankCode())
+                .sendName(transferRequestDto.getSendName())
+                .recvAccountNumber(transferRequestDto.getRecvAccountNumber())
+                .recvBankCode(transferRequestDto.getRecvBankCode())
+                .recvName(transferRequestDto.getRecvName())
+                .amount(transferRequestDto.getAmount())
                 .build();
 
+        // 5. WebClient 비동기 호출 및 후속 처리
         return openBankingWebClient
                 .sendTransferRequestAsync(obReq)
-                .thenApplyAsync(response -> {
+                .thenApply(response -> {
                     if (!response.isSuccess()) {
                         log.error("오픈뱅킹 블루투스 송금 실패: {}", response.getMessage());
                         throw new TransferException(TransferResponseStatus.REMITTANCE_FAILED);
                     }
-
-                    // 블루투스 송금: 계좌·이름 마스킹 적용
-                    transferHistoryRecorder.recordBluetoothTransfer(
-                            requestDto.getSendAccountId(),
-                            sendAccountNumber,
-                            requestDto.getSendName(),
-                            requestDto.getSendBankCode(),
-                            userId,
-                            accountInfo,
-                            requestDto.getAmount(),
-                            CurrencyCode.KRW,
-                            transferMethod
-                    );
-
-                    return buildBluetoothResponse(accountInfo, requestDto.getSendAccountId(), requestDto.getAmount());
-                }, executor());
-
-        // 5. WebClient 비동기 호출 및 후속 처리
-//        return openBankingWebClient
-//                .sendTransferRequestAsync(obReq)
-//                .thenApply(response -> {
-//                    if (!response.isSuccess()) {
-//                        log.error("오픈뱅킹 블루투스 송금 실패: {}", response.getMessage());
-//                        throw new TransferException(TransferResponseStatus.REMITTANCE_FAILED);
-//                    }
-//                    // 5. 출금 이력 저장 (마스킹)
-//                    transferHistoryRecorder.saveTransferHistory(
-//                            transferRequestDto.getSendAccountId(),
-//                            MaskingUtils.maskAccountNumber(transferRequestDto.getRecvAccountNumber()), MaskingUtils.maskUsername(transferRequestDto.getRecvName()),
-//                            BankCode.fromIdx(transferRequestDto.getRecvBankCode()), TransferType.WITHDRAWAL, transferRequestDto.getAmount(), CurrencyCode.KRW, transferMethod);
-//                    // 6. 입금 이력 저장 (마스킹)
-//                    transferHistoryRecorder.saveTransferHistory(
-//                            transferRequestDto.getRecvAccountId(),
-//                            MaskingUtils.maskAccountNumber(sendAccountNumber), MaskingUtils.maskUsername(transferRequestDto.getSendName()),
-//                            BankCode.fromIdx(transferRequestDto.getSendBankCode()), TransferType.DEPOSIT, transferRequestDto.getAmount(), CurrencyCode.KRW, transferMethod);
-//                    // 7. 푸시 알림
-//                    notificationSender.sendKafkaNotification(
-//                            requestDto.getRecvUserId(), transferRequestDto.getRecvAccountId(), transferRequestDto.getSendName(), transferRequestDto.getRecvBankCode(), requestDto.getAmount(), TransferType.DEPOSIT);
-//                    // 8. 결과 DTO 반환
-//                    return buildBluetoothResponse(transferRequestDto);
-//                });
+                    // 5. 출금 이력 저장 (마스킹)
+                    transferHistoryRecorder.saveTransferHistory(
+                            transferRequestDto.getSendAccountId(),
+                            MaskingUtils.maskAccountNumber(transferRequestDto.getRecvAccountNumber()), MaskingUtils.maskUsername(transferRequestDto.getRecvName()),
+                            BankCode.fromIdx(transferRequestDto.getRecvBankCode()), TransferType.WITHDRAWAL, transferRequestDto.getAmount(), CurrencyCode.KRW, transferMethod);
+                    // 6. 입금 이력 저장 (마스킹)
+                    transferHistoryRecorder.saveTransferHistory(
+                            transferRequestDto.getRecvAccountId(),
+                            MaskingUtils.maskAccountNumber(sendAccountNumber), MaskingUtils.maskUsername(transferRequestDto.getSendName()),
+                            BankCode.fromIdx(transferRequestDto.getSendBankCode()), TransferType.DEPOSIT, transferRequestDto.getAmount(), CurrencyCode.KRW, transferMethod);
+                    // 7. 푸시 알림
+                    notificationSender.sendKafkaNotification(
+                            requestDto.getRecvUserId(), transferRequestDto.getRecvAccountId(), transferRequestDto.getSendName(), transferRequestDto.getRecvBankCode(), requestDto.getAmount(), TransferType.DEPOSIT);
+                    // 8. 결과 DTO 반환
+                    return buildBluetoothResponse(transferRequestDto);
+                });
     }
 
 //    /**
@@ -346,7 +274,7 @@ public class TransferServiceImpl implements TransferService {
         PrimaryAccountResponseDto accountInfo = accountServiceClient.getPrimaryAccountInfo(requestDto.getRecvUserId().toString());
 
         // 테스트용 log
-        //log.info("[DEBUG] 받은 PrimaryAccountResponseDto accountInfo: accountId={}", accountInfo.getAccountId());
+        log.info("[DEBUG] 받은 PrimaryAccountResponseDto accountInfo: accountId={}", accountInfo.getAccountId());
 
         // 송금 요청 DTO 생성
         return TransferBluetoothRequestDto.builder()
@@ -375,28 +303,17 @@ public class TransferServiceImpl implements TransferService {
                 .build();
     }
 
-//    /**
-//     * 블루투스 송금 응답 DTO 생성
-//     *
-//     * @param dto 송금 요청 DTO
-//     * @return 블루투스 송금 응답 DTO
-//     */
-//    private BluetoothTransferResponseDto buildBluetoothResponse(TransferBluetoothRequestDto dto) {
-//        return BluetoothTransferResponseDto.builder()
-//                .sendAccountId(dto.getSendAccountId())
-//                .recvName(MaskingUtils.maskUsername(dto.getRecvName()))
-//                .amount(dto.getAmount())
-//                .build();
-//    }
-    private BluetoothTransferResponseDto buildBluetoothResponse(
-            PrimaryAccountResponseDto acct,
-            Long sendAccountId,
-            Long amount) {
-
+    /**
+     * 블루투스 송금 응답 DTO 생성
+     *
+     * @param dto 송금 요청 DTO
+     * @return 블루투스 송금 응답 DTO
+     */
+    private BluetoothTransferResponseDto buildBluetoothResponse(TransferBluetoothRequestDto dto) {
         return BluetoothTransferResponseDto.builder()
-                .sendAccountId(sendAccountId)
-                .recvName(MaskingUtils.maskUsername(acct.getUsername()))
-                .amount(amount)
+                .sendAccountId(dto.getSendAccountId())
+                .recvName(MaskingUtils.maskUsername(dto.getRecvName()))
+                .amount(dto.getAmount())
                 .build();
     }
 }
