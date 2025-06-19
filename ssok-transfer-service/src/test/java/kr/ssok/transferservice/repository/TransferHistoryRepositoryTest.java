@@ -116,11 +116,8 @@ class TransferHistoryRepositoryTest {
     void 계좌ID목록으로_최근송금이력_3건을_조회한다() throws InterruptedException {
         // Given: 4건의 송금 이력을 저장 (계좌ID: 101)
         TransferHistory history1 = createTransferHistory(101L, "김철수", "100-100", TransferType.WITHDRAWAL, TransferMethod.GENERAL, LocalDateTime.now());
-        Thread.sleep(2);
         TransferHistory history2 = createTransferHistory(101L, "김철수", "100-100", TransferType.WITHDRAWAL, TransferMethod.GENERAL, LocalDateTime.now());
-        Thread.sleep(2);
         TransferHistory history3 = createTransferHistory(101L, "김철수", "100-100", TransferType.WITHDRAWAL, TransferMethod.GENERAL, LocalDateTime.now());
-        Thread.sleep(2);
         TransferHistory history4 = createTransferHistory(101L, "김철수", "100-100", TransferType.WITHDRAWAL, TransferMethod.GENERAL, LocalDateTime.now());
 
         transferHistoryRepository.saveAll(List.of(history1, history2, history3, history4));
@@ -133,7 +130,8 @@ class TransferHistoryRepositoryTest {
 
         // Then: 최신 순으로 3건만 반환되어야 함
         assertThat(result).hasSize(3);
-        assertThat(result.get(0).getCreatedAt()).isAfter(result.get(1).getCreatedAt());
-        assertThat(result.get(1).getCreatedAt()).isAfter(result.get(2).getCreatedAt());
+        assertThat(result)
+                .extracting(TransferHistory::getId)
+                .containsExactly(history4.getId(), history3.getId(), history2.getId());
     }
 }
