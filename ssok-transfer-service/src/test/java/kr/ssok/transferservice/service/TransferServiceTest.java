@@ -1,6 +1,5 @@
 package kr.ssok.transferservice.service;
 
-import kr.ssok.common.exception.BaseResponse;
 import kr.ssok.transferservice.client.*;
 import kr.ssok.transferservice.client.dto.response.*;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
@@ -67,8 +66,8 @@ public class TransferServiceTest {
                 accountInfoResolver,
                 transferHistoryRecorder,
                 notificationSender,
-                fakeAccountServiceClient,
-                fakeOpenBankingWebClient
+                fakeOpenBankingWebClient,
+                fakeAccountServiceClient
         );
     }
 
@@ -389,8 +388,8 @@ public class TransferServiceTest {
                 accountInfoResolver,
                 transferHistoryRecorder,
                 notificationSender,
-                fakeAccountServiceClient,
-                fakeOpenBankingWebClient
+                fakeOpenBankingWebClient,
+                fakeAccountServiceClient
         );
 
         BluetoothTransferRequestDto requestDto = BluetoothTransferRequestDto.builder()
