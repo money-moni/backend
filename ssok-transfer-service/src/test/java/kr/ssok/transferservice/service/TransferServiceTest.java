@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -47,6 +48,7 @@ public class TransferServiceTest {
     private AccountInfoResolver accountInfoResolver;
     private TransferHistoryRecorder transferHistoryRecorder;
     private TransferValidator transferValidator;
+    private Executor customExecutorWebClient;
 
     @BeforeEach
     void setUp() {
@@ -58,8 +60,9 @@ public class TransferServiceTest {
                 mock(NotificationProducer.class),
                 mock(NotificationServiceClient.class));
         this.accountInfoResolver = new AccountInfoResolver(fakeAccountServiceClient);
-        this.transferHistoryRecorder = new TransferHistoryRecorder(transferHistoryRepository);
+        this.transferHistoryRecorder = new TransferHistoryRecorder(transferHistoryRepository, fakeAccountServiceClient, notificationSender);
         this.transferValidator = new TransferValidator();
+        this.customExecutorWebClient = Runnable::run;
 
         this.transferService = new TransferServiceImpl(
                 transferValidator,
@@ -67,7 +70,8 @@ public class TransferServiceTest {
                 transferHistoryRecorder,
                 notificationSender,
                 fakeOpenBankingWebClient,
-                fakeAccountServiceClient
+                fakeAccountServiceClient,
+                customExecutorWebClient
         );
     }
 
@@ -389,7 +393,8 @@ public class TransferServiceTest {
                 transferHistoryRecorder,
                 notificationSender,
                 fakeOpenBankingWebClient,
-                fakeAccountServiceClient
+                fakeAccountServiceClient,
+                customExecutorWebClient
         );
 
         BluetoothTransferRequestDto requestDto = BluetoothTransferRequestDto.builder()
