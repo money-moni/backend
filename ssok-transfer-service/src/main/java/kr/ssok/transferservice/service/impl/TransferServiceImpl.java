@@ -5,17 +5,20 @@ import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.webclient.OpenBankingApiClient;
 import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.client.dto.request.OpenBankingTransferRequestDto;
+import kr.ssok.transferservice.client.dto.response.OpenBankingResponse;
 import kr.ssok.transferservice.client.dto.response.PrimaryAccountResponseDto;
 import kr.ssok.transferservice.dto.request.BluetoothTransferRequestDto;
 import kr.ssok.transferservice.dto.request.TransferBluetoothRequestDto;
 import kr.ssok.transferservice.dto.request.TransferRequestDto;
 import kr.ssok.transferservice.dto.response.BluetoothTransferResponseDto;
 import kr.ssok.transferservice.dto.response.TransferResponseDto;
+import kr.ssok.transferservice.enums.BankCode;
 import kr.ssok.transferservice.enums.CurrencyCode;
 import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.enums.TransferType;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
+import kr.ssok.transferservice.grpc.client.AccountService;
 import kr.ssok.transferservice.service.TransferService;
 import kr.ssok.transferservice.service.impl.helper.AccountInfoResolver;
 import kr.ssok.transferservice.service.impl.helper.TransferHistoryRecorder;
@@ -44,9 +47,8 @@ public class TransferServiceImpl implements TransferService {
     private final TransferHistoryRecorder transferHistoryRecorder;
     private final TransferNotificationSender notificationSender;
 
-    private final AccountServiceClient accountServiceClient;
-
     private final OpenBankingApiClient openBankingWebClient;
+    private final AccountService accountServiceClient;
 
     @Value("${external.openbanking-service.api-key}")
     private String OPENBANKING_API_KEY;
@@ -197,18 +199,29 @@ public class TransferServiceImpl implements TransferService {
      * @param dto 송금 요청 DTO
      */
     private void saveDepositHistoryIfReceiverExists(String sendAccountNumber, TransferRequestDto dto, TransferMethod transferMethod) {
-        BaseResponse<AccountIdResponseDto> response =
+
+//        BaseResponse<AccountIdResponseDto> response =
+//                this.accountServiceClient.getAccountId(dto.getRecvAccountNumber());
+        AccountIdResponseDto response =
                 this.accountServiceClient.getAccountId(dto.getRecvAccountNumber());
 
-        if (response.getIsSuccess()
-                && response.getCode() == 2200
-                && response.getResult() != null
-                && response.getResult().getAccountId() != null) {
+        // NPE 방지용
+        if (response == null || response.getAccountId() == null) {
+            log.info("[SSOK-ACCOUNT] 상대방 계좌 ID가 없어 입금 이력 저장을 건너뜁니다. recvAccountNumber={}",
+                    dto.getRecvAccountNumber());
+            return;
+        }
+
+//        if (response.getIsSuccess()
+//                && response.getCode() == 2200
+//                && response.getResult() != null
+//                && response.getResult().getAccountId() != null) {
 
             transferHistoryRecorder.saveTransferHistory(
-                    response.getResult().getAccountId(), // 상대방 계좌 ID
+                    response.getAccountId(), // 상대방 계좌 ID
                     sendAccountNumber,                   // 출금자 계좌번호
                     dto.getSendName(),                   // 송금자 이름 정보
+                    BankCode.fromIdx(dto.getSendBankCode()),
                     TransferType.DEPOSIT,
                     dto.getAmount(),
                     CurrencyCode.KRW,
@@ -217,13 +230,14 @@ public class TransferServiceImpl implements TransferService {
 
             // 푸시 알림(kafka)
             notificationSender.sendKafkaNotification(
-                    response.getResult().getUserId(),               // 수신자 userId
-                    dto.getSendName(),                              // 송신자 이름
-                    dto.getRecvBankCode(),                          // 수신자 은행 코드
-                    dto.getAmount(),                                // 금액
-                    TransferType.DEPOSIT                            // 송금 유형 (입금)
+                    response.getUserId(),               // 수신자 userId
+                    response.getAccountId(),            // 수신자 계좌 ID
+                    dto.getSendName(),                  // 송신자 이름
+                    dto.getRecvBankCode(),              // 수신자 은행 코드
+                    dto.getAmount(),                    // 금액
+                    TransferType.DEPOSIT                // 송금 유형 (입금)
             );
-        }
+//        }
     }
 
 //    /**
@@ -252,11 +266,15 @@ public class TransferServiceImpl implements TransferService {
      */
     private TransferBluetoothRequestDto createTransferRequest(BluetoothTransferRequestDto requestDto) {
         // 상대방 계좌 정보 조회
-        BaseResponse<PrimaryAccountResponseDto> response = accountServiceClient.getAccountInfo(requestDto.getRecvUserId().toString());
-        if (!response.getIsSuccess()) {
-            throw new TransferException(TransferResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED);
-        }
-        PrimaryAccountResponseDto accountInfo = response.getResult();
+//        BaseResponse<PrimaryAccountResponseDto> response = accountServiceClient.getAccountInfo(requestDto.getRecvUserId().toString());
+//        if (!response.getIsSuccess()) {
+//            throw new TransferException(TransferResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED);
+//        }
+//        PrimaryAccountResponseDto accountInfo = response.getResult();
+        PrimaryAccountResponseDto accountInfo = accountServiceClient.getPrimaryAccountInfo(requestDto.getRecvUserId().toString());
+
+        // 테스트용 log
+        log.info("[DEBUG] 받은 PrimaryAccountResponseDto accountInfo: accountId={}", accountInfo.getAccountId());
 
         // 송금 요청 DTO 생성
         return TransferBluetoothRequestDto.builder()

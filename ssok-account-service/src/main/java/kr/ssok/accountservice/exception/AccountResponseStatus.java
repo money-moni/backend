@@ -41,7 +41,15 @@ public enum AccountResponseStatus implements ResponseStatus {
     USER_INFO_NOT_FOUND(false, 4213, "사용자 정보를 찾을 수 없습니다."),
 
     ACCOUNT_UPDATE_ERROR(false,4214,"계좌 삭제 상태 업데이트를 실패했습니다."),
-    ACCOUNT_SAVE_ERROR(false,4215,"계좌 정보 저장 중 실패했습니다.");
+    ACCOUNT_SAVE_ERROR(false,4215,"계좌 정보 저장 중 실패했습니다."),
+
+    UNSUPPORTED_CODE(false, 4216, "[USER - ACCOUNT] 지원하지 않는 예외처리 코드입니다."),
+    GRPC_METADATA_INVALID(false, 4217, "[USER - ACCOUNT] gRPC 메타 데이터가 유효하지 않습니다."),
+
+    USER_SERVER_ERROR(false, 5251, "[USER - ACCOUNT] USER 서버에 에러가 발생했습니다."),
+
+    // gRPC 클라이언트에 전달 목적
+    INTERNAL_SERVER_ERROR(false, 4250, "내부 서버 에러가 발생했습니다.");
 
     private final boolean success;
     private final int code;

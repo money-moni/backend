@@ -1,13 +1,13 @@
 package kr.ssok.bluetoothservice.service.impl;
 
-import kr.ssok.bluetoothservice.client.AccountServiceClient;
-import kr.ssok.bluetoothservice.client.UserServiceClient;
 import kr.ssok.bluetoothservice.client.dto.AccountInfoDto;
 import kr.ssok.bluetoothservice.client.dto.UserInfoDto;
 import kr.ssok.bluetoothservice.dto.response.BluetoothMatchResponseDto;
 import kr.ssok.bluetoothservice.dto.response.UserInfoResponseDto;
 import kr.ssok.bluetoothservice.exception.BluetoothException;
 import kr.ssok.bluetoothservice.exception.BluetoothResponseStatus;
+import kr.ssok.bluetoothservice.grpc.client.AccountServiceClient;
+import kr.ssok.bluetoothservice.grpc.client.UserServiceClient;
 import kr.ssok.bluetoothservice.service.BluetoothService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -118,7 +118,7 @@ public class BluetoothServiceImpl implements BluetoothService {
                         if (userIdStr == null) return null;
 
                         // 유저 서비스에서 사용자 정보를 조회하여 반환
-                        UserInfoDto userInfo = userServiceClient.getUserInfo(userIdStr).getResult();
+                        UserInfoDto userInfo = userServiceClient.getUserInfo(userIdStr);
 
                         if(userInfo == null) return null;
 
@@ -140,7 +140,8 @@ public class BluetoothServiceImpl implements BluetoothService {
             }
 
             // 사용자의 주 계좌 정보를 조회
-            AccountInfoDto primaryAccount = accountServiceClient.getPrimaryAccount(userId).getResult();
+//            AccountInfoDto primaryAccount = accountServiceClient.getPrimaryAccount(userId).getResult();
+            AccountInfoDto primaryAccount = accountServiceClient.getPrimaryAccount(userId);
             return new BluetoothMatchResponseDto(matchedUsers, primaryAccount);
         } catch (DataAccessException e) {
             log.error("Redis 처리 실패: userId={}, bluetoothUUIDs={}", userId, bluetoothUUIDs);

@@ -1,16 +1,16 @@
 package kr.ssok.transferservice.service;
 
-import kr.ssok.common.exception.BaseResponse;
-import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.dto.response.AccountIdResponseDto;
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.dto.response.TransferHistoryResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
+import kr.ssok.transferservice.enums.BankCode;
 import kr.ssok.transferservice.enums.CurrencyCode;
 import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.enums.TransferType;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
+import kr.ssok.transferservice.grpc.client.AccountServiceClient;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import kr.ssok.transferservice.service.impl.TransferHistoryServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,13 +104,12 @@ public class TransferHistoryServiceTest {
 
         // 1. 계좌 서비스 모킹
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
-                .thenReturn(new BaseResponse<>(true, 2000, "성공",
-                        List.of(new AccountIdResponseDto(10L, 1L), new AccountIdResponseDto(20L, 2L))));
+                .thenReturn(List.of(new AccountIdResponseDto(10L, 1L), new AccountIdResponseDto(20L, 2L)));
 
         // 2. 송금 상대 조회 모킹
         List<TransferCounterpartResponseDto> dummyResult = List.of(
-                new TransferCounterpartResponseDto("최지훈", "123-456-789", LocalDateTime.now()),
-                new TransferCounterpartResponseDto("홍길동", "987-654-321", LocalDateTime.now())
+                new TransferCounterpartResponseDto("최지훈", "123-456-789", BankCode.SHINHAN_BANK, LocalDateTime.now()),
+                new TransferCounterpartResponseDto("홍길동", "987-654-321", BankCode.SHINHAN_BANK, LocalDateTime.now())
         );
         when(transferHistoryRepository.findRecentCounterparts(accountIds)).thenReturn(dummyResult);
 
@@ -134,8 +133,7 @@ public class TransferHistoryServiceTest {
 
         // 1. 계좌 서비스 모킹
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
-                .thenReturn(new BaseResponse<>(true, 2000, "성공",
-                        List.of(new AccountIdResponseDto(10L, 1L), new AccountIdResponseDto(20L, 2L))));
+                .thenReturn(List.of(new AccountIdResponseDto(10L, 1L), new AccountIdResponseDto(20L, 2L)));
 
         // 2. 송금 이력 더미 데이터
         List<TransferHistory> dummyHistories = List.of(
@@ -164,6 +162,7 @@ public class TransferHistoryServiceTest {
                         .map(h -> new TransferCounterpartResponseDto(
                                 h.getCounterpartName(),
                                 h.getCounterpartAccount(),
+                                BankCode.fromIdx(1),
                                 h.getCreatedAt()
                         ))
                         // 5) counterpartAccountNumber 기준으로 가장 최신만 남기기 (중복 제거)
@@ -221,7 +220,7 @@ public class TransferHistoryServiceTest {
         Long userId = 1L;
 
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
-                .thenReturn(new BaseResponse<>(true, 2000, "성공", null)); // 계좌 리스트 null
+                .thenReturn(null); // 계좌 리스트 null
 
         // When
         List<TransferCounterpartResponseDto> results = transferHistoryService.getRecentCounterparts(userId);
@@ -238,7 +237,7 @@ public class TransferHistoryServiceTest {
         Long userId = 1L;
 
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
-                .thenReturn(new BaseResponse<>(true, 2000, "성공", List.of())); // 계좌 리스트 비어 있음
+                .thenReturn(List.of()); // 계좌 리스트 비어 있음
 
         // When
         List<TransferCounterpartResponseDto> results = transferHistoryService.getRecentCounterparts(userId);
@@ -255,7 +254,7 @@ public class TransferHistoryServiceTest {
         Long userId = 1L;
 
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
-                .thenReturn(new BaseResponse<>(false, 4001, "계좌 조회 실패", null)); // 실패 응답
+                .thenReturn(null); // 실패 응답
 
         // When
         List<TransferCounterpartResponseDto> results = transferHistoryService.getRecentCounterparts(userId);
@@ -302,7 +301,7 @@ public class TransferHistoryServiceTest {
         List<Long> accountIds = accountIdDtos.stream().map(AccountIdResponseDto::getAccountId).toList();
 
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
-                .thenReturn(new BaseResponse<>(true, 2000, "성공", accountIdDtos));
+                .thenReturn(accountIdDtos);
 
         List<TransferHistory> dummyHistories = List.of(
                 dummyTransferHistory(1L, 100L, TransferType.WITHDRAWAL, TransferMethod.GENERAL, "A", "111", LocalDateTime.now().minusDays(1)),
@@ -349,7 +348,7 @@ public class TransferHistoryServiceTest {
         Long userId = 1L;
 
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
-                .thenReturn(new BaseResponse<>(false, 4001, "계좌 조회 실패", null));
+                .thenReturn(null);
 
         // When
         var result = transferHistoryService.getRecentHistories(userId);
@@ -366,7 +365,7 @@ public class TransferHistoryServiceTest {
         Long userId = 1L;
 
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
-                .thenReturn(new BaseResponse<>(true, 2000, "성공", null));
+                .thenReturn(null);
 
         // When
         var result = transferHistoryService.getRecentHistories(userId);
@@ -383,7 +382,7 @@ public class TransferHistoryServiceTest {
         Long userId = 1L;
 
         when(accountServiceClient.getAccountIdsByUserId(userId.toString()))
-                .thenReturn(new BaseResponse<>(true, 2000, "성공", List.of()));
+                .thenReturn(List.of());
 
         // When
         var result = transferHistoryService.getRecentHistories(userId);

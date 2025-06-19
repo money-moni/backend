@@ -13,6 +13,7 @@ import kr.ssok.transferservice.entity.TransferHistory;
 import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.exception.TransferException;
 import kr.ssok.transferservice.exception.TransferResponseStatus;
+import kr.ssok.transferservice.grpc.client.AccountService;
 import kr.ssok.transferservice.kafka.producer.NotificationProducer;
 import kr.ssok.transferservice.repository.TransferHistoryRepository;
 import kr.ssok.transferservice.service.impl.TransferServiceImpl;
@@ -173,46 +174,37 @@ public class TransferServiceTest {
     /**
      * Fake: 계좌 서비스 응답을 흉내내는 객체
      */
-    private static class FakeAccountServiceClient implements AccountServiceClient {
+    private static class FakeAccountServiceClient implements AccountService {
         private boolean failRecvAccountInfo = false;
         private boolean failRecvAccountId = false;
 
         @Override
-        public BaseResponse<AccountResponseDto> getAccountInfo(Long accountId, String userId) {
-            if (failRecvAccountInfo) {
-                return new BaseResponse<>(false, 4201, "계좌 조회 실패", null);
-            }
-            return new BaseResponse<>(true, 2200, "계좌 조회 성공",
-                    new AccountResponseDto("1111-111-1111"));
+        public AccountResponseDto getAccountInfo(Long accountId, String userId) {
+            if (failRecvAccountInfo) throw new TransferException(TransferResponseStatus.ACCOUNT_LOOKUP_FAILED);
+            return new AccountResponseDto("1111-111-1111");
         }
 
         @Override
-        public BaseResponse<AccountIdResponseDto> getAccountId(String accountNumber) {
-            if (failRecvAccountId) {
-                return new BaseResponse<>(true, 2201, "계좌 ID 없음", null); // accountId 없으면 code=2001
-            }
-            return new BaseResponse<>(true, 2200, "계좌 ID 조회 성공",
-                    new AccountIdResponseDto(10L, 1L));
+        public AccountIdResponseDto getAccountId(String accountNumber) {
+            if (failRecvAccountId) return null;
+            return new AccountIdResponseDto(10L, 1L);
         }
 
         @Override
-        public BaseResponse<List<AccountIdResponseDto>> getAccountIdsByUserId(String userId) {
-            return null;
+        public List<AccountIdResponseDto> getAccountIdsByUserId(String userId) {
+            // TransferServiceTest 에서 쓰이지 않으면 빈 구현
+            return List.of();
         }
 
         @Override
-        public BaseResponse<PrimaryAccountResponseDto> getAccountInfo(String userId) {
-            if (failRecvAccountInfo) {
-                return new BaseResponse<>(false, 4201, "계좌 조회 실패", null);
-            }
-            // 블루투스 송금용 기본 응답 설정
-            PrimaryAccountResponseDto primaryAccountResponseDto = PrimaryAccountResponseDto.builder()
+        public PrimaryAccountResponseDto getPrimaryAccountInfo(String userId) {
+            if (failRecvAccountInfo) throw new TransferException(TransferResponseStatus.COUNTERPART_ACCOUNT_LOOKUP_FAILED);
+            return PrimaryAccountResponseDto.builder()
+                    .accountId(10L)
                     .accountNumber("1111-111-1112")
                     .bankCode(1)
                     .username("테스트수신자")
-                    .accountId(10L)
                     .build();
-            return new BaseResponse<>(true, 2200, "계좌 조회 성공", primaryAccountResponseDto);
         }
     }
 
@@ -385,9 +377,8 @@ public class TransferServiceTest {
         // 출금 계좌도 동일하게 설정해서 예외 유도
         fakeAccountServiceClient = new FakeAccountServiceClient() {
             @Override
-            public BaseResponse<AccountResponseDto> getAccountInfo(Long accountId, String userId) {
-                return new BaseResponse<>(true, 2200, "계좌 조회 성공",
-                        new AccountResponseDto("1111-111-1112")); // 입금 계좌와 동일하게 설정
+            public AccountResponseDto getAccountInfo(Long accountId, String userId) {
+                return new AccountResponseDto("1111-111-1112"); // 입금 계좌와 동일하게 설정
             }
         };
 

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package user;
+
+option java_package = "kr.ssok.common.grpc.user";
+option java_multiple_files = true;
+option java_outer_classname = "UserServiceProto";
+
+// 서비스 정의
+service UserService {
+  // 유저 ID로 유저 정보 조회
+  rpc GetUserInfo(UserIdRequest) returns (UserInfoResponse);
+}
+
+
+// 요청 메시지
+message UserIdRequest {
+  string user_id = 1;
+}
+
+
+// 응답 메시지
+message UserInfoResponse {
+  string username = 1;
+  string phoneNumber = 2;
+  string profileImage = 3;
+}

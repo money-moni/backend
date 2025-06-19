@@ -1,8 +1,6 @@
 plugins {
     alias(libs.plugins.springBoot)
     alias(libs.plugins.dependencyManagement)
-    // protobuf 플러그인
-    alias(libs.plugins.protobufPlugin)
 }
 
 configurations {
@@ -51,12 +49,6 @@ dependencies {
     implementation(libs.grpcStub)
     implementation(libs.grpcProtobuf)
     runtimeOnly(libs.grpcNetty)
-
-    // 컴파일 에러 방지용 어노테이션 라이브러리
-    compileOnly(libs.jakartaAnnotation)
-
-    // protobuf 유틸(protobuf -> Json 변환 등)이 필요할 경우 (디버깅 용도)
-    // implementation(libs.protobufJavaUtil)
 }
 
 dependencyManagement {
@@ -70,24 +62,3 @@ tasks.named('test') {
 }
 
 tasks.register("prepareKotlinBuildScriptModel"){}
-
-// protobuf 설정
-protobuf {
-    protoc {
-        // Protocol Buffers 컴파일러
-        artifact = libs.protobufCompiler.get().toString()
-    }
-    plugins {
-        grpc {
-            // gRPC Java 코드 생성용 플러그인 (Stub, Service 등)
-            artifact = libs.grpcCodegen.get().toString()
-        }
-    }
-    generateProtoTasks {
-        all().configureEach {
-            plugins {
-                grpc {}
-            }
-        }
-    }
-}

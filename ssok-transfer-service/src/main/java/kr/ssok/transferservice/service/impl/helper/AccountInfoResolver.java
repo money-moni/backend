@@ -1,10 +1,7 @@
 package kr.ssok.transferservice.service.impl.helper;
 
-import kr.ssok.common.exception.BaseResponse;
-import kr.ssok.transferservice.client.AccountServiceClient;
 import kr.ssok.transferservice.client.dto.response.AccountResponseDto;
-import kr.ssok.transferservice.exception.TransferException;
-import kr.ssok.transferservice.exception.TransferResponseStatus;
+import kr.ssok.transferservice.grpc.client.AccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,7 +11,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AccountInfoResolver {
 
-    private final AccountServiceClient accountServiceClient;
+    private final AccountService accountServiceClient;
 
     /**
      * 출금 계좌 번호 조회 메서드
@@ -24,12 +21,13 @@ public class AccountInfoResolver {
      * @return 출금 계좌 번호
      */
     public String findSendAccountNumber(Long accountId, Long userId) {
-        BaseResponse<AccountResponseDto> response = this.accountServiceClient.getAccountInfo(accountId, userId.toString());
-
-        if (!response.getIsSuccess()) {
-            log.warn("출금 계좌 조회 실패: {}", response.getMessage());
-            throw new TransferException(TransferResponseStatus.ACCOUNT_LOOKUP_FAILED);
-        }
-        return response.getResult().getAccountNumber();
+//        BaseResponse<AccountResponseDto> response = this.accountServiceClient.getAccountInfo(accountId, userId.toString());
+//
+//        if (!response.getIsSuccess()) {
+//            log.warn("출금 계좌 조회 실패: {}", response.getMessage());
+//            throw new TransferException(TransferResponseStatus.ACCOUNT_LOOKUP_FAILED);
+//        }
+        AccountResponseDto response = this.accountServiceClient.getAccountInfo(accountId, userId.toString());
+        return response.getAccountNumber();
     }
 }

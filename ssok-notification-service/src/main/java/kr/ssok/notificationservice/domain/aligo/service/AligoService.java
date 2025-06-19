@@ -50,7 +50,7 @@ public class AligoService {
         map.add("sender", SENDER);
         map.add("receiver", phoneNumber);
         map.add("msg", "쏙! 인증번호를 안내해드립니다. " + verificationCode);
-        map.add("testmode_yn", "Y");
+//        map.add("testmode_yn", "Y");
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 

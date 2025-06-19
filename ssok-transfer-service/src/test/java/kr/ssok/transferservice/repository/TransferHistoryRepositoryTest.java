@@ -3,6 +3,7 @@ package kr.ssok.transferservice.repository;
 import kr.ssok.transferservice.config.QueryDSLConfig;
 import kr.ssok.transferservice.dto.response.TransferCounterpartResponseDto;
 import kr.ssok.transferservice.entity.TransferHistory;
+import kr.ssok.transferservice.enums.BankCode;
 import kr.ssok.transferservice.enums.CurrencyCode;
 import kr.ssok.transferservice.enums.TransferMethod;
 import kr.ssok.transferservice.enums.TransferType;
@@ -102,6 +103,7 @@ class TransferHistoryRepositoryTest {
                 .accountId(accountId)
                 .counterpartName(counterpartName)
                 .counterpartAccount(counterpartAccount)
+                .counterpartBankCode(BankCode.SSOK_BANK)
                 .transferType(transferType)
                 .transferMethod(transferMethod)
                 .transferMoney(10000L)

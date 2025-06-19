@@ -16,13 +16,26 @@ repositories {
 
 dependencies {
 
-    implementation project(':ssok-common')
+    implementation(project(':ssok-common')) {
+        exclude group: 'io.grpc', module: 'grpc-core'
+        exclude group: 'io.grpc', module: 'grpc-stub'
+        exclude group: 'io.grpc', module: 'grpc-protobuf'
+        exclude group: 'io.grpc', module: 'grpc-netty-shaded'
+    }
+
+    // gRPC 의존성 (Spring Cloud Gateway 3.x에서 필요)
+    implementation 'io.grpc:grpc-netty:1.70.0'
 
     // Spring Boot WebFlux (Gateway는 WebFlux 기반)
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     // Spring Cloud Gateway
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+    
+    // gRPC 의존성 (Spring Cloud Gateway 3.x에서 필요)
+    implementation libs.grpcNetty
+    implementation libs.grpcStub
+    implementation libs.grpcProtobuf
 
     // Spring Cloud Kubernetes
     implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-config'

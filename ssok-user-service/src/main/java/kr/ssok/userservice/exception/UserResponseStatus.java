@@ -17,6 +17,7 @@ public enum UserResponseStatus implements ResponseStatus {
     INVALID_SIGNUP_REQUEST_VALUE(false, 4002, "유효하지 않은 회원가입 양식입니다."),
     INVALID_PIN_CODE(false, 4000, "유효하지 않은 PIN 번호입니다."),
     CODE_VERIFICATION_FAIL(false, 4001, "휴대폰 인증번호가 일치하지 않아, 인증에 실패했습니다."),
+    PHONE_VERIFICATION_REQUIRED(false, 4003, "휴대폰 인증이 필요합니다."),
     
     // 인증 관련 오류
     INVALID_TOKEN(false, 4010, "유효하지 않은 토큰입니다."),
@@ -52,7 +53,10 @@ public enum UserResponseStatus implements ResponseStatus {
     PROFILE_IMAGE_SAVE_ERROR(false, 5032, "프로필 이미지 저장 중 오류가 발생했습니다."),
 
     // Redis 관련 오류
-    REDIS_SAVE_ERROR(false, 5034, "Redis 데이터 저장 중 오류가 발생했습니다.");
+    REDIS_SAVE_ERROR(false, 5034, "Redis 데이터 저장 중 오류가 발생했습니다."),
+
+    // gRPC 클라이언트에 전달 목적
+    INTERNAL_SERVER_ERROR(false, 4050, "내부 서버 에러가 발생했습니다.");
 
     private final boolean success;
     private final int code;
