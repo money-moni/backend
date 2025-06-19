@@ -42,7 +42,7 @@ public class AsyncConfig {
         int cores = Runtime.getRuntime().availableProcessors(); // 물리·논리 코어 수
         exec.setCorePoolSize(cores * corePoolMul);              // 최소 스레드 수
         exec.setMaxPoolSize(cores * maxPoolMul);                // 최대 스레드 수
-        exec.setQueueCapacity(500);                             // 대기 큐 용량
+        exec.setQueueCapacity(2000);                             // 대기 큐 용량
         exec.setKeepAliveSeconds(120);                          // 여분 스레드 유지 시간(초)
         exec.setThreadNamePrefix("customWebClient-");           // 스레드 이름 접두어
 
