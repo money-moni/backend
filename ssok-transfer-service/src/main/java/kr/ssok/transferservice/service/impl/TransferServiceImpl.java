@@ -97,7 +97,7 @@ public class TransferServiceImpl implements TransferService {
                     }
                     // 3) 출금/입금 내역 저장
                     transferHistoryRecorder.saveTransferHistory(
-                            dto.getSendAccountId(), dto.getRecvAccountNumber(), dto.getRecvName(), TransferType.WITHDRAWAL,
+                            dto.getSendAccountId(), dto.getRecvAccountNumber(), dto.getRecvName(), BankCode.fromIdx(dto.getRecvBankCode()), TransferType.WITHDRAWAL,
                             dto.getAmount(), CurrencyCode.KRW, transferMethod);
                     saveDepositHistoryIfReceiverExists(sendAccountNumber, dto, transferMethod);
 
@@ -153,15 +153,15 @@ public class TransferServiceImpl implements TransferService {
                     transferHistoryRecorder.saveTransferHistory(
                             transferRequestDto.getSendAccountId(),
                             MaskingUtils.maskAccountNumber(transferRequestDto.getRecvAccountNumber()), MaskingUtils.maskUsername(transferRequestDto.getRecvName()),
-                            TransferType.WITHDRAWAL, transferRequestDto.getAmount(), CurrencyCode.KRW, transferMethod);
+                            BankCode.fromIdx(transferRequestDto.getRecvBankCode()), TransferType.WITHDRAWAL, transferRequestDto.getAmount(), CurrencyCode.KRW, transferMethod);
                     // 6. 입금 이력 저장 (마스킹)
                     transferHistoryRecorder.saveTransferHistory(
                             transferRequestDto.getRecvAccountId(),
                             MaskingUtils.maskAccountNumber(sendAccountNumber), MaskingUtils.maskUsername(transferRequestDto.getSendName()),
-                            TransferType.DEPOSIT, transferRequestDto.getAmount(), CurrencyCode.KRW, transferMethod);
+                            BankCode.fromIdx(transferRequestDto.getSendBankCode()), TransferType.DEPOSIT, transferRequestDto.getAmount(), CurrencyCode.KRW, transferMethod);
                     // 7. 푸시 알림
                     notificationSender.sendKafkaNotification(
-                            requestDto.getRecvUserId(), transferRequestDto.getSendName(), transferRequestDto.getRecvBankCode(), requestDto.getAmount(), TransferType.DEPOSIT);
+                            requestDto.getRecvUserId(), transferRequestDto.getRecvAccountId(), transferRequestDto.getSendName(), transferRequestDto.getRecvBankCode(), requestDto.getAmount(), TransferType.DEPOSIT);
                     // 8. 결과 DTO 반환
                     return buildBluetoothResponse(transferRequestDto);
                 });
