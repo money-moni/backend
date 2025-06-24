@@ -20,7 +20,7 @@
 - 송금 요청 생성 및 처리
 - 블루투스 송금 대상 매칭
 - 송금 결과에 따른 알림 전송
-- 외부 금융기관([OpenBanking](https://github.com/Team-SSOK/ssok-openbanking))과의 API 연동
+- 직접 구현한 외부 금융기관([OpenBanking](https://github.com/Team-SSOK/ssok-openbanking))과의 API 연동
 
 이를 통해 사용자에게 **간편하고 안전한 송금 경험**을 제공합니다.
 
