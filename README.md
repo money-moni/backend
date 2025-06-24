@@ -1,7 +1,32 @@
-# SSOK 백엔드
+<div align="center">
+    <img width="850px" alt="SSOK" src="https://github.com/user-attachments/assets/e7bf97d5-f088-4a6e-acc0-e90235779d9d">
+    </a>
+    <h3>"블루투스 기반 간편 송금 서비스 SSOK"</h3> 
+</div>
 
-## 개요
-금융 송금 서비스의 백 엔드 코드베이스
+</br>
+
+---
+
+</br>
+
+## 📋 개요
+> 블루투스 기반 송금 기능을 제공하는 금융 서비스 **SSOK**의 백엔드 저장소입니다.
+
+**SSOK**은 금융 서비스 생태계의 **채널계**를 담당하고 있으며,  
+사용자 요청을 처리하고 계정계 및 대외계와의 연동을 통해 실질적인 송금 기능을 제공합니다.
+
+- 핀번호 기반 사용자 인증/인가
+- 송금 요청 생성 및 처리
+- 블루투스 송금 대상 매칭
+- 송금 결과에 따른 알림 전송
+- 외부 금융기관([OpenBanking](https://github.com/Team-SSOK/ssok-openbanking))과의 API 연동
+
+이를 통해 사용자에게 **간편하고 안전한 송금 경험**을 제공합니다.
+
+</br>
+
+작성중..
 
 ## 프로젝트 구조
 - `ssok-common`: 공통 라이브러리
